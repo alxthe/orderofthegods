@@ -66,6 +66,19 @@ const game = {
   darkTimer: 0,               // Time remaining darkened (ms)
   specialPowerActive: false,  // Is a special power currently active
   
+  // Level 3 God Powers
+  speedup: false,             // Hermes - everything moves too fast
+  speedupTimer: 0,
+  wave: false,                // Poseidon - waves push player around
+  waveTimer: 0,
+  waveForce: { x: 0, y: 0 },  // Direction of wave push
+  lightning: false,           // Zeus - lightning strikes blind player
+  lightningTimer: 0,
+  judgment: false,            // Hera - false information and hidden elements
+  judgmentTimer: 0,
+  underworld: false,          // Hades - inverted colors and death theme
+  underworldTimer: 0,
+  
   // God Relationship System - Character Arcs
   godRelationships: {
     // Trial 1 - Tartarus Creatures

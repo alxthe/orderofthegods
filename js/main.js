@@ -17,9 +17,13 @@ function update(deltaTime) {
   // Update special power timers
   updateSpecialPowers(deltaTime);
   
-  // Update timer
+  // Update timer (faster with Hermes' power)
   if (game.currentRiddle) {
-    game.timer -= deltaTime / 1000;
+    let timerSpeed = 1;
+    if (game.speedup) {
+      timerSpeed = 2; // Timer counts down 2x faster with Hermes
+    }
+    game.timer -= (deltaTime / 1000) * timerSpeed;
     if (game.timer <= 0) {
       game.timer = 0;
       // SIMPLE timeout handling - no scrambling!

@@ -255,6 +255,49 @@ function nextRiddle() {
     }
   }
   
+  // Level 3: Activate god powers when they arrive
+  if (game.currentLevel === 3) {
+    const godId = game.currentCustomer?.id;
+    console.log(`⚡ Level 3 God arrived: ${godId}`);
+    
+    if (godId === 'hermes') {
+      // Hermes speeds everything up
+      showToast("⚡ HERMES arrives! Time itself accelerates!");
+      setTimeout(() => {
+        activateSpecialPower('speedup', 5000); // 5 seconds of speed
+        console.log("💨 HERMES' POWER: Speed increased!");
+      }, 1500);
+    } else if (godId === 'poseidon') {
+      // Poseidon's waves push player around
+      showToast("🌊 POSEIDON rises! His waves will push you!");
+      setTimeout(() => {
+        activateSpecialPower('wave', 6000); // 6 seconds of waves
+        console.log("🌊 POSEIDON'S POWER: Waves activated!");
+      }, 1500);
+    } else if (godId === 'zeus') {
+      // Zeus' lightning blinds with flashes
+      showToast("⚡ ZEUS descends! Lightning will blind you!");
+      setTimeout(() => {
+        activateSpecialPower('lightning', 5000); // 5 seconds of lightning
+        console.log("⚡ ZEUS' POWER: Lightning strikes!");
+      }, 1500);
+    } else if (godId === 'hera') {
+      // Hera's judgment clouds reality
+      showToast("👑 HERA judges! Reality bends to her will!");
+      setTimeout(() => {
+        activateSpecialPower('judgment', 5000); // 5 seconds of judgment
+        console.log("👑 HERA'S POWER: Judgment activated!");
+      }, 1500);
+    } else if (godId === 'hades') {
+      // Hades brings the underworld
+      showToast("💀 HADES emerges! The underworld rises!");
+      setTimeout(() => {
+        activateSpecialPower('underworld', 6000); // 6 seconds of underworld
+        console.log("💀 HADES' POWER: Underworld theme activated!");
+      }, 1500);
+    }
+  }
+  
   // Clear plate
   game.plate = [];
   
@@ -674,6 +717,19 @@ function restartLevel() {
   game.darkTimer = 0;
   game.specialPowerActive = false;
   
+  // Clear Level 3 god powers
+  game.speedup = false;
+  game.speedupTimer = 0;
+  game.wave = false;
+  game.waveTimer = 0;
+  game.waveForce = { x: 0, y: 0 };
+  game.lightning = false;
+  game.lightningTimer = 0;
+  game.judgment = false;
+  game.judgmentTimer = 0;
+  game.underworld = false;
+  game.underworldTimer = 0;
+  
   // Re-shuffle customers for the current level
   game.shuffledCustomers = shuffleCustomers();
   game.customerIndex = 0;
@@ -790,6 +846,19 @@ function startGame() {
   game.darkened = false;
   game.darkTimer = 0;
   game.specialPowerActive = false;
+  
+  // Clear Level 3 god powers
+  game.speedup = false;
+  game.speedupTimer = 0;
+  game.wave = false;
+  game.waveTimer = 0;
+  game.waveForce = { x: 0, y: 0 };
+  game.lightning = false;
+  game.lightningTimer = 0;
+  game.judgment = false;
+  game.judgmentTimer = 0;
+  game.underworld = false;
+  game.underworldTimer = 0;
   
   // Get first riddle
   nextRiddle();

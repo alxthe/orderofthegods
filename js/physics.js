@@ -112,9 +112,22 @@ function updatePlayer(deltaTime) {
     movement.y = -movement.y;
   }
   
+  // Apply Hermes' speed increase
+  let speedMultiplier = 1;
+  if (game.speedup) {
+    speedMultiplier = 2.5; // Move 2.5x faster with Hermes' power
+  }
+  
+  // Apply Poseidon's wave push
+  if (game.wave) {
+    // Add wave force to movement
+    movement.x += game.waveForce.x * 0.1;
+    movement.y += game.waveForce.y * 0.1;
+  }
+  
   // Calculate new position
-  const newX = player.x + (movement.x * player.speed);
-  const newY = player.y + (movement.y * player.speed);
+  const newX = player.x + (movement.x * player.speed * speedMultiplier);
+  const newY = player.y + (movement.y * player.speed * speedMultiplier);
   
   // Apply boundaries
   const halfSize = CONFIG.PLAYER_SIZE / 2;

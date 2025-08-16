@@ -33,7 +33,8 @@ const KITCHEN = {
       egg: { x: Math.max(530, window.innerWidth * 0.4), y: window.innerHeight - 180 },       // Bottom bins (responsive)
       pepper: { x: Math.max(750, window.innerWidth * 0.5), y: window.innerHeight - 180 },
       bacon: { x: Math.max(850, window.innerWidth * 0.55), y: window.innerHeight - 180 },    // New ingredients!
-      avocado: { x: Math.max(950, window.innerWidth * 0.6), y: window.innerHeight - 180 }
+      avocado: { x: Math.max(950, window.innerWidth * 0.6), y: window.innerHeight - 180 },
+      oliveoil: { x: Math.max(1050, window.innerWidth * 0.65), y: window.innerHeight - 180 } // Level 2 olive oil!
     }
   },
   ZONES: {
@@ -80,6 +81,7 @@ const CONFIG = {
     MEAT: '#8B0000',         // Dark red
     EGG: '#FFFACD',          // Lemon chiffon
     PEPPER: '#FF4500',       // Orange red
+    OLIVEOIL: '#228B22',     // Forest green (olive color)
     TABLE: '#8B4513',        // Saddle brown
     COUNTER: '#696969',      // Dim gray
     WALL: '#4a4a4a',         // Gray
@@ -97,7 +99,8 @@ const ASSET_FILES = {
     egg: 'assets/food/egg.png',
     pepper: 'assets/food/pepper.png',
     bacon: 'assets/food/bacon.png',
-    avocado: 'assets/food/avocado.png'
+    avocado: 'assets/food/avocado.png',
+    oliveoil: 'assets/food/oliveoil.png'
   },
   customers: {
     // Level 1 - Tartarus Creatures (5 total)

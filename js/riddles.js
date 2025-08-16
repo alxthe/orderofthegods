@@ -40,6 +40,18 @@ const RIDDLES = [
   { id: "l2_8", text: "4 DIFFERENT items (no repeats)", type: "UNIQUE", level: 2,
     totalCount: 4, unique: true},
   
+  // LEVEL 2 - OLIVE OIL RIDDLES (Heroes love their olive oil!)
+  { id: "l2_9", text: "1 bread + 1 oliveoil", type: "COUNT", level: 2,
+    counts: { bread: 1, oliveoil: 1 }},
+  { id: "l2_10", text: "SANDWICH: bread + oliveoil + tomato + bread", type: "SANDWICH", level: 2,
+    sandwich: ["bread", "oliveoil", "tomato", "bread"]},
+  { id: "l2_11", text: "2 oliveoil + 1 cheese (NO meat)", type: "EXCLUDE", level: 2,
+    counts: { oliveoil: 2, cheese: 1 }, excludes: ["meat"]},
+  { id: "l2_12", text: "1 oliveoil + 1 pepper + 1 avocado", type: "COUNT", level: 2,
+    counts: { oliveoil: 1, pepper: 1, avocado: 1 }},
+  { id: "l2_13", text: "EXACTLY 3 items with oliveoil", type: "COUNT", level: 2,
+    counts: { oliveoil: 1 }, totalCount: 3},
+  
   // LEVEL 3 - Godly COMPLEX riddles (15 seconds)
   { id: "l3_1", text: "EXACTLY 3 items total", type: "TOTALCOUNT", level: 3,
     totalCount: 3},
@@ -127,6 +139,32 @@ const ADVANCED_RIDDLES = [
     type: "COOKING",
     required: ["cooked_bacon"],
     timeBonus: 15
+  },
+  
+  // Level 2 - Olive Oil Advanced Combinations
+  {
+    id: 'oliveoil_cut_tomato',
+    text: "OLIVE OIL + SLICED tomato",
+    level: 2,
+    type: "COOKING", 
+    required: ["oliveoil", "cut_tomato"],
+    timeBonus: 20
+  },
+  {
+    id: 'cooked_meat_oliveoil',
+    text: "COOKED meat + OLIVE OIL",
+    level: 2,
+    type: "COOKING",
+    required: ["cooked_meat", "oliveoil"],
+    timeBonus: 20
+  },
+  {
+    id: 'oliveoil_bread_cheese',
+    text: "OLIVE OIL + bread + SLICED cheese",
+    level: 2,
+    type: "COOKING",
+    required: ["oliveoil", "bread", "cut_cheese"],
+    timeBonus: 25
   }
 ];
 
