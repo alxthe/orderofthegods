@@ -90,7 +90,7 @@
         EXIT_Y: window.innerHeight - 100   // Where customers exit to (near bottom)
       },
       POSITIONS: {
-        COUNTER: { x: Math.max(500, window.innerWidth * 0.4), y: 180 },     // Moved counter lower to not block riddles (responsive)
+        COUNTER: { x: Math.max(640, window.innerWidth * 0.5), y: 200 },     // Centered delivery counter (responsive)
         TABLE: { x: Math.max(640, window.innerWidth * 0.5), y: Math.max(360, window.innerHeight * 0.4) },       // Central plate assembly (responsive)
         TRASH: { x: window.innerWidth - 150, y: window.innerHeight - 150 }, // Trash bin - bottom right corner (responsive)
         BINS: {
@@ -168,7 +168,7 @@
         tomato: 'assets/tomato.png', 
         cheese: 'assets/cheese.png',
         meat: 'assets/meat.png',  // Updated to use meat.png
-        egg: null, // No egg asset - will use placeholder
+        egg: 'assets/egg.png',     // New egg asset!
         pepper: 'assets/pepper.png'
       },
       customers: {
@@ -176,11 +176,15 @@
         minotaur: 'assets/minotaur.png',
         hermes: 'assets/hermes.png',
         sphinx: 'assets/sphinx.png',
-        pegasus: 'assets/pegasus.png'
+        pegasus: 'assets/pegasus.png',
+        poseidon: 'assets/poseidon.png'  // New god of the sea!
       },
       ui: {
         plate: 'assets/plate.png',
         crate: 'assets/crate.png'
+      },
+      player: {
+        character: 'assets/main character.png'  // New player character sprite!
       }
     };
     
@@ -431,6 +435,10 @@
         success: ["Wings of satisfaction.", "Sky-high approval.", "Divine flight achieved."],
         failure: ["Grounded by error.", "Wings clipped.", "Fall from grace."],
         timeout: ["Time flies away.", "Swift as wind departs.", "The sky cannot wait."]},
+      { id: "poseidon", name: "Poseidon",
+        success: ["The seas are pleased.", "Tidal perfection.", "Oceanic approval flows."],
+        failure: ["The depths are angry.", "Storms brew from failure.", "Poseidon's wrath rises."],
+        timeout: ["The tide waits not.", "Waves of time crash over.", "The ocean reclaims all."]},
       { id: "ghost", name: "Restless Spirit",
         success: ["The veil shivers.", "Peace flows.", "Rest is granted."],
         failure: ["Whispers say no.", "Unrest grows.", "The dead are displeased."],
@@ -1087,25 +1095,8 @@
         ctx.strokeRect(pos.x - crateSize/2, pos.y - crateSize/2, crateSize, crateSize);
         ctx.shadowBlur = 0;
         
-        // Draw ingredient PNG on top of crate
-        const ingredientImg = ASSETS.ingredients[ingredient];
-        if (ingredientImg && ASSETS.loaded) {
-          const imgSize = 55; // Perfect size for crate contents
-          ctx.drawImage(
-            ingredientImg, 
-            pos.x - imgSize/2, 
-            pos.y - imgSize/2 - 5, // Slightly elevated in crate
-            imgSize, 
-            imgSize
-          );
-        } else {
-          // Enhanced fallback graphics
-          ctx.fillStyle = CONFIG.COLORS[ingredient.toUpperCase()];
-          ctx.fillRect(pos.x - 25, pos.y - 25, 50, 50);
-          ctx.strokeStyle = '#000';
-          ctx.lineWidth = 2;
-          ctx.strokeRect(pos.x - 25, pos.y - 25, 50, 50);
-        }
+        // Just show empty crates - no ingredient images on top
+        // Crates are labeled below, that's enough visual indication
         
         // Ancient-style label with parchment appearance
         const labelWidth = 85;
@@ -1238,21 +1229,64 @@
         ctx.strokeRect(table.x - 105, table.y - 65, 210, 130);
       }
       
-      // Counter/delivery zone
+      // Ancient Delivery Altar (enhanced counter design)
       const counter = KITCHEN.POSITIONS.COUNTER;
-      ctx.fillStyle = CONFIG.COLORS.COUNTER;
-      ctx.fillRect(counter.x - 180, counter.y - 20, 360, 40);
-      ctx.strokeStyle = '#2F4F4F';
-      ctx.lineWidth = 3;
-      ctx.strokeRect(counter.x - 180, counter.y - 20, 360, 40);
+      const altarWidth = 300;
+      const altarHeight = 50;
       
-      // Delivery zone indicator
+      // Stone altar base with gradient
+      const altarGrad = ctx.createLinearGradient(counter.x - altarWidth/2, counter.y - altarHeight/2,
+                                                counter.x - altarWidth/2, counter.y + altarHeight/2);
+      altarGrad.addColorStop(0, '#A0522D'); // Sienna
+      altarGrad.addColorStop(0.5, '#8B4513'); // Saddle brown
+      altarGrad.addColorStop(1, '#654321'); // Dark brown
+      ctx.fillStyle = altarGrad;
+      ctx.fillRect(counter.x - altarWidth/2, counter.y - altarHeight/2, altarWidth, altarHeight);
+      
+      // Ancient carved border
+      ctx.strokeStyle = '#654321';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(counter.x - altarWidth/2, counter.y - altarHeight/2, altarWidth, altarHeight);
+      
+      // Inner carved design
+      ctx.strokeStyle = '#D2691E'; // Chocolate
+      ctx.lineWidth = 2;
+      ctx.strokeRect(counter.x - altarWidth/2 + 4, counter.y - altarHeight/2 + 4, 
+                    altarWidth - 8, altarHeight - 8);
+      
+      // Ancient symbols/decorations on altar
+      ctx.fillStyle = '#DAA520'; // Dark goldenrod
+      ctx.font = 'bold 16px Cinzel, serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('⚱', counter.x - 80, counter.y + 6);  // Left urn
+      ctx.fillText('🏛', counter.x, counter.y + 6);        // Center temple
+      ctx.fillText('⚱', counter.x + 80, counter.y + 6);   // Right urn
+      
+      // Divine glow when player is near
       if (game.player.currentZone === 'counter') {
+        // Golden divine aura
+        ctx.shadowColor = '#FFD700';
+        ctx.shadowBlur = 20;
         ctx.strokeStyle = '#FFD700';
-        ctx.lineWidth = 3;
-        ctx.setLineDash([5, 5]);
-        ctx.strokeRect(counter.x - 175, counter.y - 15, 350, 30);
+        ctx.lineWidth = 4;
+        ctx.setLineDash([8, 4]);
+        ctx.strokeRect(counter.x - altarWidth/2 - 8, counter.y - altarHeight/2 - 8, 
+                      altarWidth + 16, altarHeight + 16);
         ctx.setLineDash([]);
+        ctx.shadowBlur = 0;
+        
+        // Divine particles around altar
+        for (let i = 0; i < 6; i++) {
+          const angle = (Date.now() * 0.003 + i) % (Math.PI * 2);
+          const radius = 180 + Math.sin(Date.now() * 0.005 + i) * 15;
+          const particleX = counter.x + Math.cos(angle) * radius;
+          const particleY = counter.y + Math.sin(angle) * radius;
+          
+          ctx.fillStyle = 'rgba(255, 215, 0, 0.8)';
+          ctx.beginPath();
+          ctx.arc(particleX, particleY, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
       
       // Trash bin
@@ -1298,26 +1332,53 @@
       ctx.font = 'bold 14px Arial';
       ctx.textAlign = 'center';
       ctx.fillText('TABLE', table.x, table.y - 75);
-      ctx.fillText('DELIVERY COUNTER', counter.x, counter.y - 30);
+      ctx.fillText('DIVINE ALTAR', counter.x, counter.y - 35);
       ctx.fillText('TRASH', trash.x, trash.y + 40);
     }
     
-    // Render player (Phase 3 - Enhanced with carried item PNG)
+    // Render player (Enhanced with character sprite)
     function renderPlayer() {
       const player = game.player;
       
-      // Player square
-      ctx.fillStyle = CONFIG.COLORS.PLAYER;
-      ctx.fillRect(player.x - CONFIG.PLAYER_SIZE/2,
-                   player.y - CONFIG.PLAYER_SIZE/2,
-                   CONFIG.PLAYER_SIZE, CONFIG.PLAYER_SIZE);
-      
-      // Player border
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(player.x - CONFIG.PLAYER_SIZE/2,
+      // Draw player character sprite if available
+      const characterImg = ASSETS.player?.character;
+      if (characterImg && ASSETS.loaded) {
+        const spriteSize = 48; // Appropriate size for player character
+        
+        // Draw character sprite
+        ctx.drawImage(
+          characterImg,
+          player.x - spriteSize/2,
+          player.y - spriteSize/2,
+          spriteSize,
+          spriteSize
+        );
+        
+        // Add subtle glow around player for visibility
+        ctx.shadowColor = 'rgba(255, 255, 255, 0.3)';
+        ctx.shadowBlur = 8;
+        ctx.drawImage(
+          characterImg,
+          player.x - spriteSize/2,
+          player.y - spriteSize/2,
+          spriteSize,
+          spriteSize
+        );
+        ctx.shadowBlur = 0;
+      } else {
+        // Fallback to classic square design
+        ctx.fillStyle = CONFIG.COLORS.PLAYER;
+        ctx.fillRect(player.x - CONFIG.PLAYER_SIZE/2,
                      player.y - CONFIG.PLAYER_SIZE/2,
                      CONFIG.PLAYER_SIZE, CONFIG.PLAYER_SIZE);
+        
+        // Player border
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(player.x - CONFIG.PLAYER_SIZE/2,
+                       player.y - CONFIG.PLAYER_SIZE/2,
+                       CONFIG.PLAYER_SIZE, CONFIG.PLAYER_SIZE);
+      }
       
       // Carried item (Phase 5 - Enhanced appearance)
       if (player.carrying) {
@@ -2186,7 +2247,7 @@
       KITCHEN.CUSTOMER_AREA.EXIT_Y = window.innerHeight - 100;
       KITCHEN.POSITIONS.TRASH.x = window.innerWidth - 150;
       KITCHEN.POSITIONS.TRASH.y = window.innerHeight - 150;
-      KITCHEN.POSITIONS.COUNTER.x = Math.max(500, window.innerWidth * 0.4);
+      KITCHEN.POSITIONS.COUNTER.x = Math.max(640, window.innerWidth * 0.5);
       KITCHEN.POSITIONS.TABLE.x = Math.max(640, window.innerWidth * 0.5);
       KITCHEN.POSITIONS.TABLE.y = Math.max(360, window.innerHeight * 0.4);
       KITCHEN.POSITIONS.BINS.cheese.x = window.innerWidth - 160;
