@@ -207,6 +207,13 @@
         cuttingBoard: 'assets/cutting-board.png',  // Ancient cutting board!
         feastHall: 'assets/feast-hall.png'  // Background enhancement!
       },
+      cutIngredients: {
+        cut_tomato: 'assets/cut-tomato.png',
+        cut_cheese: 'assets/cut-cheese.png',
+        cut_meat: 'assets/cut-meat.png',
+        cut_avocado: 'assets/cut-avocado.png',
+        cut_pepper: 'assets/cut-pepper.png'
+      },
       player: {
         character: 'assets/main-character.png'
       }
@@ -241,6 +248,7 @@
       Object.values(ASSET_FILES.customers).forEach(src => src && ASSETS.totalAssets++);
       Object.values(ASSET_FILES.ui).forEach(src => src && ASSETS.totalAssets++);
       Object.values(ASSET_FILES.kitchen).forEach(src => src && ASSETS.totalAssets++); // Add kitchen cooking stations
+      Object.values(ASSET_FILES.cutIngredients).forEach(src => src && ASSETS.totalAssets++); // Add cut ingredient assets
       Object.values(ASSET_FILES.player).forEach(src => src && ASSETS.totalAssets++); // Add player assets to count
       
       // Load ingredient assets
@@ -297,6 +305,23 @@
               if (!ASSETS.kitchen) ASSETS.kitchen = {};
               ASSETS.kitchen[kitchen] = null;
               console.log(`❌ Kitchen asset failed: ${kitchen}`);
+            })
+          );
+        }
+      }
+      
+      // Load cut ingredient assets
+      for (let [cutItem, src] of Object.entries(ASSET_FILES.cutIngredients)) {
+        if (src) {
+          loadPromises.push(
+            loadImage(src).then(img => {
+              if (!ASSETS.cutIngredients) ASSETS.cutIngredients = {};
+              ASSETS.cutIngredients[cutItem] = img;
+              console.log(`✅ Cut ingredient asset loaded: ${cutItem}`);
+            }).catch(() => {
+              if (!ASSETS.cutIngredients) ASSETS.cutIngredients = {};
+              ASSETS.cutIngredients[cutItem] = null;
+              console.log(`❌ Cut ingredient asset failed: ${cutItem}`);
             })
           );
         }
@@ -905,8 +930,12 @@
       game.currentRiddle = randomChoice(available);
       game.usedRiddles.push(game.currentRiddle.id);
       
-      // Reset timer
+      // Reset timer with bonus time for cooking riddles
       game.timer = game.timePerRiddle;
+      if (game.currentRiddle.timeBonus) {
+        game.timer += game.currentRiddle.timeBonus;
+        console.log(`⏰ Added ${game.currentRiddle.timeBonus}s bonus time for cooking/cutting riddle`);
+      }
       
       // Get next customer from existing shuffled order (NO RE-SHUFFLING)
       game.customerIndex++;
@@ -1115,15 +1144,17 @@
       // At cutting board
       else if (zone === 'cutting_board') {
         if (player.carrying) {
-          // Cut the item directly at the cutting board
+          // Cut the item directly at the cutting board - only certain items can be cut
           const ingredient = player.carrying;
-          if (['tomato', 'cheese', 'meat', 'avocado', 'bacon'].includes(ingredient)) {
+          const cuttableItems = ['tomato', 'cheese', 'meat', 'avocado', 'pepper'];
+          
+          if (cuttableItems.includes(ingredient)) {
             player.carrying = `cut_${ingredient}`;
             showToast(`Sliced ${ingredient} on ancient cutting board!`);
             console.log(`Cut ${ingredient} into cut_${ingredient}`);
             AUDIO.playPlace(); // Cutting sound
           } else {
-            showToast(`Cannot cut ${ingredient} on cutting board`);
+            showToast(`${ingredient} cannot be cut! (Only: tomato, cheese, meat, avocado, pepper)`);
           }
         } else {
           showToast("Bring ingredient to cutting board to slice");
@@ -1133,12 +1164,19 @@
       // At oven
       else if (zone === 'oven') {
         if (player.carrying) {
-          game.cookingItem = player.carrying;
-          game.cookingTimer = game.cookingDuration; // Start 3-second cooking timer
-          player.carrying = null;
-          showToast(`${game.cookingItem} cooking... 3 seconds (V to retrieve)`);
-          console.log(`Started cooking: ${game.cookingItem} for ${game.cookingDuration}ms`);
-          AUDIO.playPlace();
+          const ingredient = player.carrying;
+          const cookableItems = ['meat', 'egg', 'bacon'];
+          
+          if (cookableItems.includes(ingredient)) {
+            game.cookingItem = ingredient;
+            game.cookingTimer = game.cookingDuration; // Start 3-second cooking timer
+            player.carrying = null;
+            showToast(`${game.cookingItem} cooking... 3 seconds (V to retrieve)`);
+            console.log(`Started cooking: ${game.cookingItem} for ${game.cookingDuration}ms`);
+            AUDIO.playPlace();
+          } else {
+            showToast(`${ingredient} cannot be cooked! (Only: meat, egg, bacon)`);
+          }
         } else if (game.cookingItem) {
           const timeLeft = Math.ceil(game.cookingTimer / 1000);
           if (timeLeft > 0) {
@@ -1295,54 +1333,76 @@
     // ADVANCED COOKING RIDDLES (WITH CUTTING & COOKING)
     // =============================================================================
     
-    // Add complex riddles that use the new cooking mechanics
+    // Add simple and clear cooking riddles
     const ADVANCED_RIDDLES = [
-      // Level 2 - Cutting required
+      // Level 2 - Simple cutting challenges
       {
         id: 'cut_tomato_basic',
-        text: "Slice the crimson fruit of the earth with ancient steel",
+        text: "SLICE: 1 tomato (use cutting board)",
         level: 2,
         type: "COOKING",
-        required: ["cut_tomato"]
+        required: ["cut_tomato"],
+        timeBonus: 10 // Extra time for preparation
       },
       {
-        id: 'cut_cheese_meat',
-        text: "Divine blade must prepare both golden wheel and beast's flesh",
+        id: 'cut_cheese_simple',
+        text: "SLICE: 1 cheese (use cutting board)",
+        level: 2,
+        type: "COOKING", 
+        required: ["cut_cheese"],
+        timeBonus: 10
+      },
+      
+      // Level 2 - Simple cooking challenges
+      {
+        id: 'cooked_meat_basic',
+        text: "COOK: 1 meat (use oven, wait 3 seconds)",
         level: 2,
         type: "COOKING",
-        required: ["cut_cheese", "cut_meat"]
+        required: ["cooked_meat"],
+        timeBonus: 15 // More time for cooking
+      },
+      {
+        id: 'cooked_egg_basic',
+        text: "COOK: 1 egg (use oven, wait 3 seconds)",
+        level: 2,
+        type: "COOKING",
+        required: ["cooked_egg"],
+        timeBonus: 15
       },
       
-      // Level 3 - Cooking required
+      // Level 3 - Mixed preparation (simple combinations)
       {
-        id: 'cooked_meat_bread',
-        text: "Beast's flesh touched by divine flames, paired with Demeter's grain",
+        id: 'meat_bread_combo',
+        text: "COOK meat + raw bread (cook the meat, bread stays raw)",
         level: 3,
         type: "COOKING",
-        required: ["cooked_meat", "bread"]
+        required: ["cooked_meat", "bread"],
+        timeBonus: 20
       },
       {
-        id: 'complex_preparation',
-        text: "Cut the green fruit, cook the beast, serve with grain - chef's feat",
+        id: 'tomato_cheese_combo',
+        text: "SLICE tomato + SLICE cheese (both need cutting board)",
         level: 3,
         type: "COOKING",
-        required: ["cut_avocado", "cooked_meat", "bread"]
+        required: ["cut_tomato", "cut_cheese"],
+        timeBonus: 15
       },
       {
-        id: 'zeus_ultimate',
-        text: "For Zeus: Cut cheese, cooked bacon, sliced tomato, divine bread, flame-touched egg",
-        level: 3,
+        id: 'pepper_slice_basic',
+        text: "SLICE: 1 pepper (use cutting board)",
+        level: 2,
         type: "COOKING",
-        required: ["cut_cheese", "cooked_bacon", "cut_tomato", "bread", "cooked_egg"]
+        required: ["cut_pepper"],
+        timeBonus: 10
       },
-      
-      // Advanced mixed challenges
       {
-        id: 'medusa_complex',
-        text: "Medusa demands: Blade-prepared avocado, fire-blessed meat, untouched pepper",
-        level: 3,
+        id: 'cooked_bacon_basic',
+        text: "COOK: 1 bacon (use oven, wait 3 seconds)",
+        level: 2,
         type: "COOKING",
-        required: ["cut_avocado", "cooked_meat", "pepper"]
+        required: ["cooked_bacon"],
+        timeBonus: 15
       }
     ];
     
@@ -1689,7 +1749,19 @@
         
         // Draw ingredient on plate if present
         if (game.plate[i]) {
-          const ingredientImg = ASSETS.ingredients[game.plate[i]];
+          const ingredient = game.plate[i];
+          let ingredientImg = null;
+          
+          // Check if it's a cut ingredient first
+          if (ingredient.startsWith('cut_')) {
+            ingredientImg = ASSETS.cutIngredients?.[ingredient];
+          }
+          
+          // If not cut or cut asset not found, use regular ingredient
+          if (!ingredientImg) {
+            ingredientImg = ASSETS.ingredients[ingredient];
+          }
+          
           if (ingredientImg && ASSETS.loaded) {
             const imgSize = 48; // Good size for clear table display with fixed positioning
             
@@ -1702,7 +1774,7 @@
             );
           } else {
             // Fallback to colored circle
-            ctx.fillStyle = CONFIG.COLORS[game.plate[i].toUpperCase()];
+            ctx.fillStyle = CONFIG.COLORS[ingredient.replace('cut_', '').replace('cooked_', '').toUpperCase()];
             ctx.beginPath();
             ctx.arc(slotX, slotY, 12, 0, Math.PI * 2);
             ctx.fill();
@@ -2016,7 +2088,19 @@
       
       // Carried item (Enhanced with high quality rendering)
       if (player.carrying) {
-        const carriedImg = ASSETS.ingredients[player.carrying];
+        const carriedItem = player.carrying;
+        let carriedImg = null;
+        
+        // Check if it's a cut ingredient first
+        if (carriedItem.startsWith('cut_')) {
+          carriedImg = ASSETS.cutIngredients?.[carriedItem];
+        }
+        
+        // If not cut or cut asset not found, use regular ingredient
+        if (!carriedImg) {
+          carriedImg = ASSETS.ingredients[carriedItem];
+        }
+        
         if (carriedImg && ASSETS.loaded) {
           // Good size for clear display with fixed positioning
           const imgSize = 72; // Perfect size for clear visibility
@@ -2060,7 +2144,18 @@
           ctx.fillStyle = '#000';
           ctx.font = 'bold 12px Arial';
           ctx.textAlign = 'center';
-          ctx.fillText(player.carrying.toUpperCase(), player.x, player.y - CONFIG.PLAYER_SIZE/2 - 12);
+          
+          // Display proper name with cut/cooked indicators
+          let displayName = carriedItem.toUpperCase();
+          if (carriedItem.startsWith('cut_')) {
+            displayName = 'CUT ' + carriedItem.replace('cut_', '').toUpperCase();
+            ctx.fillStyle = '#FF6347'; // Red for cut items
+          } else if (carriedItem.startsWith('cooked_')) {
+            displayName = 'COOKED ' + carriedItem.replace('cooked_', '').toUpperCase();
+            ctx.fillStyle = '#FF4500'; // Orange for cooked items
+          }
+          
+          ctx.fillText(displayName, player.x, player.y - CONFIG.PLAYER_SIZE/2 - 12);
         }
       }
     }
@@ -2704,6 +2799,12 @@
             
             game.usedRiddles.push(game.currentRiddle.id);
             game.timer = game.timePerRiddle;
+            
+            // Apply time bonus for cooking riddles after timeout too
+            if (game.currentRiddle.timeBonus) {
+              game.timer += game.currentRiddle.timeBonus;
+              console.log(`⏰ Added ${game.currentRiddle.timeBonus}s bonus time for cooking/cutting riddle (timeout)`);
+            }
             game.customerMessage = '';
             game.messageTimer = 0;
             
