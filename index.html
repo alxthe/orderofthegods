@@ -189,7 +189,7 @@
         crate: 'assets/crate.png'
       },
       player: {
-        character: 'assets/main character.png'  // New player character sprite!
+        character: 'assets/main-character.png'  // Fixed filename with hyphen!
       }
     };
     
@@ -221,6 +221,7 @@
       Object.values(ASSET_FILES.ingredients).forEach(src => src && ASSETS.totalAssets++);
       Object.values(ASSET_FILES.customers).forEach(src => src && ASSETS.totalAssets++);
       Object.values(ASSET_FILES.ui).forEach(src => src && ASSETS.totalAssets++);
+      Object.values(ASSET_FILES.player).forEach(src => src && ASSETS.totalAssets++); // Add player assets to count
       
       // Load ingredient assets
       for (let [ingredient, src] of Object.entries(ASSET_FILES.ingredients)) {
@@ -264,11 +265,35 @@
         }
       }
       
+      // Load player assets
+      for (let [player, src] of Object.entries(ASSET_FILES.player)) {
+        if (src) {
+          loadPromises.push(
+            loadImage(src).then(img => {
+              if (!ASSETS.player) ASSETS.player = {};
+              ASSETS.player[player] = img;
+              console.log(`✅ Player asset loaded: ${player}`);
+            }).catch(() => {
+              if (!ASSETS.player) ASSETS.player = {};
+              ASSETS.player[player] = null;
+              console.log(`❌ Player asset failed: ${player}`);
+            })
+          );
+        }
+      }
+      
       // Wait for all assets to load
       await Promise.allSettled(loadPromises);
       
       ASSETS.loaded = true;
       console.log(`🎨 Phase 3 assets loaded: ${ASSETS.loadedAssets}/${ASSETS.totalAssets}`);
+      
+      // Debug player character loading
+      if (ASSETS.player?.character) {
+        console.log('✅ Player character sprite loaded successfully!');
+      } else {
+        console.log('❌ Player character sprite failed to load - will use fallback square');
+      }
       
       return ASSETS.loaded;
     }
@@ -1389,9 +1414,12 @@
     function renderPlayer() {
       const player = game.player;
       
-      // FORCE character sprite usage - debug loading
+      // Character sprite usage with debug
       const characterImg = ASSETS.player?.character;
-      console.log('🎭 Player sprite check:', characterImg ? 'LOADED' : 'MISSING', 'Assets loaded:', ASSETS.loaded);
+      // Only log debug info in debug mode to avoid console spam
+      if (game.debugMode) {
+        console.log('🎭 Player sprite check:', characterImg ? 'LOADED' : 'MISSING', 'Assets loaded:', ASSETS.loaded);
+      }
       
       if (characterImg && ASSETS.loaded) {
         const spriteSize = 80; // Increased size for much better visibility
