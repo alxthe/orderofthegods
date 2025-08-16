@@ -40,9 +40,12 @@ function renderKitchen() {
   } else if (game.currentLevel === 2) {
     backgroundImg = ASSETS.kitchen?.acropolisAthens; // Acropolis for heroes
     if (game.debugMode) console.log("🏛️ Background: Acropolis Athens (Level 2)");
-  } else if (game.currentLevel === 3 || game.currentLevel === 4) {
-    backgroundImg = ASSETS.kitchen?.mountOlympus; // Mount Olympus for gods and Fates
-    if (game.debugMode) console.log("🏛️ Background: Mount Olympus (Level 3/4)");
+  } else if (game.currentLevel === 3) {
+    backgroundImg = ASSETS.kitchen?.mountOlympus; // Mount Olympus for gods
+    if (game.debugMode) console.log("🏛️ Background: Mount Olympus (Level 3)");
+  } else if (game.currentLevel === 4) {
+    backgroundImg = ASSETS.kitchen?.loomMorai; // Loom of the Fates for boss battle
+    if (game.debugMode) console.log("🌀 Background: Loom of Moirai (Level 4)");
   } else {
     backgroundImg = ASSETS.kitchen?.feastHall; // Fallback
     if (game.debugMode) console.log("🏛️ Background: Feast Hall (Fallback)");
@@ -63,14 +66,22 @@ function renderKitchen() {
     renderFallbackBackground();
   }
   
-  // Render all kitchen elements
-  renderIngredientCrates();
-  renderTable();
+  // Render kitchen elements (except for Level 4 - The Fates)
+  if (game.currentLevel !== 4) {
+    renderIngredientCrates();
+    renderTable();
+    renderTrashBin();
+    renderOven();
+    renderCuttingBoard();
+    renderKitchenLabels();
+  } else {
+    // Level 4: Minimal mystical elements for The Fates
+    renderFatesIngredientSources();
+    renderFatesPreparationArea();
+  }
+  
+  // Always render delivery altar (where orders are delivered)
   renderDeliveryAltar();
-  renderTrashBin();
-  renderOven();
-  renderCuttingBoard();
-  renderKitchenLabels();
 }
 
 // Fallback background when images don't load
@@ -210,6 +221,92 @@ function renderCrateInteraction(pos, ingredient) {
   }
 }
 
+// Render mystical ingredient sources for Level 4 (The Fates)
+function renderFatesIngredientSources() {
+  // Render floating mystical orbs for each ingredient
+  for (let [ingredient, pos] of Object.entries(KITCHEN.POSITIONS.BINS)) {
+    // Mystical floating orb
+    const glowGrad = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, 50);
+    glowGrad.addColorStop(0, 'rgba(147, 112, 219, 0.8)'); // Medium purple
+    glowGrad.addColorStop(0.5, 'rgba(147, 112, 219, 0.3)');
+    glowGrad.addColorStop(1, 'rgba(147, 112, 219, 0)');
+    ctx.fillStyle = glowGrad;
+    ctx.fillRect(pos.x - 50, pos.y - 50, 100, 100);
+    
+    // Floating ingredient name
+    ctx.fillStyle = '#E6E6FA'; // Lavender
+    ctx.font = 'bold 14px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = 'rgba(147, 112, 219, 0.8)';
+    ctx.shadowBlur = 10;
+    ctx.fillText(ingredient.toUpperCase(), pos.x, pos.y);
+    ctx.shadowBlur = 0;
+    
+    // Interactive hint when player is near
+    if (game.player.currentZone === `bin_${ingredient}`) {
+      ctx.fillStyle = '#FFD700';
+      ctx.font = '12px Cinzel, serif';
+      ctx.fillText('Press E', pos.x, pos.y + 20);
+    }
+  }
+}
+
+// Render mystical preparation area for Level 4 (The Fates)
+function renderFatesPreparationArea() {
+  const table = KITCHEN.POSITIONS.TABLE;
+  
+  // Mystical preparation circle
+  const circleGrad = ctx.createRadialGradient(table.x, table.y, 0, table.x, table.y, 150);
+  circleGrad.addColorStop(0, 'rgba(147, 112, 219, 0.2)');
+  circleGrad.addColorStop(0.7, 'rgba(147, 112, 219, 0.05)');
+  circleGrad.addColorStop(1, 'rgba(147, 112, 219, 0)');
+  ctx.fillStyle = circleGrad;
+  ctx.beginPath();
+  ctx.arc(table.x, table.y, 150, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Thread pattern (like the Fates' loom)
+  ctx.strokeStyle = 'rgba(147, 112, 219, 0.3)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 8; i++) {
+    const angle = (i * Math.PI) / 4;
+    ctx.beginPath();
+    ctx.moveTo(table.x, table.y);
+    ctx.lineTo(
+      table.x + Math.cos(angle) * 120,
+      table.y + Math.sin(angle) * 120
+    );
+    ctx.stroke();
+  }
+  
+  // Show ingredients on the mystical circle
+  for (let i = 0; i < game.plate.length; i++) {
+    const angle = (i * Math.PI * 2) / 5 - Math.PI/2;
+    const radius = 60;
+    const itemX = table.x + Math.cos(angle) * radius;
+    const itemY = table.y + Math.sin(angle) * radius;
+    
+    // Mystical glow for placed items
+    ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
+    ctx.beginPath();
+    ctx.arc(itemX, itemY, 25, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Render the ingredient
+    renderSlotIngredient(itemX, itemY, game.plate[i]);
+  }
+  
+  // Interactive hint
+  if (game.player.currentZone === 'table') {
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 14px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('The Threads of Fate', table.x, table.y - 100);
+    ctx.font = '12px Cinzel, serif';
+    ctx.fillText('Press E to weave', table.x, table.y + 100);
+  }
+}
+
 // Render the main preparation table
 function renderTable() {
   const table = KITCHEN.POSITIONS.TABLE;
@@ -220,7 +317,7 @@ function renderTable() {
   ctx.textAlign = 'center';
   ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
   ctx.shadowBlur = 4;
-  ctx.fillText('DIVINE PREPARATION TABLE', table.x, table.y - 120);
+  ctx.fillText('DIVINE PREPARATION', table.x, table.y - 120);
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;
   
@@ -347,11 +444,7 @@ function renderSlotBackground(slotX, slotY, slotIndex) {
   ctx.arc(slotX, slotY, 35, 0, Math.PI * 2);
   ctx.stroke();
   
-  // Slot number
-  ctx.fillStyle = 'rgba(255, 215, 0, 0.5)';
-  ctx.font = 'bold 12px Cinzel, serif';
-  ctx.textAlign = 'center';
-  ctx.fillText(`${slotIndex + 1}`, slotX, slotY - 45);
+  // Slot number removed for cleaner appearance
 }
 
 // Render ingredient in slot
@@ -633,7 +726,7 @@ function renderKitchenLabels() {
   ctx.fillStyle = '#FFF';
   ctx.font = 'bold 14px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText('TABLE', table.x, table.y - 75);
+  // Table label removed (already has title above)
   ctx.fillText('DIVINE ALTAR', counter.x, counter.y - 35);
   ctx.fillText('TRASH', trash.x, trash.y + 40);
   

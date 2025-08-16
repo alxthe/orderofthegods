@@ -2,6 +2,51 @@
 // ORDER OF THE GODS - CORE GAMEPLAY LOGIC
 // =============================================================================
 
+// Get current customers based on level
+function getCurrentCustomers() {
+  let customers;
+  
+  if (game.currentLevel === 1) {
+    // Level 1: Only Tartarus creatures (chimera, hydra, medusa, minotaur, sphinx)
+    customers = CREATURES;
+    console.log("🔥 Level 1: Using ONLY Creatures -", customers.map(c => c.name).join(', '));
+  } else if (game.currentLevel === 2) {
+    // Level 2: Heroes with special powers
+    customers = HEROES;
+    console.log("⚔️ Level 2: Using ONLY Heroes -", customers.map(c => c.name).join(', '));
+  } else if (game.currentLevel === 3) {
+    // Level 3: Only gods (very hard)
+    customers = GODS;
+    console.log("⚡ Level 3: Using ONLY Gods -", customers.map(c => c.name).join(', '));
+  } else if (game.currentLevel === 4) {
+    // Level 4: The Fates (boss battle)
+    customers = FATES;
+    console.log("🌀 Level 4: Using ONLY Fates -", customers.map(c => c.name).join(', '));
+  } else {
+    customers = CREATURES; // Fallback
+  }
+  
+  return customers;
+}
+
+// Shuffle customers for the current level
+function shuffleCustomers() {
+  // Get the appropriate customer pool for the current level
+  const customers = getCurrentCustomers();
+  
+  // Create a copy of the array to shuffle
+  const shuffled = [...customers];
+  
+  // Fisher-Yates shuffle algorithm
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  
+  console.log(`🎲 Shuffled customers for Level ${game.currentLevel}:`, shuffled.map(c => c.name).join(', '));
+  return shuffled;
+}
+
 // Validate plate against riddle
 function validatePlate(plate, riddle) {
   if (!riddle) return { success: false, reason: "No active riddle" };

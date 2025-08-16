@@ -118,6 +118,10 @@ const ASSET_FILES = {
     zeus: 'assets/level 3/zeus.png',
     hera: 'assets/level 3/hera.png',
     hades: 'assets/level 3/hades.png',
+    // Level 4 - The Fates (Boss Battle)
+    clotho: 'assets/level 4 (boss fight)/fatescalm.png',
+    lachesis: 'assets/level 4 (boss fight)/fatescalm.png',
+    atropos: 'assets/level 4 (boss fight)/fatesangry.png',
     // Ghost missing from new organization
     ghost: null
   },
@@ -130,7 +134,8 @@ const ASSET_FILES = {
     cuttingBoard: 'assets/backgrounds & tools/cutting-board.png',
     feastHall: 'assets/level 1/feast-hall.png',
     mountOlympus: 'assets/level 3/mount-olympus.png',
-    acropolisAthens: 'assets/level 2/acropolis-athens.png'
+    acropolisAthens: 'assets/level 2/acropolis-athens.png',
+    loomMorai: 'assets/level 4 (boss fight)/loom-morai.png'
   },
   cutIngredients: {
     cut_tomato: 'assets/cut & cooked/cut & cooked/cut-tomato.png',

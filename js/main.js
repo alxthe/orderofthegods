@@ -10,37 +10,6 @@ function ensureRenderQuality() {
   ctx.textRenderingOptimization = 'optimizeQuality';
 }
 
-// Get current customers based on level
-function getCurrentCustomers() {
-  if (game.currentLevel === 1) {
-    // Level 1: Only Tartarus creatures (chimera, hydra, medusa, minotaur, sphinx)
-    return CREATURES;
-  } else if (game.currentLevel === 2) {
-    // Level 2: Heroes with special powers
-    return HEROES;
-  } else if (game.currentLevel === 3) {
-    // Level 3: Only gods (very hard)
-    return GODS;
-  } else if (game.currentLevel === 4) {
-    // Level 4: The Fates (boss battle)
-    return [
-      { id: "clotho", name: "Clotho the Spinner",
-        success: ["The thread is spun correctly.", "Fate accepts your offering.", "The loom approves."],
-        failure: ["The thread tangles!", "Fate rejects this!", "The pattern breaks!"],
-        timeout: ["Time unravels!", "The thread is cut!", "Destiny waits for none!"]},
-      { id: "lachesis", name: "Lachesis the Allotter",
-        success: ["The measure is perfect.", "Your portion is granted.", "The length is accepted."],
-        failure: ["The measure is wrong!", "Your portion denied!", "The length insufficient!"],
-        timeout: ["Time's measure expires!", "The portion is lost!", "No second chances!"]},
-      { id: "atropos", name: "Atropos the Inevitable",
-        success: ["The shears are stayed.", "Death is postponed.", "The end is delayed."],
-        failure: ["The shears approach!", "Your thread weakens!", "The end draws near!"],
-        timeout: ["SNIP! Too late!", "The thread is CUT!", "Your fate is SEALED!"]}
-    ];
-  }
-  return CREATURES; // Fallback
-}
-
 // Main update function
 function update(deltaTime) {
   if (game.state !== 'playing') return;
@@ -98,10 +67,7 @@ function update(deltaTime) {
     handleOvenRetrieve();
   }
   
-  // Handle pause
-  if (input.wasPressed('escape')) {
-    game.state = game.state === 'paused' ? 'playing' : 'paused';
-  }
+  // ESC key pause handling is done in input.js to avoid conflicts
   
   // Toggle debug mode
   if (input.wasPressed('backtick')) {
@@ -109,8 +75,8 @@ function update(deltaTime) {
     console.log(`Debug mode: ${game.debugMode ? 'ON' : 'OFF'}`);
   }
   
-  // Story panel interaction
-  if (game.showingStory && (input.wasPressed('enter') || input.wasPressed('space') || input.wasPressed('escape'))) {
+  // Story panel interaction (Enter or Space only - ESC handled by input.js for pause)
+  if (game.showingStory && (input.wasPressed('enter') || input.wasPressed('space'))) {
     game.showingStory = false;
     game.storyPanel = null;
   }

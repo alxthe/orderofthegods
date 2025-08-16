@@ -13,17 +13,20 @@ const input = {
       this.keys[key] = true;
       
       // Prevent defaults for game keys
-      if (['w','a','s','d','e','q','x','v','enter','escape','f9'].includes(key)) {
+      if (['w','a','s','d','e','q','x','v','enter','escape','l'].includes(key)) {
         e.preventDefault();
       }
       
-      // Special keys
-      if (key === 'escape' && game.state === 'playing') {
-        game.state = 'paused';
-        console.log("Game paused");
-      } else if (key === 'escape' && game.state === 'paused') {
-        game.state = 'playing';
-        console.log("Game resumed");
+      // Special keys - ESC for pause/resume
+      if (key === 'escape') {
+        if (game.state === 'playing') {
+          game.state = 'paused';
+          console.log("🎮 Game paused");
+        } else if (game.state === 'paused') {
+          game.state = 'playing';
+          console.log("🎮 Game resumed");
+        }
+        e.preventDefault(); // Ensure browser doesn't interfere
       }
       
       // Debug keys

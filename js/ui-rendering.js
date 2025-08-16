@@ -333,10 +333,10 @@ function renderDeveloperButton() {
   ctx.fillStyle = '#000';
   ctx.font = 'bold 12px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText('SKIP LEVEL (F9)', devBtnX + devBtnWidth/2, devBtnY + devBtnHeight/2 + 4);
+  ctx.fillText('SKIP LEVEL (L)', devBtnX + devBtnWidth/2, devBtnY + devBtnHeight/2 + 4);
   
   // Developer button functionality
-  if (input.wasPressed('f9')) {
+  if (input.wasPressed('l')) {
     // Fast-forward to next level by adding points and triggering level progression
     const oldLevel = game.currentLevel;
     
@@ -370,7 +370,8 @@ function renderDeveloperButton() {
     
     // Trigger new customer for the new level
     if (game.currentLevel !== oldLevel && game.state === 'playing') {
-      shuffleCustomers();
+      game.shuffledCustomers = shuffleCustomers();
+      game.customerIndex = 0;
       nextRiddle();
     }
     

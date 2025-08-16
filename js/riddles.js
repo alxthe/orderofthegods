@@ -202,39 +202,21 @@ const GODS = [
     timeout: ["Death waits for none.", "The underworld calls.", "Time itself dies here."]}
 ];
 
-// Level 4: The Fates (30-40 points)
+// Level 4: The Fates (Boss Battle) 
 const FATES = [
-  { id: "clotho", name: "Clotho the Spinner",
+  { id: "clotho", name: "The Fates",
     success: ["The thread is spun correctly.", "Fate accepts your offering.", "The loom approves."],
     failure: ["The thread tangles!", "Fate rejects this!", "The pattern breaks!"],
     timeout: ["Time unravels!", "The thread is cut!", "Destiny waits for none!"]},
-  { id: "lachesis", name: "Lachesis the Allotter",
+  { id: "lachesis", name: "The Fates",
     success: ["The measure is perfect.", "Your portion is granted.", "The length is accepted."],
     failure: ["The measure is wrong!", "Your portion denied!", "The length insufficient!"],
     timeout: ["Time's measure expires!", "The portion is lost!", "No second chances!"]},
-  { id: "atropos", name: "Atropos the Inevitable",
+  { id: "atropos", name: "The Fates",
     success: ["The shears are stayed.", "Death is postponed.", "The end is delayed."],
-    failure: ["The shears cut deep!", "Your thread is severed!", "Fate's decision is final!"],
-    timeout: ["The inevitable arrives!", "Time's thread snaps!", "Death comes for all!"]}
+    failure: ["The shears approach!", "Your thread weakens!", "The end draws near!"],
+    timeout: ["SNIP! Too late!", "The thread is CUT!", "Your fate is SEALED!"]}
 ];
-
-// Get customers based on current level
-function getCurrentCustomers() {
-  if (game.currentLevel === 1) {
-    // Level 1: Mix of creatures and some gods (gracious)
-    return [...CREATURES, GODS[0], GODS[1]]; // Add Hermes and Poseidon
-  } else if (game.currentLevel === 2) {
-    // Level 2: Heroes with special powers
-    return HEROES;
-  } else if (game.currentLevel === 3) {
-    // Level 3: Only gods (very hard)
-    return GODS;
-  } else if (game.currentLevel === 4) {
-    // Level 4: The Fates (boss battle)
-    return FATES;
-  }
-  return CREATURES; // Fallback
-}
 
 // Merge advanced riddles with main riddles
 RIDDLES.push(...ADVANCED_RIDDLES);
