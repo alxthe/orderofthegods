@@ -192,9 +192,12 @@
           sphinx: 'assets/level 1/sphinx.png',
           hydra: 'assets/level 1/hydra.png',
           chimera: 'assets/level 1/chimera.png',
-          // Level 2 - More Creatures
-          hercules: 'assets/level 2 creatures/hercules.png',
-          pegasus: 'assets/level 2 creatures/pegasus.png',
+          // Level 2 - Heroes and Demigods
+          hercules: 'assets/level 2/hercules.png',
+          pegasus: 'assets/level 2/pegasus.png',
+          achilles: 'assets/level 2/achilles.png',
+          cyclops: 'assets/level 2/cyclops.png',
+          satyr: 'assets/level 2/satyr.png',
           // Level 3 - Greek Gods
           hermes: 'assets/level 3/hermes.png',
           poseidon: 'assets/level 3/poseidon.png',
@@ -212,7 +215,8 @@
           oven: 'assets/backgrounds & tools/oven.png',
           cuttingBoard: 'assets/backgrounds & tools/cutting-board.png',
           feastHall: 'assets/level 1/feast-hall.png',
-          olympus: 'assets/level 2 creatures/olympus.png'
+          mountOlympus: 'assets/level 3/mount-olympus.png',
+          acropolisAthens: 'assets/level 2/acropolis-athens.png'
         },
         cutIngredients: {
           cut_tomato: 'assets/cut & cooked/cut & cooked/cut-tomato.png',
@@ -605,7 +609,31 @@
         timeout: ["Three heads, three opinions, three times the impatience.", "Chimera cannot wait.", "Beast's patience expires."]}
     ];
 
-    // Trial 2: Greek Gods (10+ points) - Level 3 gods from level 3 folder
+    // Trial 2: Heroes and Demigods (10-20 points) - Level 2 characters
+    const HEROES = [
+      { id: "hercules", name: "Hercules",
+        success: ["The twelve labors are impressed.", "Strength recognizes strength.", "Heroic approval earned."],
+        failure: ["Even heroes can fail.", "The labors demand more.", "Strength alone is not enough."],
+        timeout: ["Heroes act swiftly.", "No time for hesitation.", "The labors wait for none."]},
+      { id: "achilles", name: "Achilles",
+        success: ["The warrior's rage is soothed.", "Swift satisfaction.", "Battle-tested approval."],
+        failure: ["The heel finds weakness.", "Rage builds at failure.", "Warriors demand perfection."],
+        timeout: ["Swift as the wind, impatient as war.", "Battle waits for no one.", "Time is the enemy."]},
+      { id: "pegasus", name: "Pegasus",
+        success: ["Wings of satisfaction.", "Sky-high approval.", "Divine flight achieved."],
+        failure: ["Grounded by error.", "Wings clipped.", "Fall from grace."],
+        timeout: ["Time flies away.", "Swift as wind departs.", "The sky cannot wait."]},
+      { id: "cyclops", name: "Cyclops",
+        success: ["The great eye sees worth.", "Forge-fire approval.", "Craftsmanship recognized."],
+        failure: ["Single eye sees all flaws.", "The forge rejects poor work.", "Giants expect greatness."],
+        timeout: ["The forge fire dims not.", "Great works take no time.", "Titans have no patience."]},
+      { id: "satyr", name: "Satyr",
+        success: ["Wild approval dances.", "Nature's chaos is pleased.", "Dionysian satisfaction."],
+        failure: ["The wild rejects order.", "Chaos laughs at failure.", "Nature mocks your effort."],
+        timeout: ["Wild things wait not.", "Chaos has no schedule.", "The forest moves on."]}
+    ];
+
+    // Trial 3: Greek Gods (20+ points) - Level 3 gods from level 3 folder
     const GODS = [
       { id: "hermes", name: "Hermes",
         success: ["Swift and sure.", "Wings approved.", "Speed and precision unite."],
@@ -631,7 +659,10 @@
 
     // Get current customer pool based on trial
     function getCurrentCustomers() {
-      return game.trial === 1 ? CREATURES : GODS;
+      if (game.trial === 1) return CREATURES;
+      if (game.trial === 2) return HEROES;
+      if (game.trial === 3) return GODS;
+      return CREATURES; // Fallback
     }
     
     // Randomize customer order for each trial
@@ -645,7 +676,7 @@
       return shuffled;
     }
     
-    console.log(`✅ Loaded ${RIDDLES.length} riddles, ${CREATURES.length} creatures (Level 1), and ${GODS.length} gods (Level 3)`);
+    console.log(`✅ Loaded ${RIDDLES.length} riddles, ${CREATURES.length} creatures (Trial 1), ${HEROES.length} heroes (Trial 2), and ${GODS.length} gods (Trial 3)`);
     
     // =============================================================================
     // GAME STATE
@@ -706,13 +737,19 @@
       
       // God Relationship System - Character Arcs
       godRelationships: {
-        // Level 1 - Tartarus Creatures
+        // Trial 1 - Tartarus Creatures
         medusa: { favor: 0, interactions: 0, arc: 'hostile' },     // Starts hostile, becomes protective
         minotaur: { favor: 0, interactions: 0, arc: 'neutral' },   // Respects skill, offers teaching  
         sphinx: { favor: 0, interactions: 0, arc: 'mysterious' },  // Riddles within riddles
         hydra: { favor: 0, interactions: 0, arc: 'chaotic' },      // Unpredictable beast
         chimera: { favor: 0, interactions: 0, arc: 'volatile' },   // Three personalities in one
-        // Level 3 - Greek Gods
+        // Trial 2 - Heroes and Demigods
+        hercules: { favor: 0, interactions: 0, arc: 'heroic' },    // Strength and honor
+        achilles: { favor: 0, interactions: 0, arc: 'warrior' },   // Pride and fury
+        pegasus: { favor: 0, interactions: 0, arc: 'noble' },      // Grace and freedom
+        cyclops: { favor: 0, interactions: 0, arc: 'craftsman' },  // Skills and creation
+        satyr: { favor: 0, interactions: 0, arc: 'wild' },         // Chaos and nature
+        // Trial 3 - Greek Gods
         hermes: { favor: 0, interactions: 0, arc: 'neutral' },     // Quick to judge, quick to forgive
         poseidon: { favor: 0, interactions: 0, arc: 'testing' },   // Tests worth with impossible orders
         zeus: { favor: 0, interactions: 0, arc: 'demanding' },     // Expects perfection
@@ -1365,13 +1402,17 @@
         // Check for trial completion (10 points per trial)
         if (game.trialPoints >= 10) {
           if (game.trial === 1) {
-            // Advance to Trial 2: Gods
+            // Advance to Trial 2: Heroes
             advanceToTrial2();
             return;
+          } else if (game.trial === 2) {
+            // Advance to Trial 3: Gods
+            advanceToTrial3();
+            return;
           } else {
-            // Won the game after completing Trial 2
+            // Won the game after completing Trial 3
             game.state = 'won';
-            console.log("GAME WON! Completed both trials!");
+            console.log("GAME WON! Completed all three trials!");
             return;
           }
         }
@@ -1603,15 +1644,41 @@
       }
     }
     
-    // Advance to Trial 2: Greek Gods
+    // Advance to Trial 2: Heroes and Demigods
     function advanceToTrial2() {
       game.trial = 2;
       game.trialPoints = 0; // Reset trial score
       game.score = 0; // Reset display score
       game.level = 1; // Reset level for new trial
       
-      showToast("🏛️ TRIAL 2: Now you serve the Greek Gods!");
-      console.log("🏛️ Advanced to Trial 2: Greek Gods");
+      showToast("⚔️ TRIAL 2: Now you serve Heroes and Demigods!");
+      console.log("⚔️ Advanced to Trial 2: Heroes and Demigods");
+      
+      // Re-shuffle customers for new trial (now heroes)
+      game.shuffledCustomers = shuffleCustomers();
+      game.customerIndex = 0;
+      game.processingNextRiddle = false; // Reset anti-scrambling flag
+      
+      // Show transition story
+      game.storyPanel = {
+        title: "Trial 2: The Heroic Tests",
+        text: "The creatures retreat as legendary heroes stride forth. Hercules flexes mighty arms, Achilles sharpens his spear, and Pegasus unfurls divine wings. These champions of myth demand dishes worthy of their legendary deeds."
+      };
+      game.showingStory = true;
+      
+      // Start next riddle with heroes
+      setTimeout(() => nextRiddle(), 3000);
+    }
+    
+    // Advance to Trial 3: Greek Gods
+    function advanceToTrial3() {
+      game.trial = 3;
+      game.trialPoints = 0; // Reset trial score
+      game.score = 0; // Reset display score
+      game.level = 1; // Reset level for new trial
+      
+      showToast("⚡ TRIAL 3: Now you serve the Greek Gods!");
+      console.log("⚡ Advanced to Trial 3: Greek Gods");
       
       // Re-shuffle customers for new trial (now gods)
       game.shuffledCustomers = shuffleCustomers();
@@ -1620,8 +1687,8 @@
       
       // Show transition story
       game.storyPanel = {
-        title: "Trial 2: The Gods of Olympus",
-        text: "The creatures bow away as thunder rumbles. Zeus himself descends from Olympus with his divine court. Your trials now face the gods themselves. Prove yourself worthy of freedom."
+        title: "Trial 3: The Gods of Olympus",
+        text: "Thunder shakes the heavens as the heroes bow before true divinity. Zeus descends with his divine court—Hermes, Poseidon, Hera, and Hades himself. Your final trial begins. Serve the gods perfectly, or face eternal servitude."
       };
       game.showingStory = true;
       
@@ -1641,8 +1708,17 @@
     
     // Render kitchen layout
     function renderKitchen() {
-      // Background - use olympus for Trial 2, feast hall for Trial 1
-      const backgroundImg = game.trial === 2 ? ASSETS.kitchen?.olympus : ASSETS.kitchen?.feastHall;
+      // Background - different for each trial
+      let backgroundImg;
+      if (game.trial === 1) {
+        backgroundImg = ASSETS.kitchen?.feastHall; // Tartarus Feast Hall
+      } else if (game.trial === 2) {
+        backgroundImg = ASSETS.kitchen?.mountOlympus; // Mount Olympus for heroes
+      } else if (game.trial === 3) {
+        backgroundImg = ASSETS.kitchen?.mountOlympus; // Mount Olympus for gods too
+      } else {
+        backgroundImg = ASSETS.kitchen?.feastHall; // Fallback
+      }
       
       if (backgroundImg && ASSETS.loaded) {
         // Draw background scaled to fit screen
@@ -2507,7 +2583,11 @@
       ctx.fillText(`Trial ${game.trial}: ${game.trialPoints}/10`, canvas.width - 20, 35);
       
       // Show trial type
-      const trialName = game.trial === 1 ? "Creatures" : "Gods";
+      let trialName;
+      if (game.trial === 1) trialName = "Creatures";
+      else if (game.trial === 2) trialName = "Heroes";
+      else if (game.trial === 3) trialName = "Gods";
+      else trialName = "Unknown";
       ctx.font = 'bold 16px Cinzel, serif';
       ctx.strokeText(trialName, canvas.width - 20, 60);
       ctx.fillText(trialName, canvas.width - 20, 60);
@@ -2658,79 +2738,40 @@
     
     // Menu screen
     function renderMenu() {
-      // Enhanced mythological background with depth
-      const bgGrad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, 
-                                              canvas.width/2, canvas.height/2, canvas.width);
-      bgGrad.addColorStop(0, '#3A2817'); // Deep stone brown
-      bgGrad.addColorStop(0.4, '#2C1810'); // Dark brown
-      bgGrad.addColorStop(0.8, '#1A0F08'); // Nearly black
-      bgGrad.addColorStop(1, '#000000'); // Void black
+      // Simple elegant Greek background
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      bgGrad.addColorStop(0, '#2C1810'); // Dark brown
+      bgGrad.addColorStop(0.6, '#1A0F08'); // Nearly black
+      bgGrad.addColorStop(1, '#000000'); // Black
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      // Multiple torch lights for ambiance
-      const time = Date.now() * 0.01;
-      const torches = [
-        { x: canvas.width * 0.2, y: 100, phase: 0 },
-        { x: canvas.width * 0.8, y: 100, phase: Math.PI },
-        { x: canvas.width * 0.1, y: canvas.height * 0.7, phase: Math.PI/2 },
-        { x: canvas.width * 0.9, y: canvas.height * 0.7, phase: -Math.PI/2 }
-      ];
-      
-      torches.forEach(torch => {
-        const flicker = Math.sin(time + torch.phase) * 0.15 + 0.85;
-        const torchGrad = ctx.createRadialGradient(torch.x, torch.y, 0, torch.x, torch.y, 200 * flicker);
-        torchGrad.addColorStop(0, `rgba(255, 140, 0, ${0.4 * flicker})`);
-        torchGrad.addColorStop(0.5, `rgba(255, 100, 0, ${0.2 * flicker})`);
-        torchGrad.addColorStop(1, 'rgba(255, 80, 0, 0)');
-        ctx.fillStyle = torchGrad;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      });
-      
-      // Ancient stone texture with more detail
-      ctx.fillStyle = 'rgba(139, 69, 19, 0.15)';
-      for (let i = 0; i < 100; i++) {
+      // Subtle stone texture
+      ctx.fillStyle = 'rgba(139, 69, 19, 0.1)';
+      for (let i = 0; i < 30; i++) {
         const x = Math.random() * canvas.width;
         const y = Math.random() * canvas.height;
-        const size = Math.random() * 3 + 1;
-        ctx.fillRect(x, y, size, size);
+        ctx.fillRect(x, y, 2, 2);
       }
       
-      // Add mystical particles floating
-      ctx.fillStyle = 'rgba(218, 165, 32, 0.6)';
-      for (let i = 0; i < 20; i++) {
-        const x = (Math.sin(time * 0.5 + i) * 100 + canvas.width/2) + Math.sin(time + i) * 50;
-        const y = (Math.cos(time * 0.3 + i) * 80 + canvas.height/2) + Math.cos(time * 0.7 + i) * 30;
-        const radius = Math.sin(time * 2 + i) * 2 + 3;
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      
-      // Enhanced main title with divine glow
-      ctx.shadowColor = '#FFD700';
-      ctx.shadowBlur = 20;
-      ctx.fillStyle = '#FFD700'; // Pure gold
-      ctx.font = 'bold 56px Cinzel, serif';
+      // Clean title - make it bigger and centered better
+      ctx.fillStyle = '#FFD700';
+      ctx.font = 'bold 64px Cinzel, serif';
       ctx.textAlign = 'center';
       ctx.strokeStyle = '#8B4513';
-      ctx.lineWidth = 4;
-      ctx.strokeText('ORDER OF THE GODS', canvas.width/2, 140);
-      ctx.fillText('ORDER OF THE GODS', canvas.width/2, 140);
-      ctx.shadowBlur = 0;
-      
-      // Epic subtitle with mystical glow
-      ctx.shadowColor = '#DAA520';
-      ctx.shadowBlur = 10;
-      ctx.fillStyle = '#DAA520'; // Dark goldenrod
-      ctx.font = 'italic 28px Cinzel, serif';
-      ctx.strokeStyle = '#654321';
       ctx.lineWidth = 2;
-      ctx.strokeText('The Banquet of Chains', canvas.width/2, 180);
-      ctx.fillText('The Banquet of Chains', canvas.width/2, 180);
-      ctx.shadowBlur = 0;
+      ctx.strokeText('ORDER OF THE GODS', canvas.width/2, canvas.height * 0.15);
+      ctx.fillText('ORDER OF THE GODS', canvas.width/2, canvas.height * 0.15);
       
-      // Epic backstory with three-act structure
+      // Simple subtitle
+      ctx.fillStyle = '#DAA520';
+      ctx.font = '24px Cinzel, serif';
+      ctx.strokeStyle = '#654321';
+      ctx.lineWidth = 1;
+      ctx.strokeText('The Banquet of Chains', canvas.width/2, canvas.height * 0.22);
+      ctx.fillText('The Banquet of Chains', canvas.width/2, canvas.height * 0.22);
+      
+      // Clear, readable story text - fill more of the screen
       const storyLines = [
         "You are no master chef. You are a prisoner.",
         "",
@@ -2739,46 +2780,42 @@
         "gather to test your worth with cryptic riddles.",
         "",
         "Each correct order cracks your iron collar. Each failure tightens it.",
-        "Serve five creatures well, and perhaps the gods will notice...",
+        "Survive three trials: creatures, heroes, and gods themselves...",
         "",
         "But freedom is never simply earned. It must be outwitted.",
         "The Fates have written your contract in riddles of their own."
       ];
       
-      ctx.fillStyle = '#F5DEB3'; // Wheat color for readable text
-      ctx.font = '16px Crimson Text, serif';
+      ctx.fillStyle = '#E6D2A3'; // Light wheat for better readability
+      ctx.font = '20px Crimson Text, serif';
       ctx.textAlign = 'center';
       
-      let yPos = 230;
+      let yPos = canvas.height * 0.35; // Start higher up on screen
       storyLines.forEach((line, index) => {
         if (line === "") {
-          yPos += 10; // Smaller spacing for empty lines
+          yPos += 15; // Spacing for empty lines
         } else {
-          // Add subtle shadow for readability
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+          // Simple shadow for readability
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
           ctx.fillText(line, canvas.width/2 + 1, yPos + 1);
-          ctx.fillStyle = '#F5DEB3';
+          ctx.fillStyle = '#E6D2A3';
           ctx.fillText(line, canvas.width/2, yPos);
-          yPos += 20;
+          yPos += 28; // More space between lines
         }
       });
       
-      // Epic call-to-action with pulsing effect
-      const pulse = Math.sin(Date.now() * 0.005) * 0.3 + 0.7;
-      ctx.shadowColor = '#FFD700';
-      ctx.shadowBlur = 15 * pulse;
+      // Clean call-to-action button
       ctx.fillStyle = '#FFD700';
-      ctx.font = 'bold 32px Cinzel, serif';
-      ctx.strokeStyle = '#B8860B';
-      ctx.lineWidth = 3;
-      ctx.strokeText('⚡ Press ENTER to Accept Your Fate ⚡', canvas.width/2, yPos + 50);
-      ctx.fillText('⚡ Press ENTER to Accept Your Fate ⚡', canvas.width/2, yPos + 50);
-      ctx.shadowBlur = 0;
+      ctx.font = 'bold 28px Cinzel, serif';
+      ctx.strokeStyle = '#8B4513';
+      ctx.lineWidth = 2;
+      ctx.strokeText('Press ENTER to Begin Your Trial', canvas.width/2, canvas.height * 0.8);
+      ctx.fillText('Press ENTER to Begin Your Trial', canvas.width/2, canvas.height * 0.8);
       
-      // Enhanced controls hint with mystical styling
+      // Simple controls text
       ctx.fillStyle = '#CD853F';
-      ctx.font = '16px Crimson Text, serif';
-      ctx.fillText('⚔️ WASD: Move | E: Interact | Q: Undo | X: Trash | Enter: Deliver ⚔️', canvas.width/2, yPos + 90);
+      ctx.font = '18px Crimson Text, serif';
+      ctx.fillText('WASD: Move  |  E: Interact  |  Q: Undo  |  X: Trash  |  Enter: Deliver', canvas.width/2, canvas.height * 0.87);
       
       // Check for enter key to start
       if (input.wasPressed('enter')) {
