@@ -136,12 +136,8 @@ const game = {
     stringTraps: [], // Active string traps
     invulnerable: false, // Player invulnerability frames
     invulnerabilityTimer: 0,
-    weapons: [], // Available weapon pickups
-    healthBoxes: [], // Available health pickups
-    playerWeapon: null, // Currently held weapon
-    weaponCooldown: 0, // Cooldown between weapon throws
-    weaponSpawnTimer: 0, // Timer for spawning new weapons
-    healthSpawnTimer: 0 // Timer for spawning health boxes
+    survivalTimer: 0, // Track how long player has survived
+    survivalGoal: 60000 // Survive for 60 seconds to win!
   },
   
   // Debug

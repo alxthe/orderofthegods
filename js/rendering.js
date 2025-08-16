@@ -1057,11 +1057,6 @@ function renderBossFightArena() {
   ctx.fillStyle = 'rgba(20, 10, 30, 0.8)';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   
-  // Render weapon pickups
-  renderWeapons();
-  
-  // Render health boxes
-  renderHealthBoxes();
   
   // Render string traps
   renderStringTraps();
@@ -1121,10 +1116,7 @@ function renderFatesBosses() {
       ctx.fill();
     }
     
-    // Health bar above fate
-    renderFateHealthBar(fate);
-    
-    // Name label
+    // No health bar in survival mode - just name
     ctx.fillStyle = '#FFD700';
     ctx.font = 'bold 14px Cinzel, serif';
     ctx.textAlign = 'center';
@@ -1169,29 +1161,54 @@ function renderFateHealthBar(fate) {
 // Render string traps
 function renderStringTraps() {
   game.bossFight.stringTraps.forEach(trap => {
-    // String web effect
-    ctx.strokeStyle = 'rgba(255, 215, 0, 0.8)';
-    ctx.lineWidth = 3;
-    ctx.setLineDash([5, 5]);
-    
-    // Draw web pattern
-    for (let i = 0; i < 8; i++) {
-      const angle = (i * Math.PI) / 4;
+    // Check if this is a warning zone
+    if (trap.isWarning) {
+      // Pulsing red warning zone
+      const pulse = Math.sin(Date.now() * 0.01) * 0.3 + 0.5;
+      ctx.fillStyle = `rgba(255, 0, 0, ${pulse * 0.3})`;
       ctx.beginPath();
-      ctx.moveTo(trap.x, trap.y);
-      ctx.lineTo(
-        trap.x + Math.cos(angle) * trap.radius,
-        trap.y + Math.sin(angle) * trap.radius
-      );
+      ctx.arc(trap.x, trap.y, trap.radius, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Red warning border
+      ctx.strokeStyle = `rgba(255, 0, 0, ${pulse})`;
+      ctx.lineWidth = 4;
+      ctx.setLineDash([10, 5]);
+      ctx.beginPath();
+      ctx.arc(trap.x, trap.y, trap.radius, 0, Math.PI * 2);
       ctx.stroke();
+      ctx.setLineDash([]);
+      
+      // Warning text
+      ctx.fillStyle = '#FF0000';
+      ctx.font = 'bold 20px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('⚠️', trap.x, trap.y + 6);
+    } else {
+      // Normal trap - String web effect
+      ctx.strokeStyle = 'rgba(255, 215, 0, 0.8)';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([5, 5]);
+      
+      // Draw web pattern
+      for (let i = 0; i < 8; i++) {
+        const angle = (i * Math.PI) / 4;
+        ctx.beginPath();
+        ctx.moveTo(trap.x, trap.y);
+        ctx.lineTo(
+          trap.x + Math.cos(angle) * trap.radius,
+          trap.y + Math.sin(angle) * trap.radius
+        );
+        ctx.stroke();
+      }
+      
+      // Outer circle
+      ctx.beginPath();
+      ctx.arc(trap.x, trap.y, trap.radius, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      ctx.setLineDash([]);
     }
-    
-    // Outer circle
-    ctx.beginPath();
-    ctx.arc(trap.x, trap.y, trap.radius, 0, Math.PI * 2);
-    ctx.stroke();
-    
-    ctx.setLineDash([]);
   });
 }
 
@@ -1232,128 +1249,11 @@ function renderBossAttacks() {
       ctx.beginPath();
       ctx.arc(attack.x, attack.y, 8, 0, Math.PI * 2);
       ctx.fill();
-    } else if (attack.type === 'weapon') {
-      // Player thrown weapon
-      ctx.save();
-      ctx.translate(attack.x, attack.y);
-      
-      // Draw weapon based on type
-      if (attack.weaponType === 'sword') {
-        ctx.fillStyle = '#C0C0C0';
-        ctx.fillRect(-3, -20, 6, 40);
-        ctx.fillStyle = '#8B4513';
-        ctx.fillRect(-5, 10, 10, 8);
-        ctx.fillStyle = '#FFD700';
-        ctx.fillRect(-8, 5, 16, 3);
-      } else if (attack.weaponType === 'spear') {
-        ctx.fillStyle = '#8B4513';
-        ctx.fillRect(-2, -25, 4, 50);
-        ctx.fillStyle = '#C0C0C0';
-        ctx.beginPath();
-        ctx.moveTo(0, -30);
-        ctx.lineTo(-5, -20);
-        ctx.lineTo(5, -20);
-        ctx.closePath();
-        ctx.fill();
-      } else if (attack.weaponType === 'dagger') {
-        ctx.fillStyle = '#696969';
-        ctx.fillRect(-2, -10, 4, 20);
-        ctx.fillStyle = '#8B4513';
-        ctx.fillRect(-3, 5, 6, 5);
-      }
-      
-      ctx.restore();
     }
   });
 }
 
-// Render weapon pickups
-function renderWeapons() {
-  game.bossFight.weapons.forEach(weapon => {
-    if (weapon.collected) return;
-    
-    // Glowing pickup effect
-    ctx.shadowColor = 'rgba(255, 215, 0, 0.8)';
-    ctx.shadowBlur = 10;
-    
-    // Weapon background circle
-    ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
-    ctx.beginPath();
-    ctx.arc(weapon.x, weapon.y, 30, 0, Math.PI * 2);
-    ctx.fill();
-    
-    ctx.shadowBlur = 0;
-    
-    // Draw weapon icon
-    ctx.save();
-    ctx.translate(weapon.x, weapon.y);
-    
-    if (weapon.type === 'sword') {
-      ctx.fillStyle = '#C0C0C0';
-      ctx.fillRect(-3, -15, 6, 30);
-      ctx.fillStyle = '#8B4513';
-      ctx.fillRect(-5, 10, 10, 6);
-      ctx.fillStyle = '#FFD700';
-      ctx.fillRect(-8, 7, 16, 2);
-    } else if (weapon.type === 'spear') {
-      ctx.fillStyle = '#8B4513';
-      ctx.fillRect(-2, -20, 4, 40);
-      ctx.fillStyle = '#C0C0C0';
-      ctx.beginPath();
-      ctx.moveTo(0, -25);
-      ctx.lineTo(-4, -18);
-      ctx.lineTo(4, -18);
-      ctx.closePath();
-      ctx.fill();
-    } else if (weapon.type === 'dagger') {
-      ctx.fillStyle = '#696969';
-      ctx.fillRect(-2, -8, 4, 16);
-      ctx.fillStyle = '#8B4513';
-      ctx.fillRect(-3, 5, 6, 4);
-    }
-    
-    ctx.restore();
-    
-    // Pickup hint
-    const dx = weapon.x - game.player.x;
-    const dy = weapon.y - game.player.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    
-    if (distance < 60) {
-      ctx.fillStyle = '#FFF';
-      ctx.font = 'bold 12px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('Press E', weapon.x, weapon.y - 35);
-    }
-  });
-}
 
-// Render health boxes
-function renderHealthBoxes() {
-  game.bossFight.healthBoxes.forEach(healthBox => {
-    if (healthBox.collected) return;
-    
-    // Pulsing effect
-    const pulse = Math.sin(Date.now() * 0.003) * 0.2 + 0.8;
-    
-    // Health box
-    ctx.fillStyle = `rgba(0, 255, 0, ${0.6 * pulse})`;
-    ctx.fillRect(healthBox.x - 15, healthBox.y - 15, 30, 30);
-    
-    // Cross symbol
-    ctx.fillStyle = '#FFF';
-    ctx.fillRect(healthBox.x - 2, healthBox.y - 10, 4, 20);
-    ctx.fillRect(healthBox.x - 10, healthBox.y - 2, 20, 4);
-    
-    // Glow effect
-    ctx.shadowColor = 'rgba(0, 255, 0, 0.8)';
-    ctx.shadowBlur = 15 * pulse;
-    ctx.strokeStyle = '#0F0';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(healthBox.x - 15, healthBox.y - 15, 30, 30);
-    ctx.shadowBlur = 0;
-  });
-}
 
 // Render boss fight UI
 function renderBossUI() {
@@ -1415,13 +1315,29 @@ function renderBossUI() {
   ctx.textAlign = 'center';
   ctx.fillText(`${Math.ceil(game.bossFight.playerHealth)} / ${game.bossFight.maxHealth}`, healthX + healthBarWidth/2, healthY + 18);
   
-  // Show current weapon if holding one
-  if (game.bossFight.playerWeapon) {
-    ctx.fillStyle = '#FFD700';
-    ctx.font = 'bold 14px Cinzel, serif';
-    ctx.textAlign = 'left';
-    ctx.fillText(`Weapon: ${game.bossFight.playerWeapon.type.toUpperCase()} (SPACE to throw)`, healthX, healthY + healthBarHeight + 20);
-  }
+  // Show survival timer
+  const timeElapsed = Math.floor(game.bossFight.survivalTimer / 1000);
+  const timeGoal = Math.floor(game.bossFight.survivalGoal / 1000);
+  const timeRemaining = Math.max(0, timeGoal - timeElapsed);
+  
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 20px Cinzel, serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(`⏱️ SURVIVE: ${timeRemaining} seconds`, healthX, healthY + healthBarHeight + 25);
+  
+  // Progress bar for survival
+  const survivalBarY = healthY + healthBarHeight + 35;
+  const survivalPercent = Math.min(1, game.bossFight.survivalTimer / game.bossFight.survivalGoal);
+  
+  ctx.fillStyle = '#333';
+  ctx.fillRect(healthX, survivalBarY, healthBarWidth, 10);
+  
+  ctx.fillStyle = '#FFD700';
+  ctx.fillRect(healthX, survivalBarY, healthBarWidth * survivalPercent, 10);
+  
+  ctx.strokeStyle = '#FFD700';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(healthX, survivalBarY, healthBarWidth, 10);
   
   // Boss phase indicator
   ctx.fillStyle = '#FFD700';
@@ -1430,12 +1346,19 @@ function renderBossUI() {
   ctx.fillText(`THE FATES - Phase ${game.bossFight.phase}`, canvas.width/2, 60);
   
   // Instructions
+  ctx.fillStyle = '#FFF';
+  ctx.font = '16px Cinzel, serif';
+  ctx.textAlign = 'center';
+  
   if (game.bossFight.phase === 1) {
-    ctx.fillStyle = '#FFF';
-    ctx.font = '16px Cinzel, serif';
-    ctx.fillText('Avoid the Fates\' attacks and survive!', canvas.width/2, canvas.height - 40);
-    ctx.fillText('WASD to move - Don\'t get caught in their strings!', canvas.width/2, canvas.height - 20);
+    ctx.fillText('🌀 SURVIVE 60 SECONDS TO ESCAPE THE FATES!', canvas.width/2, canvas.height - 40);
+  } else if (game.bossFight.phase === 2) {
+    ctx.fillText('⚡ THE FATES GROW ANGRIER! KEEP DODGING!', canvas.width/2, canvas.height - 40);
+  } else {
+    ctx.fillText('🔥 MAXIMUM INTENSITY! ALMOST THERE!', canvas.width/2, canvas.height - 40);
   }
+  
+  ctx.fillText('WASD to move - Don\'t get caught!', canvas.width/2, canvas.height - 20);
 }
 
 // Render Benson Boone in the corner (Level 4 only!)

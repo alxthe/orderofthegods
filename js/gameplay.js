@@ -803,6 +803,12 @@ function restartLevel() {
     game.score = CONFIG.LEVEL_3_SCORE - 1; // Just below Level 3 threshold
   } else if (currentLevelNum === 4) {
     game.score = CONFIG.LEVEL_4_SCORE - 1; // Just below Level 4 threshold
+    // CRITICAL: Stop any active boss fight and music before restart!
+    game.bossFight.active = false;
+    if (game.bossFight.bossMusic) {
+      game.bossFight.bossMusic.pause();
+      game.bossFight.bossMusic = null;
+    }
   }
   
   game.levelScore = 0;
@@ -1007,12 +1013,8 @@ function initializeBossFight() {
   game.bossFight.stringTraps = [];
   game.bossFight.invulnerable = false;
   game.bossFight.invulnerabilityTimer = 0;
-  game.bossFight.weapons = [];
-  game.bossFight.healthBoxes = [];
-  game.bossFight.playerWeapon = null;
-  game.bossFight.weaponCooldown = 0;
-  game.bossFight.weaponSpawnTimer = 0;
-  game.bossFight.healthSpawnTimer = 0;
+  game.bossFight.survivalTimer = 0;
+  game.bossFight.survivalGoal = 60000; // 60 seconds
   
   // NO TIMER OR RIDDLES IN BOSS FIGHT!
   game.currentRiddle = null;
@@ -1061,8 +1063,8 @@ function initializeBossFight() {
     }
   ];
   
-  // Spawn initial weapons
-  spawnWeapons(3);
+  // Start the survival challenge!
+  showToast("🌀 SURVIVE FOR 60 SECONDS! DODGE THE FATES!");
   
   // Start boss music
   startBossMusic();
@@ -1094,30 +1096,31 @@ function startBossMusic() {
 function updateBossFight(deltaTime) {
   if (!game.bossFight.active) return;
   
+  // Update survival timer
+  game.bossFight.survivalTimer += deltaTime;
+  
+  // Check if player survived long enough
+  if (game.bossFight.survivalTimer >= game.bossFight.survivalGoal) {
+    bossFightWon();
+    return;
+  }
+  
+  // Update phase based on survival time
+  const timeInSeconds = game.bossFight.survivalTimer / 1000;
+  if (timeInSeconds >= 40 && game.bossFight.phase < 3) {
+    game.bossFight.phase = 3;
+    showToast("⚡ PHASE 3: MAXIMUM INTENSITY!");
+  } else if (timeInSeconds >= 20 && game.bossFight.phase < 2) {
+    game.bossFight.phase = 2;
+    showToast("🔥 PHASE 2: THE FATES GROW ANGRIER!");
+  }
+  
   // Update invulnerability
   if (game.bossFight.invulnerable) {
     game.bossFight.invulnerabilityTimer -= deltaTime;
     if (game.bossFight.invulnerabilityTimer <= 0) {
       game.bossFight.invulnerable = false;
     }
-  }
-  
-  // Update weapon cooldown
-  if (game.bossFight.weaponCooldown > 0) {
-    game.bossFight.weaponCooldown -= deltaTime;
-  }
-  
-  // Update spawn timers
-  game.bossFight.weaponSpawnTimer -= deltaTime;
-  if (game.bossFight.weaponSpawnTimer <= 0) {
-    spawnWeapons(1);
-    game.bossFight.weaponSpawnTimer = 5000; // Spawn weapon every 5 seconds
-  }
-  
-  game.bossFight.healthSpawnTimer -= deltaTime;
-  if (game.bossFight.healthSpawnTimer <= 0 && game.bossFight.playerHealth < 75) {
-    spawnHealthBox();
-    game.bossFight.healthSpawnTimer = 10000; // Spawn health every 10 seconds if needed
   }
   
   // Update Fates AI
@@ -1131,13 +1134,6 @@ function updateBossFight(deltaTime) {
   
   // Check for player damage
   checkPlayerDamage();
-  
-  // Check pickups
-  checkWeaponPickup();
-  checkHealthPickup();
-  
-  // Check for boss defeat
-  checkBossDefeat();
 }
 
 // Update Fates AI and movement
@@ -1234,17 +1230,44 @@ function launchScissorsAttack(fate) {
 
 // Create string trap
 function createStringTrap(fate) {
-  const trap = {
-    x: game.player.x + (Math.random() - 0.5) * 100,
-    y: game.player.y + (Math.random() - 0.5) * 100,
+  // Position trap near but not on player
+  const offsetX = (Math.random() - 0.5) * 200; // Increased offset
+  const offsetY = (Math.random() - 0.5) * 200;
+  const trapX = game.player.x + offsetX;
+  const trapY = game.player.y + offsetY;
+  
+  // Keep within bounds
+  const finalX = Math.max(100, Math.min(canvas.width - 100, trapX));
+  const finalY = Math.max(150, Math.min(canvas.height - 100, trapY));
+  
+  // Create warning zone first
+  const warningZone = {
+    x: finalX,
+    y: finalY,
     radius: 80,
-    damage: 15,
-    lifetime: 5000,
-    slowEffect: true
+    damage: 0,
+    lifetime: 1000, // 1 second warning
+    slowEffect: false,
+    color: 'rgba(255, 0, 0, 0.2)',
+    isWarning: true
   };
   
-  game.bossFight.stringTraps.push(trap);
-  showToast(`${fate.name} weaves a string trap!`);
+  game.bossFight.stringTraps.push(warningZone);
+  
+  // Create actual trap after delay
+  setTimeout(() => {
+    const trap = {
+      x: finalX,
+      y: finalY,
+      radius: 80,
+      damage: 15,
+      lifetime: 4000,
+      slowEffect: true
+    };
+    game.bossFight.stringTraps.push(trap);
+  }, 1000);
+  
+  showToast(`${fate.name} prepares a string trap! DODGE THE RED!`);
 }
 
 // Launch string shot
@@ -1334,6 +1357,9 @@ function checkPlayerDamage() {
   
   // Check string traps
   game.bossFight.stringTraps.forEach(trap => {
+    // Skip warning zones - they don't damage
+    if (trap.isWarning) return;
+    
     const dx = trap.x - playerX;
     const dy = trap.y - playerY;
     const distance = Math.sqrt(dx * dx + dy * dy);
@@ -1385,25 +1411,7 @@ function playerDefeated() {
   console.log('💀 Player defeated by The Fates');
 }
 
-// Check for boss defeat
-function checkBossDefeat() {
-  const aliveFates = game.bossFight.fates.filter(fate => fate.health > 0);
-  
-  if (aliveFates.length === 0) {
-    // All Fates defeated!
-    bossFightWon();
-  } else if (aliveFates.length <= 1 && game.bossFight.phase < 3) {
-    // Advance to next phase
-    game.bossFight.phase++;
-    showToast(`Phase ${game.bossFight.phase}: The remaining Fates grow stronger!`);
-    
-    // Make remaining fates more aggressive
-    aliveFates.forEach(fate => {
-      fate.health = fate.maxHealth; // Heal remaining fates
-      fate.angry = true;
-    });
-  }
-}
+
 
 // Boss fight won
 function bossFightWon() {
@@ -1417,197 +1425,59 @@ function bossFightWon() {
   
   // Victory!
   game.state = 'won';
-  showToast("The Fates have been defeated! You are FREE!");
+  const survivalTime = Math.floor(game.bossFight.survivalTimer / 1000);
+  showToast(`🏆 YOU SURVIVED ${survivalTime} SECONDS! You are FREE!`);
   
-  console.log('🏆 Boss fight WON! Player victorious!');
+  console.log(`🏆 Boss fight WON! Player survived ${survivalTime} seconds!`);
 }
 
-// =====================================================
-// WEAPON AND HEALTH SYSTEMS
-// =====================================================
 
-// Spawn weapons on the battlefield
-function spawnWeapons(count) {
-  for (let i = 0; i < count; i++) {
-    const weapon = {
-      x: 100 + Math.random() * (canvas.width - 200),
-      y: 150 + Math.random() * (canvas.height - 300),
-      type: ['sword', 'spear', 'dagger'][Math.floor(Math.random() * 3)],
-      damage: 25 + Math.floor(Math.random() * 15), // 25-40 damage
-      collected: false
-    };
-    game.bossFight.weapons.push(weapon);
-  }
-}
-
-// Spawn health box
-function spawnHealthBox() {
-  const healthBox = {
-    x: 100 + Math.random() * (canvas.width - 200),
-    y: 150 + Math.random() * (canvas.height - 300),
-    healing: 30 + Math.floor(Math.random() * 20), // 30-50 healing
-    collected: false
-  };
-  game.bossFight.healthBoxes.push(healthBox);
-  showToast("✨ Health box appeared!");
-}
-
-// Check if player picks up weapon
-function checkWeaponPickup() {
-  if (game.bossFight.playerWeapon) return; // Already has weapon
-  
-  const playerX = game.player.x;
-  const playerY = game.player.y;
-  
-  game.bossFight.weapons.forEach((weapon, index) => {
-    if (weapon.collected) return;
-    
-    const dx = weapon.x - playerX;
-    const dy = weapon.y - playerY;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    
-    if (distance < 40 && input.isKeyPressed('E')) {
-      // Pick up weapon
-      game.bossFight.playerWeapon = weapon;
-      weapon.collected = true;
-      game.bossFight.weapons.splice(index, 1);
-      showToast(`⚔️ Picked up ${weapon.type}! Press SPACE to throw!`);
-    }
-  });
-}
-
-// Check if player picks up health
-function checkHealthPickup() {
-  const playerX = game.player.x;
-  const playerY = game.player.y;
-  
-  for (let i = game.bossFight.healthBoxes.length - 1; i >= 0; i--) {
-    const healthBox = game.bossFight.healthBoxes[i];
-    if (healthBox.collected) continue;
-    
-    const dx = healthBox.x - playerX;
-    const dy = healthBox.y - playerY;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    
-    if (distance < 40) {
-      // Heal player
-      const oldHealth = game.bossFight.playerHealth;
-      game.bossFight.playerHealth = Math.min(100, game.bossFight.playerHealth + healthBox.healing);
-      const healed = game.bossFight.playerHealth - oldHealth;
-      
-      healthBox.collected = true;
-      game.bossFight.healthBoxes.splice(i, 1);
-      showToast(`💚 Healed ${Math.floor(healed)} HP!`);
-    }
-  }
-}
-
-// Throw weapon at nearest Fate
-function throwWeapon() {
-  if (!game.bossFight.playerWeapon || game.bossFight.weaponCooldown > 0) return;
-  
-  const playerX = game.player.x;
-  const playerY = game.player.y;
-  
-  // Find nearest living Fate
-  let nearestFate = null;
-  let nearestDistance = Infinity;
-  
-  game.bossFight.fates.forEach(fate => {
-    if (fate.health <= 0) return;
-    
-    const dx = fate.x - playerX;
-    const dy = fate.y - playerY;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    
-    if (distance < nearestDistance) {
-      nearestDistance = distance;
-      nearestFate = fate;
-    }
-  });
-  
-  if (nearestFate) {
-    // Launch weapon at target
-    const dx = nearestFate.x - playerX;
-    const dy = nearestFate.y - playerY;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    
-    const weaponAttack = {
-      type: 'weapon',
-      weaponType: game.bossFight.playerWeapon.type,
-      x: playerX,
-      y: playerY,
-      targetX: nearestFate.x,
-      targetY: nearestFate.y,
-      vx: (dx / distance) * 400,
-      vy: (dy / distance) * 400,
-      damage: game.bossFight.playerWeapon.damage,
-      target: nearestFate,
-      lifetime: 2000
-    };
-    
-    game.bossFight.attacks.push(weaponAttack);
-    game.bossFight.playerWeapon = null;
-    game.bossFight.weaponCooldown = 1000; // 1 second cooldown
-    
-    showToast(`⚔️ Threw ${weaponAttack.weaponType} at ${nearestFate.name}!`);
-  }
-}
-
-// Check weapon hits on Fates
-function checkWeaponHits() {
-  game.bossFight.attacks.forEach((attack, attackIndex) => {
-    if (attack.type !== 'weapon') return;
-    
-    // Check if weapon hit its target
-    if (attack.target && attack.target.health > 0) {
-      const dx = attack.x - attack.target.x;
-      const dy = attack.y - attack.target.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      
-      if (distance < 50) {
-        // Hit!
-        attack.target.health -= attack.damage;
-        attack.target.angry = true;
-        
-        showToast(`💥 ${attack.target.name} takes ${attack.damage} damage!`);
-        
-        // Remove weapon
-        game.bossFight.attacks.splice(attackIndex, 1);
-        
-        // Check if Fate was defeated
-        if (attack.target.health <= 0) {
-          showToast(`☠️ ${attack.target.name} has been defeated!`);
-          attack.target.x = -1000; // Move off screen
-        }
-        
-        setTimeout(() => {
-          if (attack.target) attack.target.angry = false;
-        }, 500);
-      }
-    }
-  });
-}
 
 // Use individual Fate powers
 function useFatePower(fate, index) {
   switch (fate.power) {
     case 'web':
-      // Clotho - Creates multiple web traps
+      // Clotho - Creates multiple web traps in a predictable pattern
+      // Create warning zones first
       for (let i = 0; i < 3; i++) {
         const angle = (Math.PI * 2 / 3) * i;
-        const trap = {
-          x: fate.x + Math.cos(angle) * 100,
-          y: fate.y + Math.sin(angle) * 100,
+        // Place traps farther away in a triangle around Clotho
+        const distance = 200; // Increased from 100 to give player space
+        const trapX = fate.x + Math.cos(angle) * distance;
+        const trapY = fate.y + Math.sin(angle) * distance;
+        
+        // Keep traps within bounds
+        const finalX = Math.max(100, Math.min(canvas.width - 100, trapX));
+        const finalY = Math.max(150, Math.min(canvas.height - 100, trapY));
+        
+        // Show warning zone for 1 second before trap appears
+        const warningZone = {
+          x: finalX,
+          y: finalY,
           radius: 60,
-          damage: 0.5, // Low damage per tick
-          lifetime: 5000,
-          slowEffect: true,
-          color: 'rgba(200, 200, 255, 0.3)'
+          damage: 0,
+          lifetime: 1000,
+          slowEffect: false,
+          color: 'rgba(255, 0, 0, 0.2)',
+          isWarning: true
         };
-        game.bossFight.stringTraps.push(trap);
+        game.bossFight.stringTraps.push(warningZone);
+        
+        // Create actual trap after delay
+        setTimeout(() => {
+          const trap = {
+            x: finalX,
+            y: finalY,
+            radius: 60,
+            damage: 0.5, // Low damage per tick
+            lifetime: 4000,
+            slowEffect: true,
+            color: 'rgba(200, 200, 255, 0.3)'
+          };
+          game.bossFight.stringTraps.push(trap);
+        }, 1000);
       }
-      showToast(`🕸️ ${fate.name} weaves a web of fate!`);
+      showToast(`🕸️ ${fate.name} prepares web traps! RED = DANGER!`);
       break;
       
     case 'teleport':

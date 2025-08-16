@@ -20,11 +20,6 @@ function update(deltaTime) {
   // Update boss fight (Level 4)
   if (game.currentLevel === 4) {
     updateBossFight(deltaTime);
-    
-    // Check weapon hits on Fates
-    if (game.bossFight.active) {
-      checkWeaponHits();
-    }
   }
   
   // Update timer (faster with Hermes' power) - NO TIMER IN LEVEL 4 BOSS FIGHT
@@ -82,14 +77,8 @@ function update(deltaTime) {
     if (input.wasPressed('v')) {
       handleOvenRetrieve();
     }
-  } else if (game.currentLevel === 4 && game.bossFight.active) {
-    // Boss fight controls
-    if (input.wasPressed(' ')) {
-      throwWeapon();
-    }
-    // E key for weapon pickup is handled in checkWeaponPickup()
   }
-  // During boss fight, only movement (WASD) and E/SPACE are allowed
+  // During boss fight, only movement (WASD) is allowed - handled in physics.js
   
   // ESC key pause handling is done in input.js to avoid conflicts
   

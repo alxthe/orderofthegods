@@ -23,21 +23,31 @@ const KITCHEN = {
     COUNTER: { x: Math.max(640, window.innerWidth * 0.5), y: 200 },     // Centered delivery counter (responsive)
     TABLE: { x: Math.max(640, window.innerWidth * 0.5), y: Math.max(420, window.innerHeight * 0.45) },       // Central plate assembly (responsive, moved down)
     TRASH: { x: window.innerWidth - 150, y: window.innerHeight - 150 }, // Trash bin - bottom right corner (responsive)
-    OVEN: { x: 450, y: 280 },         // Divine cooking oven (left side)
-    CUTTING_BOARD: { x: window.innerWidth - 250, y: 380 }, // Ancient cutting board (right side, responsive)
-    SAUCEPAN: { x: Math.max(800, window.innerWidth * 0.6), y: 300 }, // Divine saucepan (center-right, Level 3+)
+    
+    // COOKING DEVICES - Along the walls to avoid blocking center
+    OVEN: { x: 380, y: 350 },                                          // Left wall
+    CUTTING_BOARD: { x: window.innerWidth - 200, y: 350 },            // Right wall
+    SAUCEPAN: { x: 380, y: 450 },                                     // Left wall, below oven (Level 3+)
+    
     BINS: {
-      bread: { x: 360, y: 260 },     // Left side bins
-      tomato: { x: 360, y: 460 },    
-      cheese: { x: window.innerWidth - 160, y: 260 },   // Right side bins (responsive)
-      meat: { x: window.innerWidth - 160, y: 460 },     
-      egg: { x: Math.max(530, window.innerWidth * 0.4), y: window.innerHeight - 180 },       // Bottom bins (responsive)
-      pepper: { x: Math.max(750, window.innerWidth * 0.5), y: window.innerHeight - 180 },
-      bacon: { x: Math.max(850, window.innerWidth * 0.55), y: window.innerHeight - 180 },    // New ingredients!
-      avocado: { x: Math.max(950, window.innerWidth * 0.6), y: window.innerHeight - 180 },
-      oliveoil: { x: Math.max(1050, window.innerWidth * 0.65), y: window.innerHeight - 180 }, // Level 2 olive oil!
-      olives: { x: Math.max(1150, window.innerWidth * 0.7), y: window.innerHeight - 180 }, // Level 2 olives!
-      milk: { x: 300, y: 180 } // Level 3+ milk crate (top-left area)
+      // LEFT SIDE - Core ingredients (vertical arrangement)
+      bread: { x: 350, y: 250 },
+      tomato: { x: 350, y: 550 },
+      cheese: { x: 350, y: 650 },
+      
+      // RIGHT SIDE - Core ingredients (vertical arrangement)  
+      meat: { x: window.innerWidth - 170, y: 250 },
+      egg: { x: window.innerWidth - 170, y: 550 },
+      pepper: { x: window.innerWidth - 170, y: 650 },
+      
+      // BOTTOM ROW - Additional ingredients (horizontal, below table)
+      bacon: { x: Math.max(450, window.innerWidth * 0.35), y: window.innerHeight - 180 },
+      avocado: { x: Math.max(570, window.innerWidth * 0.45), y: window.innerHeight - 180 },
+      oliveoil: { x: Math.max(690, window.innerWidth * 0.55), y: window.innerHeight - 180 }, // Level 2+
+      olives: { x: Math.max(810, window.innerWidth * 0.65), y: window.innerHeight - 180 }, // Level 2+
+      
+      // SPECIAL POSITIONED INGREDIENT
+      milk: { x: 450, y: 180 } // Level 3+ milk crate (moved to avoid blocking)
     }
   },
   ZONES: {
