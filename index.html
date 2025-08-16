@@ -174,55 +174,61 @@
     };
     
     // Asset file mapping
-    const ASSET_FILES = {
-      ingredients: {
-        bread: 'assets/bread.png',
-        tomato: 'assets/tomato.png', 
-        cheese: 'assets/cheese.png',
-        meat: 'assets/meat.png',
-        egg: 'assets/egg.png',
-        pepper: 'assets/pepper.png',
-        bacon: 'assets/bacon.png',     // New ingredient for complex recipes!
-        avocado: 'assets/avocado.png'  // New ingredient for complex recipes!
-      },
-      customers: {
-        medusa: 'assets/medusa.png',
-        minotaur: 'assets/minotaur.png',
-        hermes: 'assets/hermes.png',
-        sphinx: 'assets/sphinx.png',
-        pegasus: 'assets/pegasus.png',
-        poseidon: 'assets/poseidon.png',
-        ghost: 'assets/restless-spirit.png',
-        zeus: 'assets/zeus.png',       // Lord of Olympus!
-        hera: 'assets/hera.png',       // Queen of the gods!
-        hydra: 'assets/hydra.png',     // Legendary beast!
-        chimera: 'assets/chimera.png'  // Three-headed monster!
-      },
-      ui: {
-        plate: 'assets/plate.png',
-        crate: 'assets/crate.png'
-      },
-      kitchen: {
-        oven: 'assets/oven.png',           // Divine cooking station!
-        cuttingBoard: 'assets/cutting-board.png',  // Ancient cutting board!
-        feastHall: 'assets/feast-hall.png',  // Background enhancement!
-        olympus: 'assets/olympus.png'      // Olympus background for gods!
-      },
-      cutIngredients: {
-        cut_tomato: 'assets/cut-tomato.png',
-        cut_cheese: 'assets/cut-cheese.png',
-        cut_avocado: 'assets/cut-avocado.png',
-        cut_pepper: 'assets/cut-pepper.png'
-      },
-      cookedIngredients: {
-        cooked_meat: 'assets/cooked-meat.png',
-        cooked_egg: 'assets/cooked-egg.png',
-        cooked_bacon: 'assets/cooked-bacon.png'
-      },
-      player: {
-        character: 'assets/main-character.png'
-      }
-    };
+          const ASSET_FILES = {
+        ingredients: {
+          bread: 'assets/food/bread.png',
+          tomato: 'assets/food/tomato.png', 
+          cheese: 'assets/food/cheese.png',
+          meat: 'assets/food/meat.png',
+          egg: 'assets/food/egg.png',
+          pepper: 'assets/food/pepper.png',
+          bacon: 'assets/food/bacon.png',
+          avocado: 'assets/food/avocado.png'
+        },
+        customers: {
+          // Level 1 - Tartarus Creatures (5 total)
+          medusa: 'assets/level 1/medusa.png',
+          minotaur: 'assets/level 1/minotaur.png',
+          sphinx: 'assets/level 1/sphinx.png',
+          hydra: 'assets/level 1/hydra.png',
+          chimera: 'assets/level 1/chimera.png',
+          // Level 2 - More Creatures
+          hercules: 'assets/level 2 creatures/hercules.png',
+          pegasus: 'assets/level 2 creatures/pegasus.png',
+          // Level 3 - Greek Gods
+          hermes: 'assets/level 3/hermes.png',
+          poseidon: 'assets/level 3/poseidon.png',
+          zeus: 'assets/level 3/zeus.png',
+          hera: 'assets/level 3/hera.png',
+          hades: 'assets/level 3/hades.png',
+          // Ghost missing from new organization
+          ghost: null
+        },
+        ui: {
+          plate: null, // Removed plate asset
+          crate: 'assets/backgrounds & tools/crate.png'
+        },
+        kitchen: {
+          oven: 'assets/backgrounds & tools/oven.png',
+          cuttingBoard: 'assets/backgrounds & tools/cutting-board.png',
+          feastHall: 'assets/level 1/feast-hall.png',
+          olympus: 'assets/level 2 creatures/olympus.png'
+        },
+        cutIngredients: {
+          cut_tomato: 'assets/cut & cooked/cut & cooked/cut-tomato.png',
+          cut_cheese: 'assets/cut & cooked/cut & cooked/cut-cheese.png',
+          cut_avocado: 'assets/cut & cooked/cut & cooked/cut-avocado.png',
+          cut_pepper: 'assets/cut & cooked/cut & cooked/cut-pepper.png'
+        },
+        cookedIngredients: {
+          cooked_meat: 'assets/cut & cooked/cut & cooked/cooked-meat.png',
+          cooked_egg: 'assets/cut & cooked/cut & cooked/cooked-egg.png',
+          cooked_bacon: 'assets/cut & cooked/cut & cooked/cooked-bacon.png'
+        },
+        player: {
+          character: 'assets/backgrounds & tools/main-character.png'
+        }
+      };
     
     // Load image helper
     function loadImage(src) {
@@ -575,7 +581,7 @@
     ];
     
     // Customer database
-    // Trial 1: Mythological Creatures (0-10 points)
+    // Trial 1: Tartarus Creatures (0-10 points) - 5 total from level 1 folder
     const CREATURES = [
       { id: "minotaur", name: "Minotaur", 
         success: ["The labyrinth rests.", "Straight through.", "Your path is clear."],
@@ -585,26 +591,22 @@
         success: ["Your mind is awake.", "The riddle yields.", "Wisdom is shown."],
         failure: ["Answer me properly.", "Your mind falters.", "Think harder, mortal."],
         timeout: ["Silence is not an answer.", "Time riddles all.", "The sphinx waits not."]},
-      { id: "pegasus", name: "Pegasus",
-        success: ["Wings of satisfaction.", "Sky-high approval.", "Divine flight achieved."],
-        failure: ["Grounded by error.", "Wings clipped.", "Fall from grace."],
-        timeout: ["Time flies away.", "Swift as wind departs.", "The sky cannot wait."]},
-      { id: "ghost", name: "Restless Spirit",
-        success: ["The veil shivers.", "Peace flows.", "Rest is granted."],
-        failure: ["Whispers say no.", "Unrest grows.", "The dead are displeased."],
-        timeout: ["Time slipped through you.", "Eternity waits not.", "The spirit fades."]},
+      { id: "medusa", name: "Medusa",
+        success: ["Stone-cold perfect.", "Acceptable gaze.", "Your eyes see truth."],
+        failure: ["You froze.", "Turned to failure.", "Gaze upon your mistake."],
+        timeout: ["Petrified by seconds?", "Time turns you to stone.", "Hesitation kills."]},
+      { id: "hydra", name: "Hydra",
+        success: ["All heads are pleased.", "Serpentine satisfaction.", "The beast approves."],
+        failure: ["Heads hiss in anger.", "Venomous displeasure.", "The hydra strikes back."],
+        timeout: ["Many heads, no patience.", "Time slithers away.", "The serpent waits not."]},
       { id: "chimera", name: "Chimera",
         success: ["All three heads agree!", "Lion purrs, goat bleats, serpent hisses approval.", "Unified in satisfaction."],
         failure: ["The lion roars, goat screams, serpent spits!", "Three minds in chaos.", "Disagreement breeds fury."],
         timeout: ["Three heads, three opinions, three times the impatience.", "Chimera cannot wait.", "Beast's patience expires."]}
     ];
 
-    // Trial 2: Greek Gods (10+ points) 
+    // Trial 2: Greek Gods (10+ points) - Level 3 gods from level 3 folder
     const GODS = [
-      { id: "medusa", name: "Medusa",
-        success: ["Stone-cold perfect.", "Acceptable gaze.", "Your eyes see truth."],
-        failure: ["You froze.", "Turned to failure.", "Gaze upon your mistake."],
-        timeout: ["Petrified by seconds?", "Time turns you to stone.", "Hesitation kills."]},
       { id: "hermes", name: "Hermes",
         success: ["Swift and sure.", "Wings approved.", "Speed and precision unite."],
         failure: ["Outpaced again.", "Too slow, mortal.", "Haste without thought."],
@@ -620,7 +622,11 @@
       { id: "hera", name: "Hera",
         success: ["The queen approves.", "Royal satisfaction.", "Hera's grace shines."],
         failure: ["Royal displeasure.", "The queen's scorn burns.", "Unworthy of Olympus."],
-        timeout: ["Queens do not wait.", "Royal time is precious.", "Hera's patience expires."]}
+        timeout: ["Queens do not wait.", "Royal time is precious.", "Hera's patience expires."]},
+      { id: "hades", name: "Hades",
+        success: ["The underworld approves.", "Death itself is satisfied.", "Darkness embraces your skill."],
+        failure: ["The dead are restless.", "Hades' realm rejects this.", "Shadows consume your failure."],
+        timeout: ["Death waits for none.", "The underworld calls.", "Time itself dies here."]}
     ];
 
     // Get current customer pool based on trial
@@ -639,7 +645,7 @@
       return shuffled;
     }
     
-    console.log(`✅ Loaded ${RIDDLES.length} riddles, ${CREATURES.length} creatures, and ${GODS.length} gods`);
+    console.log(`✅ Loaded ${RIDDLES.length} riddles, ${CREATURES.length} creatures (Level 1), and ${GODS.length} gods (Level 3)`);
     
     // =============================================================================
     // GAME STATE
@@ -700,16 +706,18 @@
       
       // God Relationship System - Character Arcs
       godRelationships: {
+        // Level 1 - Tartarus Creatures
         medusa: { favor: 0, interactions: 0, arc: 'hostile' },     // Starts hostile, becomes protective
         minotaur: { favor: 0, interactions: 0, arc: 'neutral' },   // Respects skill, offers teaching  
-        poseidon: { favor: 0, interactions: 0, arc: 'testing' },   // Tests worth with impossible orders
-        hermes: { favor: 0, interactions: 0, arc: 'neutral' },     // Quick to judge, quick to forgive
         sphinx: { favor: 0, interactions: 0, arc: 'mysterious' },  // Riddles within riddles
-        zeus: { favor: 0, interactions: 0, arc: 'demanding' },     // Expects perfection
-        hera: { favor: 0, interactions: 0, arc: 'judgmental' },    // Watches for weakness
         hydra: { favor: 0, interactions: 0, arc: 'chaotic' },      // Unpredictable beast
         chimera: { favor: 0, interactions: 0, arc: 'volatile' },   // Three personalities in one
-        ghost: { favor: 0, interactions: 0, arc: 'sorrowful' }     // Seeks understanding
+        // Level 3 - Greek Gods
+        hermes: { favor: 0, interactions: 0, arc: 'neutral' },     // Quick to judge, quick to forgive
+        poseidon: { favor: 0, interactions: 0, arc: 'testing' },   // Tests worth with impossible orders
+        zeus: { favor: 0, interactions: 0, arc: 'demanding' },     // Expects perfection
+        hera: { favor: 0, interactions: 0, arc: 'judgmental' },    // Watches for weakness
+        hades: { favor: 0, interactions: 0, arc: 'ominous' }       // Lord of the underworld
       },
       
       // New Cooking Mechanics
