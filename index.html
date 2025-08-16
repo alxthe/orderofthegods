@@ -86,7 +86,7 @@
         TOP: 160,     // Below header (120px + sprite height buffer)
         BOTTOM: window.innerHeight - 80, // Dynamic based on screen height
         QUEUE_X: 200, // Where customers line up
-        ENTRANCE_Y: 220, // Where customers enter from (well below header)
+        ENTRANCE_Y: 240, // Where customers enter from (adjusted for larger 128px sprites)
         EXIT_Y: window.innerHeight - 100   // Where customers exit to (near bottom)
       },
       POSITIONS: {
@@ -177,7 +177,8 @@
         hermes: 'assets/hermes.png',
         sphinx: 'assets/sphinx.png',
         pegasus: 'assets/pegasus.png',
-        poseidon: 'assets/poseidon.png'  // New god of the sea!
+        poseidon: 'assets/poseidon.png',  // God of the sea
+        ghost: 'assets/restless-spirit.png'  // New restless spirit asset!
       },
       ui: {
         plate: 'assets/plate.png',
@@ -410,7 +411,45 @@
       { id: "l3_7", text: "Fill the divine plate completely with five sacred offerings", type: "TOTALCOUNT", level: 3,
         totalCount: 5},
       { id: "l3_8", text: "Medusa's challenge: All different, nothing repeated", type: "UNIQUE", level: 3,
-        totalCount: 4, uniqueOnly: true}
+        totalCount: 4, uniqueOnly: true},
+      
+      // ADDITIONAL LEVEL 1 RIDDLES - More variety for beginners
+      { id: "l1_9", text: "The baker's foundation and Zeus's sacred creation", type: "COUNT", level: 1,
+        counts: { bread: 1, egg: 1 }},
+      { id: "l1_10", text: "Fire's kiss meets the earth's spice", type: "COUNT", level: 1,
+        counts: { pepper: 2 }},
+      { id: "l1_11", text: "Three gifts from Demeter's golden fields", type: "COUNT", level: 1,
+        counts: { bread: 3 }},
+      { id: "l1_12", text: "The vine's blood with fire's burn", type: "COUNT", level: 1,
+        counts: { tomato: 1, pepper: 1 }},
+      
+      // ADDITIONAL LEVEL 2 RIDDLES - More complex combinations
+      { id: "l2_9", text: "The feast of plenty, but no hunter's prize shall touch", type: "EXCLUDE", level: 2,
+        totalCount: 4, excludes: ["meat"]},
+      { id: "l2_10", text: "Sacred offerings abound, yet avoid Zeus's creation", type: "EXCLUDE", level: 2,
+        totalCount: 3, excludes: ["egg"]},
+      { id: "l2_11", text: "The forest's bread wrapped around earth's fire", type: "SANDWICH", level: 2,
+        bread: true, filling: ["pepper"]},
+      { id: "l2_12", text: "Golden grain embraces the hunter's prize with sacred gift", type: "SANDWICH", level: 2,
+        bread: true, filling: ["meat", "cheese"]},
+      { id: "l2_13", text: "Fill the sacred vessel, but let no vine's blood flow", type: "EXCLUDE", level: 2,
+        totalCount: 5, excludes: ["tomato"]},
+      
+      // ADDITIONAL LEVEL 3 RIDDLES - Ultimate challenges
+      { id: "l3_9", text: "The trinity of the earth: bread, meat, and sacred gift only", type: "COUNT", level: 3,
+        counts: { bread: 1, meat: 1, cheese: 1 }},
+      { id: "l3_10", text: "Five different souls, each unique in the divine vessel", type: "UNIQUE", level: 3,
+        totalCount: 5, uniqueOnly: true},
+      { id: "l3_11", text: "Hermes' perfect symmetry: two of grain, two of earth's fire", type: "COUNT", level: 3,
+        counts: { bread: 2, pepper: 2 }},
+      { id: "l3_12", text: "The feast of four, with no repeating souls", type: "UNIQUE", level: 3,
+        totalCount: 4, uniqueOnly: true},
+      { id: "l3_13", text: "Exactly five offerings, but the hunter brings nothing", type: "EXCLUDE", level: 3,
+        totalCount: 5, excludes: ["meat"]},
+      { id: "l3_14", text: "The divine sandwich of Zeus: his creation wrapped in gold", type: "SANDWICH", level: 3,
+        bread: true, filling: ["egg"]},
+      { id: "l3_15", text: "Three unique souls only, each different from the others", type: "UNIQUE", level: 3,
+        totalCount: 3, uniqueOnly: true}
     ];
     
     // Customer database
@@ -1150,36 +1189,37 @@
         }
       }
       
-      // Table (Phase 3 - Enhanced with plate asset)
+      // Ancient Work Table (simplified - no plate)
       const table = KITCHEN.POSITIONS.TABLE;
       
-      // Table surface
-      ctx.fillStyle = CONFIG.COLORS.TABLE;
+      // Table surface - simple rectangular stone table
+      const tableGrad = ctx.createLinearGradient(table.x - 120, table.y - 80, table.x - 120, table.y + 80);
+      tableGrad.addColorStop(0, '#A0522D'); // Sienna
+      tableGrad.addColorStop(0.5, '#8B4513'); // Saddle brown
+      tableGrad.addColorStop(1, '#654321'); // Dark brown
+      ctx.fillStyle = tableGrad;
       ctx.fillRect(table.x - 120, table.y - 80, 240, 160);
+      
+      // Stone table border
       ctx.strokeStyle = '#654321';
       ctx.lineWidth = 4;
       ctx.strokeRect(table.x - 120, table.y - 80, 240, 160);
       
-      // Enhanced table surface (no plate PNG)
-      ctx.fillStyle = '#F5F5DC'; // Beige table surface
-      ctx.beginPath();
-      ctx.arc(table.x, table.y, 80, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#DDD';
-      ctx.lineWidth = 3;
-      ctx.stroke();
+      // Inner carved border for stone effect
+      ctx.strokeStyle = '#D2691E';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(table.x - 116, table.y - 76, 232, 152);
       
-      // Add table texture pattern
-      ctx.strokeStyle = '#E6E6E6';
+      // Simple stone texture lines
+      ctx.strokeStyle = '#965A32';
       ctx.lineWidth = 1;
-      ctx.setLineDash([5, 5]);
-      ctx.beginPath();
-      ctx.arc(table.x, table.y, 60, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(table.x, table.y, 40, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.setLineDash([]);
+      for (let i = 0; i < 3; i++) {
+        const lineY = table.y - 40 + (i * 40);
+        ctx.beginPath();
+        ctx.moveTo(table.x - 100, lineY);
+        ctx.lineTo(table.x + 100, lineY);
+        ctx.stroke();
+      }
       
       // Ingredient slots on plate (Phase 3 - Show PNG ingredients)
       for (let i = 0; i < 5; i++) {
@@ -1192,7 +1232,7 @@
         if (game.plate[i]) {
           const ingredientImg = ASSETS.ingredients[game.plate[i]];
           if (ingredientImg && ASSETS.loaded) {
-            const imgSize = 25;
+            const imgSize = 36; // Increased size for better visibility
             ctx.drawImage(
               ingredientImg,
               slotX - imgSize/2,
@@ -1343,7 +1383,7 @@
       // Draw player character sprite if available
       const characterImg = ASSETS.player?.character;
       if (characterImg && ASSETS.loaded) {
-        const spriteSize = 48; // Appropriate size for player character
+        const spriteSize = 64; // Increased size for better visibility
         
         // Draw character sprite
         ctx.drawImage(
@@ -1385,7 +1425,7 @@
         const carriedImg = ASSETS.ingredients[player.carrying];
         if (carriedImg && ASSETS.loaded) {
           // Draw ingredient PNG above player with better size
-          const imgSize = 40; // Slightly larger for better visibility
+          const imgSize = 56; // Increased size for better visibility
           
           // Add background circle for contrast
           ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
@@ -1459,8 +1499,8 @@
       ctx.setLineDash([]);
       
       const customerImg = ASSETS.customers[game.currentCustomer.id];
-      const spriteWidth = 70;  // Narrower width for more natural proportions
-      const spriteHeight = 100; // Taller height to make sprites more vertical
+      const spriteWidth = 96;   // Universal width for all customer sprites (increased resolution)
+      const spriteHeight = 128; // Universal height for all customer sprites (increased resolution)
       
       if (customerImg && ASSETS.loaded) {
         // Draw customer sprite at animated position with vertical proportions
@@ -2036,13 +2076,13 @@
         game.timer -= deltaTime / 1000;
         if (game.timer <= 0) {
           game.timer = 0;
-          // Timeout!
-          game.customerMessage = randomChoice(game.currentCustomer.timeout);
+          // Clean timeout handling - no scramble, just clear message
+          game.customerMessage = "TIMED OUT!!!";
           game.messageTimer = 2000;
-          showToast("Time's up!");
-          console.log("TIMEOUT! Next riddle...");
-          AUDIO.playTimeout(); // Phase 3 - Audio feedback
-          game.plate = [];
+          showToast("TIMED OUT!!!");
+          console.log("TIMEOUT! Moving to next riddle...");
+          AUDIO.playTimeout(); // Audio feedback
+          game.plate = []; // Clear plate
           game.customerState = 'walking_out';
           setTimeout(() => nextRiddle(), 2500); // Give time for walking animation
         }
