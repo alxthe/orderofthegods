@@ -17,3 +17,7 @@ REMEMBER:
 - git add ., git commit -m, git push
 - update memory bank
 - test
+
+List of priorities
+- harder riddles
+- feel like they are cooking 

@@ -69,22 +69,31 @@
     // EXACT KITCHEN LAYOUT COORDINATES (DO NOT CHANGE)
     const KITCHEN = {
       BOUNDS: {
-        LEFT: 80,
+        LEFT: 280,    // Kitchen area starts further right to make room for customers
         RIGHT: 1200, 
         TOP: 80,
         BOTTOM: 640
       },
+      CUSTOMER_AREA: {
+        LEFT: 50,     // Customer walking/waiting area
+        RIGHT: 270,    
+        TOP: 80,
+        BOTTOM: 640,
+        QUEUE_X: 200, // Where customers line up
+        ENTRANCE_Y: 150, // Where customers enter from
+        EXIT_Y: 550   // Where customers exit to
+      },
       POSITIONS: {
-        COUNTER: { x: 640, y: 120 },     // Delivery zone at top
+        COUNTER: { x: 500, y: 120 },     // Moved counter into kitchen area
         TABLE: { x: 640, y: 360 },       // Central plate assembly
         TRASH: { x: 1050, y: 550 },      // Trash bin - bottom right corner
         BINS: {
-          BREAD: { x: 160, y: 260 },     // Left wall upper
-          TOMATO: { x: 160, y: 460 },    // Left wall lower
-          CHEESE: { x: 1120, y: 260 },   // Right wall upper
-          MEAT: { x: 1120, y: 460 },     // Right wall lower
-          EGG: { x: 430, y: 620 },       // Bottom wall left
-          PEPPER: { x: 850, y: 620 }     // Bottom wall right
+          bread: { x: 360, y: 260 },     // Renamed and repositioned bins
+          tomato: { x: 360, y: 460 },    
+          cheese: { x: 1120, y: 260 },   
+          meat: { x: 1120, y: 460 },     
+          egg: { x: 530, y: 620 },       
+          pepper: { x: 850, y: 620 }     
         }
       },
       ZONES: {
@@ -133,85 +142,303 @@
     console.log("✅ Configuration loaded");
     
     // =============================================================================
+    // ASSET LOADING SYSTEM (PHASE 3)
+    // =============================================================================
+    
+    // Asset mapping and loading
+    const ASSETS = {
+      ingredients: {},
+      customers: {},
+      ui: {},
+      loaded: false,
+      totalAssets: 0,
+      loadedAssets: 0
+    };
+    
+    // Asset file mapping
+    const ASSET_FILES = {
+      ingredients: {
+        bread: 'assets/bread.png',
+        tomato: 'assets/tomato.png', 
+        cheese: 'assets/cheese.png',
+        meat: 'assets/meat.png',  // Updated to use meat.png
+        egg: null, // No egg asset - will use placeholder
+        pepper: 'assets/pepper.png'
+      },
+      customers: {
+        medusa: 'assets/medusa.png',
+        minotaur: 'assets/minotaur.png',
+        hermes: 'assets/hermes.png',
+        sphinx: 'assets/sphinx.png',
+        pegasus: 'assets/pegasus.png'
+      },
+      ui: {
+        plate: 'assets/plate.png'
+      }
+    };
+    
+    // Load image helper
+    function loadImage(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          ASSETS.loadedAssets++;
+          console.log(`✅ Loaded: ${src} (${ASSETS.loadedAssets}/${ASSETS.totalAssets})`);
+          resolve(img);
+        };
+        img.onerror = () => {
+          ASSETS.loadedAssets++;
+          console.log(`❌ Failed: ${src}`);
+          reject(new Error(`Failed to load ${src}`));
+        };
+        img.src = src;
+      });
+    }
+    
+    // Load all assets
+    async function loadAssets() {
+      console.log('🎨 Loading Phase 3 assets...');
+      
+      const loadPromises = [];
+      
+      // Count total assets
+      Object.values(ASSET_FILES.ingredients).forEach(src => src && ASSETS.totalAssets++);
+      Object.values(ASSET_FILES.customers).forEach(src => src && ASSETS.totalAssets++);
+      Object.values(ASSET_FILES.ui).forEach(src => src && ASSETS.totalAssets++);
+      
+      // Load ingredient assets
+      for (let [ingredient, src] of Object.entries(ASSET_FILES.ingredients)) {
+        if (src) {
+          loadPromises.push(
+            loadImage(src).then(img => {
+              ASSETS.ingredients[ingredient] = img;
+            }).catch(() => {
+              console.log(`⚠️ Using fallback for ${ingredient}`);
+              ASSETS.ingredients[ingredient] = null;
+            })
+          );
+        } else {
+          ASSETS.ingredients[ingredient] = null; // Will use fallback rendering
+        }
+      }
+      
+      // Load customer assets
+      for (let [customer, src] of Object.entries(ASSET_FILES.customers)) {
+        if (src) {
+          loadPromises.push(
+            loadImage(src).then(img => {
+              ASSETS.customers[customer] = img;
+            }).catch(() => {
+              ASSETS.customers[customer] = null;
+            })
+          );
+        }
+      }
+      
+      // Load UI assets
+      for (let [ui, src] of Object.entries(ASSET_FILES.ui)) {
+        if (src) {
+          loadPromises.push(
+            loadImage(src).then(img => {
+              ASSETS.ui[ui] = img;
+            }).catch(() => {
+              ASSETS.ui[ui] = null;
+            })
+          );
+        }
+      }
+      
+      // Wait for all assets to load
+      await Promise.allSettled(loadPromises);
+      
+      ASSETS.loaded = true;
+      console.log(`🎨 Phase 3 assets loaded: ${ASSETS.loadedAssets}/${ASSETS.totalAssets}`);
+      
+      return ASSETS.loaded;
+    }
+    
+    console.log("✅ Asset system initialized");
+    
+    // =============================================================================
+    // AUDIO SYSTEM (PHASE 3)
+    // =============================================================================
+    
+    // Audio context and sound effects
+    const AUDIO = {
+      context: null,
+      enabled: true,
+      sounds: {},
+      
+      // Initialize audio context
+      init() {
+        try {
+          this.context = new (window.AudioContext || window.webkitAudioContext)();
+          console.log('🔊 Audio system initialized');
+        } catch (error) {
+          console.log('⚠️ Audio not supported');
+          this.enabled = false;
+        }
+      },
+      
+      // Create a simple beep sound
+      createBeep(frequency, duration, type = 'sine') {
+        if (!this.enabled || !this.context) return;
+        
+        const oscillator = this.context.createOscillator();
+        const gainNode = this.context.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.context.destination);
+        
+        oscillator.frequency.value = frequency;
+        oscillator.type = type;
+        
+        gainNode.gain.setValueAtTime(0.1, this.context.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, this.context.currentTime + duration);
+        
+        oscillator.start(this.context.currentTime);
+        oscillator.stop(this.context.currentTime + duration);
+      },
+      
+      // Play different sound effects
+      playPickup() {
+        this.createBeep(800, 0.1, 'square');
+      },
+      
+      playPlace() {
+        this.createBeep(600, 0.15, 'sine');
+      },
+      
+      playDelivery() {
+        this.createBeep(1000, 0.3, 'sine');
+      },
+      
+      playSuccess() {
+        // Success chord
+        setTimeout(() => this.createBeep(523, 0.2), 0);   // C
+        setTimeout(() => this.createBeep(659, 0.2), 100); // E
+        setTimeout(() => this.createBeep(784, 0.3), 200); // G
+      },
+      
+      playFailure() {
+        this.createBeep(200, 0.5, 'sawtooth');
+      },
+      
+      playTimeout() {
+        // Timeout warning
+        this.createBeep(400, 0.3, 'triangle');
+        setTimeout(() => this.createBeep(300, 0.3), 150);
+      },
+      
+      playLevelUp() {
+        // Level up fanfare
+        const notes = [523, 659, 784, 1047]; // C, E, G, C octave
+        notes.forEach((freq, i) => {
+          setTimeout(() => this.createBeep(freq, 0.2), i * 100);
+        });
+      },
+      
+      playTrash() {
+        this.createBeep(300, 0.2, 'sawtooth');
+      }
+    };
+    
+    console.log("✅ Audio system configured");
+    
+    // =============================================================================
     // RIDDLE & CUSTOMER DATABASE (PHASE 2)
     // =============================================================================
     
     // All riddles for the game
     const RIDDLES = [
       // LEVEL 1 - Simple COUNT riddles (22 seconds)
-      { id: "l1_1", text: "Bread with tomato", type: "COUNT", level: 1, 
+      { id: "l1_1", text: "Golden grain blessed by Demeter with vine's crimson blood", type: "COUNT", level: 1, 
         counts: { bread: 1, tomato: 1 }},
-      { id: "l1_2", text: "Meat with cheese", type: "COUNT", level: 1,
+      { id: "l1_2", text: "Hunter's prize paired with the cow's sacred gift", type: "COUNT", level: 1,
         counts: { meat: 1, cheese: 1 }},
-      { id: "l1_3", text: "Egg with pepper", type: "COUNT", level: 1,
+      { id: "l1_3", text: "Zeus's forbidden treasure touched by flame's essence", type: "COUNT", level: 1,
         counts: { egg: 1, pepper: 1 }},
-      { id: "l1_4", text: "2 bread, 1 tomato", type: "COUNT", level: 1,
+      { id: "l1_4", text: "Twin grains with single crimson orb", type: "COUNT", level: 1,
         counts: { bread: 2, tomato: 1 }},
-      { id: "l1_5", text: "2 cheese, 1 meat", type: "COUNT", level: 1,
+      { id: "l1_5", text: "Double moon's gift crowning the beast", type: "COUNT", level: 1,
         counts: { cheese: 2, meat: 1 }},
-      { id: "l1_6", text: "Bread, cheese, bread", type: "SANDWICH", level: 1,
+      { id: "l1_6", text: "Sacred envelope: grain embraces cow's craft", type: "SANDWICH", level: 1,
         sandwich: ["bread", "cheese", "bread"]},
-      { id: "l1_7", text: "Bread, tomato, bread", type: "SANDWICH", level: 1,
+      { id: "l1_7", text: "Divine cradle: bread shelters vine's blood", type: "SANDWICH", level: 1,
         sandwich: ["bread", "tomato", "bread"]},
-      { id: "l1_8", text: "3 cheese", type: "COUNT", level: 1,
+      { id: "l1_8", text: "Trinity of lunar discs", type: "COUNT", level: 1,
         counts: { cheese: 3 }},
       
-      // LEVEL 2 - Add EXCLUDE riddles (18 seconds)
-      { id: "l2_1", text: "Tomato and meat, no egg", type: "EXCLUDE", level: 2,
+      // LEVEL 2 - Divine EXCLUDE riddles (18 seconds)
+      { id: "l2_1", text: "Blood and beast unite, but Zeus's egg brings doom", type: "EXCLUDE", level: 2,
         counts: { tomato: 1, meat: 1 }, exclude: ["egg"]},
-      { id: "l2_2", text: "2 meat, no cheese", type: "EXCLUDE", level: 2,
+      { id: "l2_2", text: "Double hunter's bounty, but moon's gift is forbidden", type: "EXCLUDE", level: 2,
         counts: { meat: 2 }, exclude: ["cheese"]},
-      { id: "l2_3", text: "Cheese and pepper, no tomato", type: "EXCLUDE", level: 2,
+      { id: "l2_3", text: "Fire and moon collide, but crimson blood is cursed", type: "EXCLUDE", level: 2,
         counts: { cheese: 1, pepper: 1 }, exclude: ["tomato"]},
-      { id: "l2_4", text: "2 cheese, 1 tomato", type: "COUNT", level: 2,
+      { id: "l2_4", text: "Twin lunar gifts blessing single crimson orb", type: "COUNT", level: 2,
         counts: { cheese: 2, tomato: 1 }},
-      { id: "l2_5", text: "Bread, meat, bread", type: "SANDWICH", level: 2,
+      { id: "l2_5", text: "Warrior's meal: grain shields the hunter's prize", type: "SANDWICH", level: 2,
         sandwich: ["bread", "meat", "bread"]},
-      { id: "l2_6", text: "3 tomato", type: "COUNT", level: 2,
+      { id: "l2_6", text: "Trio of vine's sacred blood", type: "COUNT", level: 2,
         counts: { tomato: 3 }},
       
-      // LEVEL 3 - Complex combinations (15 seconds)
-      { id: "l3_1", text: "Bread, meat, tomato", type: "COUNT", level: 3,
+      // LEVEL 3 - Legendary challenges (15 seconds)
+      { id: "l3_1", text: "Trinity of power: grain, beast, crimson blood", type: "COUNT", level: 3,
         counts: { bread: 1, meat: 1, tomato: 1 }},
-      { id: "l3_2", text: "Meat, cheese, pepper", type: "COUNT", level: 3,
+      { id: "l3_2", text: "Sacred triad: hunter's prize, moon's gift, flame's kiss", type: "COUNT", level: 3,
         counts: { meat: 1, cheese: 1, pepper: 1 }},
-      { id: "l3_3", text: "2 cheese, no pepper", type: "EXCLUDE", level: 3,
+      { id: "l3_3", text: "Twin moons reign supreme, but fire is banished", type: "EXCLUDE", level: 3,
         counts: { cheese: 2 }, exclude: ["pepper"]},
-      { id: "l3_4", text: "Bread, pepper, bread", type: "SANDWICH", level: 3,
+      { id: "l3_4", text: "Inferno trapped in golden walls", type: "SANDWICH", level: 3,
         sandwich: ["bread", "pepper", "bread"]},
-      { id: "l3_5", text: "2 meat, 1 pepper", type: "COUNT", level: 3,
+      { id: "l3_5", text: "Double beast blessing single flame", type: "COUNT", level: 3,
         counts: { meat: 2, pepper: 1 }},
-      { id: "l3_6", text: "Bread, tomato, cheese, meat", type: "COUNT", level: 3,
-        counts: { bread: 1, tomato: 1, cheese: 1, meat: 1 }}
+      { id: "l3_6", text: "Hermes' perfect harmony: grain, blood, moon, beast", type: "COUNT", level: 3,
+        counts: { bread: 1, tomato: 1, cheese: 1, meat: 1 }},
+      { id: "l3_7", text: "Fill the divine plate completely with five sacred offerings", type: "TOTALCOUNT", level: 3,
+        totalCount: 5},
+      { id: "l3_8", text: "Medusa's challenge: All different, nothing repeated", type: "UNIQUE", level: 3,
+        totalCount: 4, uniqueOnly: true}
     ];
     
     // Customer database
     const CUSTOMERS = [
       { id: "minotaur", name: "Minotaur", 
-        success: ["The labyrinth rests.", "Straight through."],
-        failure: ["Lost already?"], 
-        timeout: ["The maze does not wait."]},
-      { id: "ghost", name: "Ghost",
-        success: ["The veil shivers.", "Peace flows."],
-        failure: ["Whispers say no."],
-        timeout: ["Time slipped through you."]},
+        success: ["The labyrinth rests.", "Straight through.", "Your path is clear."],
+        failure: ["Lost already?", "Wrong turn taken.", "The maze claims you."], 
+        timeout: ["The maze does not wait.", "Time traps the lost.", "Choose swiftly."]},
       { id: "medusa", name: "Medusa",
-        success: ["Stone-cold perfect.", "Acceptable gaze."],
-        failure: ["You froze."],
-        timeout: ["Petrified by seconds?"]},
+        success: ["Stone-cold perfect.", "Acceptable gaze.", "Your eyes see truth."],
+        failure: ["You froze.", "Turned to failure.", "Gaze upon your mistake."],
+        timeout: ["Petrified by seconds?", "Time turns you to stone.", "Hesitation kills."]},
       { id: "hermes", name: "Hermes",
-        success: ["Swift and sure.", "Wings approved."],
-        failure: ["Outpaced again."],
-        timeout: ["Wings beat you."]},
-      { id: "hades", name: "Hades",
-        success: ["Acceptable—even below.", "Death approves."],
-        failure: ["Back to the shadows."],
-        timeout: ["Eternity felt shorter."]},
+        success: ["Swift and sure.", "Wings approved.", "Speed and precision unite."],
+        failure: ["Outpaced again.", "Too slow, mortal.", "Haste without thought."],
+        timeout: ["Wings beat you.", "Swift time escapes.", "The messenger departs."]},
       { id: "sphinx", name: "Sphinx",
-        success: ["Your mind is awake.", "The riddle yields."],
-        failure: ["Answer me properly."],
-        timeout: ["Silence is not an answer."]}
+        success: ["Your mind is awake.", "The riddle yields.", "Wisdom is shown."],
+        failure: ["Answer me properly.", "Your mind falters.", "Think harder, mortal."],
+        timeout: ["Silence is not an answer.", "Time riddles all.", "The sphinx waits not."]},
+      { id: "pegasus", name: "Pegasus",
+        success: ["Wings of satisfaction.", "Sky-high approval.", "Divine flight achieved."],
+        failure: ["Grounded by error.", "Wings clipped.", "Fall from grace."],
+        timeout: ["Time flies away.", "Swift as wind departs.", "The sky cannot wait."]},
+      { id: "ghost", name: "Restless Spirit",
+        success: ["The veil shivers.", "Peace flows.", "Rest is granted."],
+        failure: ["Whispers say no.", "Unrest grows.", "The dead are displeased."],
+        timeout: ["Time slipped through you.", "Eternity waits not.", "The spirit fades."]}
     ];
+    
+    // Randomize customer order for each game
+    function shuffleCustomers() {
+      const shuffled = [...CUSTOMERS];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    }
     
     console.log(`✅ Loaded ${RIDDLES.length} riddles and ${CUSTOMERS.length} customers`);
     
@@ -248,6 +475,10 @@
       customerIndex: 0,           // Rotation index
       customerMessage: '',        // What customer is saying
       messageTimer: 0,            // How long to show message
+      shuffledCustomers: [],      // Randomized customer order
+      customerPosition: { x: 0, y: 0 }, // Current customer position
+      customerState: 'walking_in',    // 'walking_in', 'waiting', 'walking_out'
+      customerAnimation: 0,           // Animation frame counter
       
       // Timing
       timer: CONFIG.LEVEL_1_TIME, // Current timer
@@ -442,14 +673,37 @@
       
       // SANDWICH validation
       if (riddle.type === "SANDWICH") {
-        if (plate.length !== 3) {
-          return { success: false, reason: "Not a sandwich (need 3)" };
+        if (plate.length !== riddle.sandwich.length) {
+          return { success: false, reason: `Need exactly ${riddle.sandwich.length} items` };
         }
         
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < riddle.sandwich.length; i++) {
           if (plate[i] !== riddle.sandwich[i]) {
             return { success: false, reason: "Wrong sandwich order" };
           }
+        }
+        
+        return { success: true };
+      }
+      
+      // TOTALCOUNT validation (Phase 4 - New type)
+      if (riddle.type === "TOTALCOUNT") {
+        if (plate.length !== riddle.totalCount) {
+          return { success: false, reason: `Need exactly ${riddle.totalCount} items` };
+        }
+        
+        return { success: true };
+      }
+      
+      // UNIQUE validation (Phase 4 - New type)
+      if (riddle.type === "UNIQUE") {
+        if (plate.length !== riddle.totalCount) {
+          return { success: false, reason: `Need exactly ${riddle.totalCount} items` };
+        }
+        
+        const uniqueItems = new Set(plate);
+        if (uniqueItems.size !== plate.length) {
+          return { success: false, reason: "All items must be different!" };
         }
         
         return { success: true };
@@ -480,11 +734,20 @@
       // Reset timer
       game.timer = game.timePerRiddle;
       
-      // Get next customer
-      game.currentCustomer = CUSTOMERS[game.customerIndex % CUSTOMERS.length];
+      // Get next customer from shuffled order
+      if (game.shuffledCustomers.length === 0) {
+        game.shuffledCustomers = shuffleCustomers();
+      }
+      game.currentCustomer = game.shuffledCustomers[game.customerIndex % game.shuffledCustomers.length];
       game.customerIndex++;
       game.customerMessage = '';
       game.messageTimer = 0;
+      
+      // Reset customer animation
+      game.customerState = 'walking_in';
+      game.customerPosition.x = KITCHEN.CUSTOMER_AREA.LEFT;
+      game.customerPosition.y = KITCHEN.CUSTOMER_AREA.ENTRANCE_Y;
+      game.customerAnimation = 0;
       
       // Clear plate
       game.plate = [];
@@ -507,6 +770,7 @@
       if (game.level > prevLevel) {
         showToast(`SPEED UP! Level ${game.level}`);
         console.log(`Level up to ${game.level}! Time per riddle: ${game.timePerRiddle}s`);
+        AUDIO.playLevelUp(); // Phase 3 - Audio feedback
       }
     }
     
@@ -562,6 +826,34 @@
     }
     
     // =============================================================================
+    // CUSTOMER ANIMATION SYSTEM (PHASE 5)
+    // =============================================================================
+    
+    // Update customer walking animation
+    function updateCustomerAnimation(deltaTime) {
+      if (!game.currentCustomer) return;
+      
+      const animSpeed = 2; // pixels per frame
+      game.customerAnimation += deltaTime;
+      
+      if (game.customerState === 'walking_in') {
+        // Walk from entrance to queue position
+        game.customerPosition.x += animSpeed;
+        if (game.customerPosition.x >= KITCHEN.CUSTOMER_AREA.QUEUE_X) {
+          game.customerPosition.x = KITCHEN.CUSTOMER_AREA.QUEUE_X;
+          game.customerState = 'waiting';
+        }
+      } else if (game.customerState === 'walking_out') {
+        // Walk from queue to exit
+        game.customerPosition.y += animSpeed;
+        if (game.customerPosition.y >= KITCHEN.CUSTOMER_AREA.EXIT_Y) {
+          game.customerPosition.y = KITCHEN.CUSTOMER_AREA.EXIT_Y;
+          game.customerState = 'gone';
+        }
+      }
+    }
+    
+    // =============================================================================
     // PLAYER MECHANICS
     // =============================================================================
     
@@ -607,6 +899,7 @@
           player.carrying = ingredient;
           showToast(`Picked up ${ingredient}`);
           console.log(`Picked up: ${ingredient}`);
+          AUDIO.playPickup(); // Phase 3 - Audio feedback
         }
       }
       
@@ -620,6 +913,7 @@
             showToast(`Placed ${player.carrying}`);
             console.log(`Plate now: ${game.plate.join(', ')}`);
             player.carrying = null;
+            AUDIO.playPlace(); // Phase 3 - Audio feedback
           }
         } else {
           showToast("Pick up an ingredient first");
@@ -642,6 +936,7 @@
       const removed = game.plate.pop();
       showToast(`Removed ${removed}`);
       console.log(`Undid ${removed}, plate now: ${game.plate.join(', ')}`);
+      AUDIO.playPlace(); // Phase 3 - Audio feedback (same as place, but reversed)
     }
     
     // Trash function (X key at trash)
@@ -660,6 +955,7 @@
       game.player.carrying = null;
       showToast(`Trashed ${trashed}`);
       console.log(`Trashed: ${trashed}`);
+      AUDIO.playTrash(); // Phase 3 - Audio feedback
     }
     
     // Delivery function (Phase 2 - Real validation)
@@ -686,6 +982,7 @@
         game.messageTimer = 2000;
         showToast("Correct! +1 point");
         console.log(`SUCCESS! Score: ${game.score}`);
+        AUDIO.playSuccess(); // Phase 3 - Audio feedback
         
         // Check for level up
         updateLevel();
@@ -697,17 +994,20 @@
           return;
         }
         
-        // Next riddle
-        setTimeout(() => nextRiddle(), 1500);
+        // Customer walks out, then next riddle
+        game.customerState = 'walking_out';
+        setTimeout(() => nextRiddle(), 2500); // Give time for walking animation
       } else {
         // Failure
         game.customerMessage = randomChoice(game.currentCustomer.failure);
         game.messageTimer = 2000;
         showToast(`Wrong! ${result.reason}`);
         console.log(`FAILED: ${result.reason}`);
+        AUDIO.playFailure(); // Phase 3 - Audio feedback
         
-        // Next riddle after feedback
-        setTimeout(() => nextRiddle(), 1500);
+        // Customer walks out after feedback, then next riddle
+        game.customerState = 'walking_out';
+        setTimeout(() => nextRiddle(), 2500); // Give time for walking animation
       }
       
       // Clear plate and set debounce
@@ -734,62 +1034,142 @@
       ctx.fillRect(0, 0, KITCHEN.BOUNDS.LEFT, canvas.height); // Left
       ctx.fillRect(KITCHEN.BOUNDS.RIGHT, 0, canvas.width, canvas.height); // Right
       
-      // Ingredient bins
-      const binSize = 60;
+      // Ingredient bins (Phase 5 - Optimized size and appearance)
+      const binSize = 90; // Optimized size for better PNG visibility
       for (let [ingredient, pos] of Object.entries(KITCHEN.POSITIONS.BINS)) {
-        // Bin color
-        ctx.fillStyle = CONFIG.COLORS[ingredient.toUpperCase()];
+        
+        // Enhanced bin background with gradient
+        const binGradient = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, binSize/2);
+        binGradient.addColorStop(0, '#8B4513'); // Saddle brown
+        binGradient.addColorStop(1, '#654321'); // Dark brown
+        ctx.fillStyle = binGradient;
         ctx.fillRect(pos.x - binSize/2, pos.y - binSize/2, binSize, binSize);
         
-        // Bin border
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 2;
+        // Bin border with better contrast
+        ctx.strokeStyle = '#2F1B14';
+        ctx.lineWidth = 3;
         ctx.strokeRect(pos.x - binSize/2, pos.y - binSize/2, binSize, binSize);
         
-        // Bin label background
-        ctx.fillStyle = '#FFF';
-        ctx.fillRect(pos.x - 30, pos.y - 10, 60, 20);
+        // Draw ingredient PNG if available
+        const ingredientImg = ASSETS.ingredients[ingredient];
+        if (ingredientImg && ASSETS.loaded) {
+          const imgSize = 60; // Larger ingredient images for better visibility
+          ctx.drawImage(
+            ingredientImg, 
+            pos.x - imgSize/2, 
+            pos.y - imgSize/2 - 8, // More space for label
+            imgSize, 
+            imgSize
+          );
+        } else {
+          // Enhanced fallback graphics
+          ctx.fillStyle = CONFIG.COLORS[ingredient.toUpperCase()];
+          ctx.fillRect(pos.x - 30, pos.y - 30, 60, 60);
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(pos.x - 30, pos.y - 30, 60, 60);
+        }
         
-        // Bin label text
-        ctx.fillStyle = '#000';
+        // Enhanced label with better styling
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.fillRect(pos.x - 40, pos.y + 25, 80, 22);
+        
+        // Label border
+        ctx.strokeStyle = '#654321';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(pos.x - 40, pos.y + 25, 80, 22);
+        
+        // Label text with better styling
+        ctx.fillStyle = '#FFD700';
         ctx.font = 'bold 12px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText(ingredient, pos.x, pos.y + 4);
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 1;
+        ctx.strokeText(ingredient.toUpperCase(), pos.x, pos.y + 40);
+        ctx.fillText(ingredient.toUpperCase(), pos.x, pos.y + 40);
         
-        // Highlight if player is near
+        // Enhanced highlight when player is near
         if (game.player.currentZone === `bin_${ingredient.toLowerCase()}`) {
           ctx.strokeStyle = '#FFD700';
-          ctx.lineWidth = 3;
+          ctx.lineWidth = 5;
+          ctx.setLineDash([]);
+          ctx.shadowColor = '#FFD700';
+          ctx.shadowBlur = 15;
           ctx.strokeRect(pos.x - binSize/2 - 5, pos.y - binSize/2 - 5, 
                         binSize + 10, binSize + 10);
+          ctx.shadowBlur = 0;
         }
       }
       
-      // Table
+      // Table (Phase 3 - Enhanced with plate asset)
       const table = KITCHEN.POSITIONS.TABLE;
+      
+      // Table surface
       ctx.fillStyle = CONFIG.COLORS.TABLE;
-      ctx.fillRect(table.x - 100, table.y - 60, 200, 120);
+      ctx.fillRect(table.x - 120, table.y - 80, 240, 160);
       ctx.strokeStyle = '#654321';
       ctx.lineWidth = 4;
-      ctx.strokeRect(table.x - 100, table.y - 60, 200, 120);
+      ctx.strokeRect(table.x - 120, table.y - 80, 240, 160);
       
-      // Plate slots on table
+      // Enhanced table surface (no plate PNG)
+      ctx.fillStyle = '#F5F5DC'; // Beige table surface
+      ctx.beginPath();
+      ctx.arc(table.x, table.y, 80, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#DDD';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      
+      // Add table texture pattern
+      ctx.strokeStyle = '#E6E6E6';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.arc(table.x, table.y, 60, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(table.x, table.y, 40, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      // Ingredient slots on plate (Phase 3 - Show PNG ingredients)
       for (let i = 0; i < 5; i++) {
-        const slotX = table.x - 60 + (i * 30);
-        ctx.fillStyle = '#D2691E';
-        ctx.beginPath();
-        ctx.arc(slotX, table.y, 12, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = '#8B4513';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        const angle = (i * Math.PI * 2) / 5 - Math.PI/2; // Start at top, go clockwise
+        const radius = 35; // Distance from center
+        const slotX = table.x + Math.cos(angle) * radius;
+        const slotY = table.y + Math.sin(angle) * radius;
         
-        // Show ingredient in slot
+        // Draw ingredient on plate if present
         if (game.plate[i]) {
-          ctx.fillStyle = '#000';
-          ctx.font = '10px Arial';
-          ctx.textAlign = 'center';
-          ctx.fillText(game.plate[i].substr(0, 3).toUpperCase(), slotX, table.y + 3);
+          const ingredientImg = ASSETS.ingredients[game.plate[i]];
+          if (ingredientImg && ASSETS.loaded) {
+            const imgSize = 25;
+            ctx.drawImage(
+              ingredientImg,
+              slotX - imgSize/2,
+              slotY - imgSize/2,
+              imgSize,
+              imgSize
+            );
+          } else {
+            // Fallback to colored circle
+            ctx.fillStyle = CONFIG.COLORS[game.plate[i].toUpperCase()];
+            ctx.beginPath();
+            ctx.arc(slotX, slotY, 12, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        } else {
+          // Empty slot indicator
+          ctx.strokeStyle = '#CCC';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath();
+          ctx.arc(slotX, slotY, 12, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
         }
       }
       
@@ -864,7 +1244,7 @@
       ctx.fillText('TRASH', trash.x, trash.y + 40);
     }
     
-    // Render player
+    // Render player (Phase 3 - Enhanced with carried item PNG)
     function renderPlayer() {
       const player = game.player;
       
@@ -881,49 +1261,243 @@
                      player.y - CONFIG.PLAYER_SIZE/2,
                      CONFIG.PLAYER_SIZE, CONFIG.PLAYER_SIZE);
       
-      // Carried item
+      // Carried item (Phase 5 - Enhanced appearance)
       if (player.carrying) {
-        ctx.fillStyle = 'white';
-        ctx.fillRect(player.x - 20, player.y - CONFIG.PLAYER_SIZE/2 - 25, 40, 20);
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(player.x - 20, player.y - CONFIG.PLAYER_SIZE/2 - 25, 40, 20);
-        ctx.fillStyle = 'black';
-        ctx.font = '12px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(player.carrying.toUpperCase(), player.x, player.y - CONFIG.PLAYER_SIZE/2 - 10);
+        const carriedImg = ASSETS.ingredients[player.carrying];
+        if (carriedImg && ASSETS.loaded) {
+          // Draw ingredient PNG above player with better size
+          const imgSize = 40; // Slightly larger for better visibility
+          
+          // Add background circle for contrast
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+          ctx.beginPath();
+          ctx.arc(player.x, player.y - CONFIG.PLAYER_SIZE/2 - imgSize/2 - 8, imgSize/2 + 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#FFD700';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          
+          // Draw the ingredient image
+          ctx.drawImage(
+            carriedImg,
+            player.x - imgSize/2,
+            player.y - CONFIG.PLAYER_SIZE/2 - imgSize - 8,
+            imgSize,
+            imgSize
+          );
+          
+          // Add golden glow effect
+          ctx.shadowColor = '#FFD700';
+          ctx.shadowBlur = 8;
+          ctx.drawImage(
+            carriedImg,
+            player.x - imgSize/2,
+            player.y - CONFIG.PLAYER_SIZE/2 - imgSize - 8,
+            imgSize,
+            imgSize
+          );
+          ctx.shadowBlur = 0;
+        } else {
+          // Enhanced fallback display
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+          ctx.fillRect(player.x - 25, player.y - CONFIG.PLAYER_SIZE/2 - 30, 50, 24);
+          ctx.strokeStyle = '#FFD700';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(player.x - 25, player.y - CONFIG.PLAYER_SIZE/2 - 30, 50, 24);
+          ctx.fillStyle = '#000';
+          ctx.font = 'bold 12px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText(player.carrying.toUpperCase(), player.x, player.y - CONFIG.PLAYER_SIZE/2 - 12);
+        }
       }
+    }
+    
+    // Render customers (Phase 5 - Walking animation in customer area)
+    function renderCustomers() {
+      if (!game.currentCustomer || game.customerState === 'gone') return;
+      
+      // Render customer area background
+      ctx.fillStyle = 'rgba(139, 69, 19, 0.3)'; // Brown customer area
+      ctx.fillRect(KITCHEN.CUSTOMER_AREA.LEFT, KITCHEN.CUSTOMER_AREA.TOP, 
+                   KITCHEN.CUSTOMER_AREA.RIGHT - KITCHEN.CUSTOMER_AREA.LEFT, 
+                   KITCHEN.CUSTOMER_AREA.BOTTOM - KITCHEN.CUSTOMER_AREA.TOP);
+      
+      // Customer area border
+      ctx.strokeStyle = '#8B4513';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(KITCHEN.CUSTOMER_AREA.LEFT, KITCHEN.CUSTOMER_AREA.TOP, 
+                     KITCHEN.CUSTOMER_AREA.RIGHT - KITCHEN.CUSTOMER_AREA.LEFT, 
+                     KITCHEN.CUSTOMER_AREA.BOTTOM - KITCHEN.CUSTOMER_AREA.TOP);
+      
+      // Queue line indicator
+      ctx.strokeStyle = '#654321';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([10, 10]);
+      ctx.beginPath();
+      ctx.moveTo(KITCHEN.CUSTOMER_AREA.QUEUE_X, KITCHEN.CUSTOMER_AREA.TOP + 20);
+      ctx.lineTo(KITCHEN.CUSTOMER_AREA.QUEUE_X, KITCHEN.CUSTOMER_AREA.BOTTOM - 20);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      const customerImg = ASSETS.customers[game.currentCustomer.id];
+      const spriteSize = 80; // Optimized size
+      
+      if (customerImg && ASSETS.loaded) {
+        // Draw customer sprite at animated position
+        ctx.drawImage(
+          customerImg,
+          game.customerPosition.x - spriteSize/2,
+          game.customerPosition.y - spriteSize/2,
+          spriteSize,
+          spriteSize
+        );
+        
+        // Add glow effect if waiting
+        if (game.customerState === 'waiting') {
+          ctx.shadowColor = 'rgba(255, 215, 0, 0.6)';
+          ctx.shadowBlur = 12;
+          ctx.drawImage(
+            customerImg,
+            game.customerPosition.x - spriteSize/2,
+            game.customerPosition.y - spriteSize/2,
+            spriteSize,
+            spriteSize
+          );
+          ctx.shadowBlur = 0;
+        }
+        
+        // Customer name tag (only when waiting)
+        if (game.customerState === 'waiting') {
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+          ctx.fillRect(game.customerPosition.x - 40, game.customerPosition.y + 50, 80, 20);
+          ctx.fillStyle = '#FFD700';
+          ctx.font = 'bold 12px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText(game.currentCustomer.name, game.customerPosition.x, game.customerPosition.y + 63);
+        }
+        
+        // Speech bubble (only when waiting and has message)
+        if (game.customerState === 'waiting' && game.customerMessage && game.messageTimer > 0) {
+          renderSpeechBubble(
+            game.customerPosition.x,
+            game.customerPosition.y - 60,
+            game.customerMessage
+          );
+        }
+      } else {
+        // Fallback customer visualization
+        ctx.fillStyle = '#8A2BE2';
+        ctx.beginPath();
+        ctx.arc(game.customerPosition.x, game.customerPosition.y, 30, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Customer name
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(game.currentCustomer.name, game.customerPosition.x, game.customerPosition.y + 4);
+      }
+    }
+    
+    // Speech bubble helper
+    function renderSpeechBubble(x, y, text) {
+      const bubbleWidth = Math.max(200, text.length * 8);
+      const bubbleHeight = 40;
+      
+      // Bubble background
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      
+      // Bubble shape (with fallback for older browsers)
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(x - bubbleWidth/2, y - bubbleHeight, bubbleWidth, bubbleHeight, 10);
+      } else {
+        // Fallback rectangle
+        ctx.rect(x - bubbleWidth/2, y - bubbleHeight, bubbleWidth, bubbleHeight);
+      }
+      ctx.fill();
+      ctx.stroke();
+      
+      // Bubble pointer
+      ctx.beginPath();
+      ctx.moveTo(x - 10, y);
+      ctx.lineTo(x, y + 10);
+      ctx.lineTo(x + 10, y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      
+      // Bubble text
+      ctx.fillStyle = '#000';
+      ctx.font = '14px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(`"${text}"`, x, y - bubbleHeight/2 + 5);
     }
     
     // Render UI
     function renderUI() {
-      // Score (top-right)
-      ctx.fillStyle = 'white';
-      ctx.font = 'bold 20px Arial';
-      ctx.textAlign = 'right';
-      ctx.fillText(`Points: ${game.score}/${CONFIG.WIN_SCORE}`, canvas.width - 20, 35);
-      ctx.fillText(`Level ${game.level}`, canvas.width - 20, 60);
+      // Enhanced divine header background (Phase 5 - Better colors!)
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, 100);
+      gradient.addColorStop(0, 'rgba(184, 134, 11, 0.9)'); // Rich gold
+      gradient.addColorStop(0.5, 'rgba(146, 64, 14, 0.9)'); // Bronze  
+      gradient.addColorStop(1, 'rgba(120, 53, 15, 0.9)'); // Dark bronze
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, 100);
       
-      // Timer (top-center) - Phase 2
+      // Add ornate border
+      ctx.strokeStyle = '#D4AF37'; // Gold border
+      ctx.lineWidth = 3;
+      ctx.strokeRect(0, 0, canvas.width, 100);
+      
+      // Score with divine styling (top-right)
+      ctx.fillStyle = '#FFD700';
+      ctx.font = 'bold 24px Arial';
+      ctx.textAlign = 'right';
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      ctx.strokeText(`⚡ ${game.score}/${CONFIG.WIN_SCORE}`, canvas.width - 20, 35);
+      ctx.fillText(`⚡ ${game.score}/${CONFIG.WIN_SCORE}`, canvas.width - 20, 35);
+      ctx.strokeText(`🏛️ Level ${game.level}`, canvas.width - 20, 60);
+      ctx.fillText(`🏛️ Level ${game.level}`, canvas.width - 20, 60);
+      
+      // Enhanced timer (top-center) - Phase 4
       if (game.currentRiddle) {
         ctx.textAlign = 'center';
-        ctx.font = 'bold 28px Arial';
+        ctx.font = 'bold 32px Arial';
+        let timerColor;
         if (game.timer <= 5) {
-          ctx.fillStyle = '#FF4500';
+          timerColor = '#FF4500';
         } else if (game.timer <= 10) {
-          ctx.fillStyle = '#FFA500';
+          timerColor = '#FFA500';
         } else {
-          ctx.fillStyle = '#32CD32';
+          timerColor = '#32CD32';
         }
-        ctx.fillText(`${Math.ceil(game.timer)}s`, canvas.width/2, 40);
+        
+        // Timer with glow effect
+        ctx.fillStyle = timerColor;
+        ctx.shadowColor = timerColor;
+        ctx.shadowBlur = 10;
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.strokeText(`⏱️ ${Math.ceil(game.timer)}s`, canvas.width/2, 40);
+        ctx.fillText(`⏱️ ${Math.ceil(game.timer)}s`, canvas.width/2, 40);
+        ctx.shadowBlur = 0;
       }
       
-      // Current riddle (below timer) - Phase 2
+      // Enhanced riddle display (below timer) - Phase 4
       if (game.currentRiddle) {
-        ctx.fillStyle = 'white';
-        ctx.font = '18px Arial';
+        ctx.fillStyle = '#FFFACD'; // Light goldenrod
+        ctx.font = 'bold 20px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText(`For the riddle: ${game.currentRiddle.text}`, canvas.width/2, 70);
+        ctx.strokeStyle = '#8B4513';
+        ctx.lineWidth = 1;
+        ctx.strokeText(game.currentRiddle.text, canvas.width/2, 75);
+        ctx.fillText(game.currentRiddle.text, canvas.width/2, 75);
       }
       
       // Customer and message - Phase 2
@@ -1001,8 +1575,8 @@
       
       ctx.fillStyle = 'white';
       ctx.font = '24px Arial';
-      ctx.fillText('Phase 2 - Complete Riddle System', canvas.width/2, 280);
-      ctx.fillText('Solve ingredient riddles under time pressure!', canvas.width/2, 320);
+      ctx.fillText('Phase 5 - Expanded World & Walking Customers', canvas.width/2, 280);
+      ctx.fillText('Watch customers walk in, order, and leave! Larger map, better graphics!', canvas.width/2, 320);
       
       ctx.font = '32px Arial';
       ctx.fillText('Press ENTER to Start', canvas.width/2, 420);
@@ -1010,7 +1584,7 @@
       ctx.font = '16px Arial';
       ctx.fillStyle = '#AAA';
       ctx.fillText('WASD: Move | E: Pickup/Place | Q: Undo | X: Trash | Enter: Deliver', canvas.width/2, 480);
-      ctx.fillText('Solve 30 riddles to win! Timer gets faster as you progress.', canvas.width/2, 510);
+      ctx.fillText('Solve 30 riddles with enhanced visuals! Watch for customer sprites.', canvas.width/2, 510);
       
       // Check for enter key to start
       if (input.wasPressed('enter')) {
@@ -1133,6 +1707,7 @@
         renderMenu();
       } else if (game.state === 'playing' || game.state === 'paused') {
         renderKitchen();
+        renderCustomers(); // Phase 3 - Render customer sprites
         renderPlayer();
         renderUI();
         if (game.state === 'paused') {
@@ -1166,13 +1741,18 @@
           game.messageTimer = 2000;
           showToast("Time's up!");
           console.log("TIMEOUT! Next riddle...");
+          AUDIO.playTimeout(); // Phase 3 - Audio feedback
           game.plate = [];
-          setTimeout(() => nextRiddle(), 1500);
+          game.customerState = 'walking_out';
+          setTimeout(() => nextRiddle(), 2500); // Give time for walking animation
         }
       }
       
       // Update player
       updatePlayer(deltaTime);
+      
+      // Update customer animation (Phase 5)
+      updateCustomerAnimation(deltaTime);
       
       // Handle input
       if (input.wasPressed('e')) {
@@ -1243,18 +1823,19 @@
       game.plate = [];
       game.usedRiddles = [];
       game.customerIndex = 0;
+      game.shuffledCustomers = shuffleCustomers(); // Randomize customer order each game
       game.player.carrying = null;
       
       // Get first riddle
       nextRiddle();
       
-      console.log('🎮 Phase 2 Game started! Riddle system active.');
-      showToast("Phase 2 Active - Solve riddles to win!");
+      console.log('🎮 Phase 5 Game started! Expanded world with walking customers!');
+      showToast("Phase 5 Active - Watch customers walk and explore the larger map!");
     }
     
     // Initialize everything
-    function init() {
-      console.log('🏛️ Initializing Order of the Gods...');
+    async function init() {
+      console.log('🏛️ Initializing Order of the Gods - Phase 5...');
       
       // Check for mobile/small screen
       if (window.innerWidth < 900) {
@@ -1264,8 +1845,19 @@
         return;
       }
       
+      // Load Phase 3 assets
+      try {
+        await loadAssets();
+        console.log('🎨 All assets loaded successfully!');
+      } catch (error) {
+        console.log('⚠️ Some assets failed to load, using fallbacks');
+      }
+      
       // Initialize input
       input.init();
+      
+      // Initialize audio system
+      AUDIO.init();
       
       // Start at menu
       game.state = 'menu';
@@ -1324,6 +1916,10 @@
           }
           console.log('Auto-solved riddle:', game.plate);
         },
+        toggleAudio: () => { 
+          AUDIO.enabled = !AUDIO.enabled; 
+          console.log(`Audio ${AUDIO.enabled ? 'enabled' : 'disabled'}`);
+        },
         win: () => { game.score = CONFIG.WIN_SCORE; game.state = 'won'; },
         start: () => startGame()
       };
@@ -1333,9 +1929,10 @@
       game.lastFPSTime = performance.now();
       requestAnimationFrame(gameLoop);
       
-      console.log('✅ Phase 2 initialized! Press ENTER to start.');
-      console.log('💡 Debug commands: debug.nextRiddle(), debug.solveRiddle(), debug.skipToLevel(2), etc.');
-      console.log('🎮 New features: Trash bin (X key), Real riddles, Timer countdown, Level progression!');
+      console.log('✅ Phase 5 initialized! Press ENTER to start.');
+      console.log('💡 Debug commands: debug.nextRiddle(), debug.solveRiddle(), debug.toggleAudio(), etc.');
+      console.log('🚶 Phase 5 features: Walking customers, Expanded map, Customer animations!');
+      console.log('🎨 Enhanced graphics: Better sprites, Random customer order, No emojis in riddles!');
     }
     
     // Start when page loads
