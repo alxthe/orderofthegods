@@ -13,7 +13,7 @@ METAPROMPTING as the kickoff: the most important words are the first four words 
 - for each major phase you stop at, create the ability to test
 - update its memory bank (every problem it encounters, add everything you have learned from bugfixing to pitfalls)
 
-commit when you have working versions
-
-get the money on the Screen
-- spend all your time
+REMEMBER:
+- git add ., git commit -m, git push
+- update memory bank
+- test

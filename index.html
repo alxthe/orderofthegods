@@ -77,6 +77,7 @@
       POSITIONS: {
         COUNTER: { x: 640, y: 120 },     // Delivery zone at top
         TABLE: { x: 640, y: 360 },       // Central plate assembly
+        TRASH: { x: 1050, y: 550 },      // Trash bin - bottom right corner
         BINS: {
           BREAD: { x: 160, y: 260 },     // Left wall upper
           TOMATO: { x: 160, y: 460 },    // Left wall lower
@@ -89,6 +90,7 @@
       ZONES: {
         TABLE_RADIUS: 90,        // Distance to interact with table
         BIN_RADIUS: 60,          // Distance to interact with bins
+        TRASH_RADIUS: 50,        // Distance to interact with trash
         COUNTER_WIDTH: 360,      // Width of delivery zone
         COUNTER_HEIGHT: 40,      // Height of delivery zone
         INTERACTION_BUFFER: 8    // Extra pixels for generous collision
@@ -129,6 +131,89 @@
     };
     
     console.log("✅ Configuration loaded");
+    
+    // =============================================================================
+    // RIDDLE & CUSTOMER DATABASE (PHASE 2)
+    // =============================================================================
+    
+    // All riddles for the game
+    const RIDDLES = [
+      // LEVEL 1 - Simple COUNT riddles (22 seconds)
+      { id: "l1_1", text: "Bread with tomato", type: "COUNT", level: 1, 
+        counts: { bread: 1, tomato: 1 }},
+      { id: "l1_2", text: "Meat with cheese", type: "COUNT", level: 1,
+        counts: { meat: 1, cheese: 1 }},
+      { id: "l1_3", text: "Egg with pepper", type: "COUNT", level: 1,
+        counts: { egg: 1, pepper: 1 }},
+      { id: "l1_4", text: "2 bread, 1 tomato", type: "COUNT", level: 1,
+        counts: { bread: 2, tomato: 1 }},
+      { id: "l1_5", text: "2 cheese, 1 meat", type: "COUNT", level: 1,
+        counts: { cheese: 2, meat: 1 }},
+      { id: "l1_6", text: "Bread, cheese, bread", type: "SANDWICH", level: 1,
+        sandwich: ["bread", "cheese", "bread"]},
+      { id: "l1_7", text: "Bread, tomato, bread", type: "SANDWICH", level: 1,
+        sandwich: ["bread", "tomato", "bread"]},
+      { id: "l1_8", text: "3 cheese", type: "COUNT", level: 1,
+        counts: { cheese: 3 }},
+      
+      // LEVEL 2 - Add EXCLUDE riddles (18 seconds)
+      { id: "l2_1", text: "Tomato and meat, no egg", type: "EXCLUDE", level: 2,
+        counts: { tomato: 1, meat: 1 }, exclude: ["egg"]},
+      { id: "l2_2", text: "2 meat, no cheese", type: "EXCLUDE", level: 2,
+        counts: { meat: 2 }, exclude: ["cheese"]},
+      { id: "l2_3", text: "Cheese and pepper, no tomato", type: "EXCLUDE", level: 2,
+        counts: { cheese: 1, pepper: 1 }, exclude: ["tomato"]},
+      { id: "l2_4", text: "2 cheese, 1 tomato", type: "COUNT", level: 2,
+        counts: { cheese: 2, tomato: 1 }},
+      { id: "l2_5", text: "Bread, meat, bread", type: "SANDWICH", level: 2,
+        sandwich: ["bread", "meat", "bread"]},
+      { id: "l2_6", text: "3 tomato", type: "COUNT", level: 2,
+        counts: { tomato: 3 }},
+      
+      // LEVEL 3 - Complex combinations (15 seconds)
+      { id: "l3_1", text: "Bread, meat, tomato", type: "COUNT", level: 3,
+        counts: { bread: 1, meat: 1, tomato: 1 }},
+      { id: "l3_2", text: "Meat, cheese, pepper", type: "COUNT", level: 3,
+        counts: { meat: 1, cheese: 1, pepper: 1 }},
+      { id: "l3_3", text: "2 cheese, no pepper", type: "EXCLUDE", level: 3,
+        counts: { cheese: 2 }, exclude: ["pepper"]},
+      { id: "l3_4", text: "Bread, pepper, bread", type: "SANDWICH", level: 3,
+        sandwich: ["bread", "pepper", "bread"]},
+      { id: "l3_5", text: "2 meat, 1 pepper", type: "COUNT", level: 3,
+        counts: { meat: 2, pepper: 1 }},
+      { id: "l3_6", text: "Bread, tomato, cheese, meat", type: "COUNT", level: 3,
+        counts: { bread: 1, tomato: 1, cheese: 1, meat: 1 }}
+    ];
+    
+    // Customer database
+    const CUSTOMERS = [
+      { id: "minotaur", name: "Minotaur", 
+        success: ["The labyrinth rests.", "Straight through."],
+        failure: ["Lost already?"], 
+        timeout: ["The maze does not wait."]},
+      { id: "ghost", name: "Ghost",
+        success: ["The veil shivers.", "Peace flows."],
+        failure: ["Whispers say no."],
+        timeout: ["Time slipped through you."]},
+      { id: "medusa", name: "Medusa",
+        success: ["Stone-cold perfect.", "Acceptable gaze."],
+        failure: ["You froze."],
+        timeout: ["Petrified by seconds?"]},
+      { id: "hermes", name: "Hermes",
+        success: ["Swift and sure.", "Wings approved."],
+        failure: ["Outpaced again."],
+        timeout: ["Wings beat you."]},
+      { id: "hades", name: "Hades",
+        success: ["Acceptable—even below.", "Death approves."],
+        failure: ["Back to the shadows."],
+        timeout: ["Eternity felt shorter."]},
+      { id: "sphinx", name: "Sphinx",
+        success: ["Your mind is awake.", "The riddle yields."],
+        failure: ["Answer me properly."],
+        timeout: ["Silence is not an answer."]}
+    ];
+    
+    console.log(`✅ Loaded ${RIDDLES.length} riddles and ${CUSTOMERS.length} customers`);
     
     // =============================================================================
     // GAME STATE
@@ -199,7 +284,7 @@
           this.keys[key] = true;
           
           // Prevent defaults for game keys
-          if (['w','a','s','d','e','q','enter','escape'].includes(key)) {
+          if (['w','a','s','d','e','q','x','enter','escape'].includes(key)) {
             e.preventDefault();
           }
           
@@ -300,6 +385,132 @@
     }
     
     // =============================================================================
+    // RIDDLE VALIDATION SYSTEM (PHASE 2)
+    // =============================================================================
+    
+    // Validate plate against riddle
+    function validatePlate(plate, riddle) {
+      if (!riddle) return { success: false, reason: "No active riddle" };
+      
+      // COUNT validation
+      if (riddle.type === "COUNT") {
+        const plateCounts = {};
+        plate.forEach(item => {
+          plateCounts[item] = (plateCounts[item] || 0) + 1;
+        });
+        
+        // Check exact matches
+        for (let ingredient in riddle.counts) {
+          if (plateCounts[ingredient] !== riddle.counts[ingredient]) {
+            return { success: false, reason: "Wrong ingredients" };
+          }
+        }
+        
+        // Check no extras
+        for (let ingredient in plateCounts) {
+          if (!riddle.counts[ingredient]) {
+            return { success: false, reason: "Extra ingredients" };
+          }
+        }
+        
+        return { success: true };
+      }
+      
+      // EXCLUDE validation
+      if (riddle.type === "EXCLUDE") {
+        const plateCounts = {};
+        plate.forEach(item => {
+          plateCounts[item] = (plateCounts[item] || 0) + 1;
+        });
+        
+        // Check excluded items
+        for (let excluded of riddle.exclude || []) {
+          if (plateCounts[excluded] > 0) {
+            return { success: false, reason: `Contains ${excluded}!` };
+          }
+        }
+        
+        // Check required items
+        for (let ingredient in riddle.counts) {
+          if (plateCounts[ingredient] !== riddle.counts[ingredient]) {
+            return { success: false, reason: "Wrong ingredients" };
+          }
+        }
+        
+        return { success: true };
+      }
+      
+      // SANDWICH validation
+      if (riddle.type === "SANDWICH") {
+        if (plate.length !== 3) {
+          return { success: false, reason: "Not a sandwich (need 3)" };
+        }
+        
+        for (let i = 0; i < 3; i++) {
+          if (plate[i] !== riddle.sandwich[i]) {
+            return { success: false, reason: "Wrong sandwich order" };
+          }
+        }
+        
+        return { success: true };
+      }
+      
+      return { success: false, reason: "Unknown riddle type" };
+    }
+    
+    // Get next riddle
+    function nextRiddle() {
+      // Get riddles for current level
+      const levelRiddles = RIDDLES.filter(r => r.level === game.level);
+      
+      // Avoid repeats
+      const available = levelRiddles.filter(r => !game.usedRiddles.includes(r.id));
+      
+      if (available.length === 0) {
+        // Reset if we've used all riddles
+        game.usedRiddles = [];
+        nextRiddle();
+        return;
+      }
+      
+      // Pick random riddle
+      game.currentRiddle = randomChoice(available);
+      game.usedRiddles.push(game.currentRiddle.id);
+      
+      // Reset timer
+      game.timer = game.timePerRiddle;
+      
+      // Get next customer
+      game.currentCustomer = CUSTOMERS[game.customerIndex % CUSTOMERS.length];
+      game.customerIndex++;
+      game.customerMessage = '';
+      game.messageTimer = 0;
+      
+      // Clear plate
+      game.plate = [];
+      
+      console.log(`New riddle: ${game.currentRiddle.text} (${game.currentRiddle.type}) - ${game.timer}s`);
+    }
+    
+    // Update level based on score
+    function updateLevel() {
+      const prevLevel = game.level;
+      
+      if (game.score >= CONFIG.LEVEL_3_SCORE) {
+        game.level = 3;
+        game.timePerRiddle = CONFIG.LEVEL_3_TIME;
+      } else if (game.score >= CONFIG.LEVEL_2_SCORE) {
+        game.level = 2;
+        game.timePerRiddle = CONFIG.LEVEL_2_TIME;
+      }
+      
+      if (game.level > prevLevel) {
+        showToast(`SPEED UP! Level ${game.level}`);
+        console.log(`Level up to ${game.level}! Time per riddle: ${game.timePerRiddle}s`);
+      }
+    }
+    
+    // =============================================================================
     // COLLISION & ZONE DETECTION
     // =============================================================================
     
@@ -323,6 +534,15 @@
       if (Math.abs(player.x - counter.x) < KITCHEN.ZONES.COUNTER_WIDTH/2 &&
           Math.abs(player.y - counter.y) < KITCHEN.ZONES.COUNTER_HEIGHT/2 + 30) {
         player.currentZone = 'counter';
+        return;
+      }
+      
+      // Check trash zone (circular)
+      const trashDist = distance(player.x, player.y, 
+                                KITCHEN.POSITIONS.TRASH.x, 
+                                KITCHEN.POSITIONS.TRASH.y);
+      if (trashDist < KITCHEN.ZONES.TRASH_RADIUS) {
+        player.currentZone = 'trash';
         return;
       }
       
@@ -424,7 +644,25 @@
       console.log(`Undid ${removed}, plate now: ${game.plate.join(', ')}`);
     }
     
-    // Delivery function (placeholder for now)
+    // Trash function (X key at trash)
+    function handleTrash() {
+      if (game.player.currentZone !== 'trash') {
+        showToast("Go to trash bin to discard");
+        return;
+      }
+      
+      if (!game.player.carrying) {
+        showToast("Nothing to trash");
+        return;
+      }
+      
+      const trashed = game.player.carrying;
+      game.player.carrying = null;
+      showToast(`Trashed ${trashed}`);
+      console.log(`Trashed: ${trashed}`);
+    }
+    
+    // Delivery function (Phase 2 - Real validation)
     function handleDelivery() {
       if (game.player.currentZone !== 'counter') {
         showToast("Go to counter to deliver");
@@ -438,20 +676,43 @@
         return;
       }
       
-      // For Phase 1, just simulate success
-      game.score++;
-      showToast("Delivered! +1 point");
-      console.log(`SUCCESS! Score: ${game.score}`);
+      // Validate the plate
+      const result = validatePlate(game.plate, game.currentRiddle);
+      
+      if (result.success) {
+        // Success!
+        game.score++;
+        game.customerMessage = randomChoice(game.currentCustomer.success);
+        game.messageTimer = 2000;
+        showToast("Correct! +1 point");
+        console.log(`SUCCESS! Score: ${game.score}`);
+        
+        // Check for level up
+        updateLevel();
+        
+        // Check for win
+        if (game.score >= CONFIG.WIN_SCORE) {
+          game.state = 'won';
+          console.log("GAME WON!");
+          return;
+        }
+        
+        // Next riddle
+        setTimeout(() => nextRiddle(), 1500);
+      } else {
+        // Failure
+        game.customerMessage = randomChoice(game.currentCustomer.failure);
+        game.messageTimer = 2000;
+        showToast(`Wrong! ${result.reason}`);
+        console.log(`FAILED: ${result.reason}`);
+        
+        // Next riddle after feedback
+        setTimeout(() => nextRiddle(), 1500);
+      }
       
       // Clear plate and set debounce
       game.plate = [];
       game.deliveryDebounce = 300;
-      
-      // Check for win
-      if (game.score >= CONFIG.WIN_SCORE) {
-        game.state = 'won';
-        console.log("GAME WON!");
-      }
     }
     
     // =============================================================================
@@ -556,12 +817,51 @@
         ctx.setLineDash([]);
       }
       
+      // Trash bin
+      const trash = KITCHEN.POSITIONS.TRASH;
+      const trashSize = 50;
+      
+      // Trash bin body (dark gray)
+      ctx.fillStyle = '#404040';
+      ctx.fillRect(trash.x - trashSize/2, trash.y - trashSize/2, trashSize, trashSize);
+      
+      // Trash bin lid (lighter gray)
+      ctx.fillStyle = '#606060';
+      ctx.fillRect(trash.x - trashSize/2 - 5, trash.y - trashSize/2 - 8, trashSize + 10, 15);
+      
+      // Trash bin border
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(trash.x - trashSize/2, trash.y - trashSize/2, trashSize, trashSize);
+      ctx.strokeRect(trash.x - trashSize/2 - 5, trash.y - trashSize/2 - 8, trashSize + 10, 15);
+      
+      // Trash icon/lines
+      ctx.strokeStyle = '#888';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(trash.x - 15, trash.y - 10);
+      ctx.lineTo(trash.x - 15, trash.y + 15);
+      ctx.moveTo(trash.x, trash.y - 10);
+      ctx.lineTo(trash.x, trash.y + 15);
+      ctx.moveTo(trash.x + 15, trash.y - 10);
+      ctx.lineTo(trash.x + 15, trash.y + 15);
+      ctx.stroke();
+      
+      // Highlight if player is near
+      if (game.player.currentZone === 'trash') {
+        ctx.strokeStyle = '#FFD700';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(trash.x - trashSize/2 - 5, trash.y - trashSize/2 - 5, 
+                      trashSize + 10, trashSize + 10);
+      }
+      
       // Labels
       ctx.fillStyle = '#FFF';
       ctx.font = 'bold 14px Arial';
       ctx.textAlign = 'center';
       ctx.fillText('TABLE', table.x, table.y - 75);
       ctx.fillText('DELIVERY COUNTER', counter.x, counter.y - 30);
+      ctx.fillText('TRASH', trash.x, trash.y + 40);
     }
     
     // Render player
@@ -604,13 +904,51 @@
       ctx.fillText(`Points: ${game.score}/${CONFIG.WIN_SCORE}`, canvas.width - 20, 35);
       ctx.fillText(`Level ${game.level}`, canvas.width - 20, 60);
       
-      // Current zone (for testing - top-left)
-      ctx.fillStyle = 'white';
-      ctx.font = '16px Arial';
-      ctx.textAlign = 'left';
-      ctx.fillText(`Zone: ${game.player.currentZone || 'none'}`, 20, 35);
-      if (game.player.carrying) {
-        ctx.fillText(`Carrying: ${game.player.carrying}`, 20, 60);
+      // Timer (top-center) - Phase 2
+      if (game.currentRiddle) {
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 28px Arial';
+        if (game.timer <= 5) {
+          ctx.fillStyle = '#FF4500';
+        } else if (game.timer <= 10) {
+          ctx.fillStyle = '#FFA500';
+        } else {
+          ctx.fillStyle = '#32CD32';
+        }
+        ctx.fillText(`${Math.ceil(game.timer)}s`, canvas.width/2, 40);
+      }
+      
+      // Current riddle (below timer) - Phase 2
+      if (game.currentRiddle) {
+        ctx.fillStyle = 'white';
+        ctx.font = '18px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(`For the riddle: ${game.currentRiddle.text}`, canvas.width/2, 70);
+      }
+      
+      // Customer and message - Phase 2
+      if (game.currentCustomer) {
+        ctx.fillStyle = '#FFD700';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText(game.currentCustomer.name, 20, 35);
+        
+        if (game.customerMessage && game.messageTimer > 0) {
+          ctx.fillStyle = 'white';
+          ctx.font = '14px Arial';
+          ctx.fillText(`"${game.customerMessage}"`, 20, 55);
+        }
+      }
+      
+      // Debug zone info (if debug mode)
+      if (game.debugMode) {
+        ctx.fillStyle = '#0F0';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Zone: ${game.player.currentZone || 'none'}`, 20, 85);
+        if (game.player.carrying) {
+          ctx.fillText(`Carrying: ${game.player.carrying}`, 20, 105);
+        }
       }
       
       // Plate contents (below table)
@@ -639,7 +977,7 @@
       ctx.fillStyle = '#AAA';
       ctx.font = '12px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText('WASD: Move | E: Pickup/Place | Q: Undo | Enter: Deliver | ~: Debug',
+      ctx.fillText('WASD: Move | E: Pickup/Place | Q: Undo | X: Trash | Enter: Deliver | ~: Debug',
                    canvas.width/2, canvas.height - 10);
       
       // FPS counter (debug)
@@ -663,16 +1001,16 @@
       
       ctx.fillStyle = 'white';
       ctx.font = '24px Arial';
-      ctx.fillText('Phase 1 - Core Mechanics Test', canvas.width/2, 280);
-      ctx.fillText('Move around, pick up ingredients, place on table', canvas.width/2, 320);
+      ctx.fillText('Phase 2 - Complete Riddle System', canvas.width/2, 280);
+      ctx.fillText('Solve ingredient riddles under time pressure!', canvas.width/2, 320);
       
       ctx.font = '32px Arial';
       ctx.fillText('Press ENTER to Start', canvas.width/2, 420);
       
       ctx.font = '16px Arial';
       ctx.fillStyle = '#AAA';
-      ctx.fillText('WASD to move, E to pickup/place, Q to undo', canvas.width/2, 480);
-      ctx.fillText('Press ~ for debug mode', canvas.width/2, 510);
+      ctx.fillText('WASD: Move | E: Pickup/Place | Q: Undo | X: Trash | Enter: Deliver', canvas.width/2, 480);
+      ctx.fillText('Solve 30 riddles to win! Timer gets faster as you progress.', canvas.width/2, 510);
       
       // Check for enter key to start
       if (input.wasPressed('enter')) {
@@ -735,14 +1073,18 @@
         `Carrying: ${game.player.carrying || 'none'}`,
         `Plate: [${game.plate.join(', ')}]`,
         `State: ${game.state}`,
-        `Score: ${game.score}/${CONFIG.WIN_SCORE}`,
+        `Score: ${game.score}/${CONFIG.WIN_SCORE} (Level ${game.level})`,
+        `Timer: ${game.timer ? game.timer.toFixed(1) + 's' : 'none'}`,
+        `Riddle: ${game.currentRiddle ? game.currentRiddle.id : 'none'}`,
+        `Type: ${game.currentRiddle ? game.currentRiddle.type : 'none'}`,
+        `Customer: ${game.currentCustomer ? game.currentCustomer.name : 'none'}`,
         `FPS: ${game.currentFPS}`,
         '',
-        'Debug Controls:',
-        '~ : Toggle debug',
-        'F1: Toggle hitboxes',
-        'F2: Add score (TODO)',
-        'F3: Skip (TODO)'
+        'Debug Commands (Console):',
+        'debug.nextRiddle()',
+        'debug.solveRiddle()',
+        'debug.skipToLevel(2/3)',
+        'debug.addScore(10)'
       ];
       
       info.forEach((line, i) => {
@@ -757,6 +1099,12 @@
         ctx.beginPath();
         ctx.arc(KITCHEN.POSITIONS.TABLE.x, KITCHEN.POSITIONS.TABLE.y,
                 KITCHEN.ZONES.TABLE_RADIUS, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Trash zone
+        ctx.beginPath();
+        ctx.arc(KITCHEN.POSITIONS.TRASH.x, KITCHEN.POSITIONS.TRASH.y,
+                KITCHEN.ZONES.TRASH_RADIUS, 0, Math.PI * 2);
         ctx.stroke();
         
         // Bin zones
@@ -808,6 +1156,21 @@
     function update(deltaTime) {
       if (game.state !== 'playing') return;
       
+      // Update timer (Phase 2)
+      if (game.currentRiddle) {
+        game.timer -= deltaTime / 1000;
+        if (game.timer <= 0) {
+          game.timer = 0;
+          // Timeout!
+          game.customerMessage = randomChoice(game.currentCustomer.timeout);
+          game.messageTimer = 2000;
+          showToast("Time's up!");
+          console.log("TIMEOUT! Next riddle...");
+          game.plate = [];
+          setTimeout(() => nextRiddle(), 1500);
+        }
+      }
+      
       // Update player
       updatePlayer(deltaTime);
       
@@ -820,6 +1183,10 @@
         handleUndo();
       }
       
+      if (input.wasPressed('x')) {
+        handleTrash();
+      }
+      
       if (input.wasPressed('enter')) {
         handleDelivery();
       }
@@ -827,6 +1194,9 @@
       // Update timers
       if (game.toastTimer > 0) {
         game.toastTimer -= deltaTime;
+      }
+      if (game.messageTimer > 0) {
+        game.messageTimer -= deltaTime;
       }
       if (game.deliveryDebounce > 0) {
         game.deliveryDebounce -= deltaTime;
@@ -869,11 +1239,17 @@
       game.state = 'playing';
       game.score = 0;
       game.level = 1;
+      game.timePerRiddle = CONFIG.LEVEL_1_TIME;
       game.plate = [];
+      game.usedRiddles = [];
+      game.customerIndex = 0;
       game.player.carrying = null;
       
-      console.log('🎮 Game started! Phase 1 testing mode.');
-      showToast("Phase 1 Active - Test the mechanics!");
+      // Get first riddle
+      nextRiddle();
+      
+      console.log('🎮 Phase 2 Game started! Riddle system active.');
+      showToast("Phase 2 Active - Solve riddles to win!");
     }
     
     // Initialize everything
@@ -894,10 +1270,14 @@
       // Start at menu
       game.state = 'menu';
       
-      // Debug commands
+      // Debug commands (Phase 2)
       window.debug = {
         showState: () => console.log(game),
-        addScore: (n) => { game.score += n; console.log(`Score: ${game.score}`); },
+        addScore: (n) => { 
+          game.score += n; 
+          updateLevel();
+          console.log(`Score: ${game.score}, Level: ${game.level}`); 
+        },
         teleport: (x, y) => { 
           game.player.x = x; 
           game.player.y = y; 
@@ -922,6 +1302,28 @@
             i++;
           }, 1000);
         },
+        nextRiddle: () => { nextRiddle(); console.log('Skipped to next riddle'); },
+        skipToLevel: (level) => {
+          if (level === 2) debug.addScore(CONFIG.LEVEL_2_SCORE);
+          else if (level === 3) debug.addScore(CONFIG.LEVEL_3_SCORE);
+          else console.log('Level must be 2 or 3');
+        },
+        setTimer: (seconds) => { game.timer = seconds; console.log(`Timer set to ${seconds}s`); },
+        solveRiddle: () => {
+          if (!game.currentRiddle) return;
+          // Auto-solve current riddle
+          game.plate = [];
+          if (game.currentRiddle.type === 'COUNT') {
+            for (let [ingredient, count] of Object.entries(game.currentRiddle.counts)) {
+              for (let i = 0; i < count; i++) {
+                game.plate.push(ingredient);
+              }
+            }
+          } else if (game.currentRiddle.type === 'SANDWICH') {
+            game.plate = [...game.currentRiddle.sandwich];
+          }
+          console.log('Auto-solved riddle:', game.plate);
+        },
         win: () => { game.score = CONFIG.WIN_SCORE; game.state = 'won'; },
         start: () => startGame()
       };
@@ -931,8 +1333,9 @@
       game.lastFPSTime = performance.now();
       requestAnimationFrame(gameLoop);
       
-      console.log('✅ Game initialized! Press ENTER to start.');
-      console.log('💡 Debug commands available: debug.showState(), debug.teleport(x,y), etc.');
+      console.log('✅ Phase 2 initialized! Press ENTER to start.');
+      console.log('💡 Debug commands: debug.nextRiddle(), debug.solveRiddle(), debug.skipToLevel(2), etc.');
+      console.log('🎮 New features: Trash bin (X key), Real riddles, Timer countdown, Level progression!');
     }
     
     // Start when page loads
