@@ -56,13 +56,15 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
-    // Set canvas to full screen dimensions with proper scaling
+    // Set canvas to full screen dimensions - SIMPLE AND WORKING
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     
-    // Improve image rendering quality
+    // Optimize image rendering for crisp display
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
+    
+    console.log(`🖥️ Simple canvas: ${canvas.width}x${canvas.height} - positioning preserved`);
     
     // Verify canvas support
     if (!ctx) {
@@ -90,7 +92,7 @@
         TOP: 160,     // Below header (120px + sprite height buffer)
         BOTTOM: window.innerHeight - 80, // Dynamic based on screen height
         QUEUE_X: 200, // Where customers line up
-        ENTRANCE_Y: 260, // Where customers enter from (adjusted for larger 144px sprites)
+        ENTRANCE_Y: 260, // Where customers enter from (adjusted for 144px sprites)
         EXIT_Y: window.innerHeight - 100   // Where customers exit to (near bottom)
       },
       POSITIONS: {
@@ -299,6 +301,14 @@
     }
     
     console.log("✅ Asset system initialized");
+    
+    // Global render quality optimization
+    function ensureRenderQuality() {
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      // Ensure crisp pixel-perfect rendering
+      ctx.textRenderingOptimization = 'optimizeQuality';
+    }
     
     // =============================================================================
     // AUDIO SYSTEM (PHASE 3)
@@ -1118,7 +1128,7 @@
       ctx.fillRect(KITCHEN.BOUNDS.RIGHT, 0, canvas.width, canvas.height); // Right
       
       // Ingredient crates (Mount Olympus dungeon style with crate.png)
-      const crateSize = 90; // Size for Greek mythological crates
+      const crateSize = 80; // Good size for clear crates with fixed positioning
       for (let [ingredient, pos] of Object.entries(KITCHEN.POSITIONS.BINS)) {
         
         // Draw wooden crate background using crate.png
@@ -1261,11 +1271,7 @@
         if (game.plate[i]) {
           const ingredientImg = ASSETS.ingredients[game.plate[i]];
           if (ingredientImg && ASSETS.loaded) {
-            const imgSize = 48; // Much larger for better visibility
-            
-            // Ensure high quality rendering for plate ingredients
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
+            const imgSize = 48; // Good size for clear table display with fixed positioning
             
             ctx.drawImage(
               ingredientImg,
@@ -1422,13 +1428,9 @@
       }
       
       if (characterImg && ASSETS.loaded) {
-        const spriteSize = 80; // Increased size for much better visibility
+        const spriteSize = 80; // Good size for clear display with fixed positioning
         
-        // Ensure high quality rendering
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        
-        // Draw character sprite with better positioning
+        // Draw character sprite with perfect positioning
         ctx.drawImage(
           characterImg,
           player.x - spriteSize/2,
@@ -1484,12 +1486,8 @@
       if (player.carrying) {
         const carriedImg = ASSETS.ingredients[player.carrying];
         if (carriedImg && ASSETS.loaded) {
-          // Much larger size for better visibility and quality
-          const imgSize = 80; // Significantly increased size
-          
-          // Ensure high quality rendering for carried items
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
+          // Good size for clear display with fixed positioning
+          const imgSize = 72; // Perfect size for clear visibility
           
           // Add background circle for contrast
           ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
@@ -1563,15 +1561,11 @@
       ctx.setLineDash([]);
       
       const customerImg = ASSETS.customers[game.currentCustomer.id];
-      const spriteWidth = 112;   // Increased width for better visibility and quality
-      const spriteHeight = 144; // Increased height for better visibility and quality
+      const spriteWidth = 112;   // Good size for clear display with fixed positioning
+      const spriteHeight = 144; // Good size for clear display with fixed positioning
       
       if (customerImg && ASSETS.loaded) {
-        // Ensure high quality rendering for customers
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        
-        // Draw customer sprite at animated position with proper proportions
+        // Draw customer sprite at animated position with perfect clarity
         ctx.drawImage(
           customerImg,
           game.customerPosition.x - spriteWidth/2,
@@ -2107,6 +2101,9 @@
     
     // Main render function
     function render() {
+      // Ensure optimal render quality every frame
+      ensureRenderQuality();
+      
       // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
@@ -2377,10 +2374,14 @@
       console.log('⚱️ Ancient styling: Torchlight effects, Parchment riddles, Stone carvings!');
     }
     
-    // Handle window resize for fullscreen experience
+    // Handle window resize for fullscreen experience - SIMPLE AND WORKING
     function handleResize() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
+      
+      // Re-apply high-quality image settings after resize
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
       
       // Update dynamic positions
       KITCHEN.BOUNDS.RIGHT = window.innerWidth - 80;
@@ -2399,7 +2400,7 @@
       KITCHEN.POSITIONS.BINS.pepper.x = Math.max(850, window.innerWidth * 0.6);
       KITCHEN.POSITIONS.BINS.pepper.y = window.innerHeight - 180;
       
-      console.log(`🖥️ Canvas resized to: ${canvas.width}x${canvas.height}`);
+      console.log(`🖥️ Canvas resized to: ${canvas.width}x${canvas.height} - positioning fixed`);
     }
     
     // Start when page loads

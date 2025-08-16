@@ -18,6 +18,14 @@ REMEMBER:
 - update memory bank
 - test
 
+
+
 List of priorities
 - harder riddles
 - feel like they are cooking 
+- complex cooking System (chopping, cooking, etc.)
+- complex point System
+- changing environments
+- people messing up your orders
+- multiple customers
+- obstacles while you are trying to cook
