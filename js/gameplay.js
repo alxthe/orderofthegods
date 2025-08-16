@@ -222,12 +222,16 @@ function nextRiddle() {
   game.customerPosition.y = KITCHEN.CUSTOMER_AREA.ENTRANCE_Y;
   game.customerAnimation = 0;
   
+  // Play customer arrival sound
+  AUDIO.playCustomerArrive();
+  
   // Level 1: Activate Medusa's freeze power when she arrives
   if (game.currentLevel === 1 && game.currentCustomer?.id === 'medusa') {
     showToast("🐍 MEDUSA approaches! Beware her petrifying gaze!");
     setTimeout(() => {
       activateSpecialPower('freeze', 2000); // 2 second freeze
       console.log("🐍 MEDUSA'S POWER: Player frozen!");
+      AUDIO.playFreeze(); // Ice freezing sound
     }, 1500); // Delayed for warning
   }
   
@@ -242,6 +246,7 @@ function nextRiddle() {
       setTimeout(() => {
         activateSpecialPower('blur', 4000); // Extended to 4 seconds
         console.log("💪 HERCULES' POWER: Vision blur activated!");
+        AUDIO.playBlur(); // Woozy sound
       }, 1500); // Delayed for warning
     } else if (heroId === 'achilles') {
       // Achilles disrupts controls with warning
@@ -256,6 +261,7 @@ function nextRiddle() {
       setTimeout(() => {
         activateSpecialPower('darken', 4000); // Extended to 4 seconds
         console.log("🌑 CYCLOPS' POWER: Vision darkened!");
+        AUDIO.playDarkness(); // Ominous sound
       }, 1500); // Delayed for warning
     } else {
       // Other heroes don't have powers but still announce
@@ -275,6 +281,7 @@ function nextRiddle() {
       setTimeout(() => {
         activateSpecialPower('speedup', 5000); // 5 seconds of speed
         console.log("💨 HERMES' POWER: Speed increased!");
+        AUDIO.playSpeedup(); // Speed whoosh
       }, 1500);
     } else if (godId === 'poseidon') {
       // Poseidon's waves push player around
@@ -282,6 +289,7 @@ function nextRiddle() {
       setTimeout(() => {
         activateSpecialPower('wave', 6000); // 6 seconds of waves
         console.log("🌊 POSEIDON'S POWER: Waves activated!");
+        AUDIO.playWave(); // Ocean waves
       }, 1500);
     } else if (godId === 'zeus') {
       // Zeus' lightning blinds with flashes
@@ -289,6 +297,7 @@ function nextRiddle() {
       setTimeout(() => {
         activateSpecialPower('lightning', 5000); // 5 seconds of lightning
         console.log("⚡ ZEUS' POWER: Lightning strikes!");
+        AUDIO.playThunder(); // Thunder and lightning
       }, 1500);
     } else if (godId === 'hera') {
       // Hera's judgment clouds reality
@@ -372,6 +381,7 @@ function handleInteraction() {
         showToast(`${game.cuttingItem} cutting... 3 seconds (E to retrieve)`);
         console.log(`Started cutting: ${game.cuttingItem} for ${game.cuttingDuration}ms`);
         AUDIO.playPlace();
+        AUDIO.playCutting(); // Chopping sound!
       } else {
         showToast(`${ingredient} cannot be cut! (Only: tomato, cheese, avocado, pepper)`);
       }
@@ -401,6 +411,7 @@ function handleInteraction() {
         showToast(`${game.cookingItem} cooking... 3 seconds (V to retrieve)`);
         console.log(`Started cooking: ${game.cookingItem} for ${game.cookingDuration}ms`);
         AUDIO.playPlace();
+        AUDIO.playCooking(); // Sizzling sound!
       } else {
         showToast(`${ingredient} cannot be cooked! (Only: meat, egg, bacon)`);
       }
@@ -429,6 +440,7 @@ function handleInteraction() {
         showToast(`Making yogurt... 3 seconds (E to retrieve)`);
         console.log(`Started making yogurt from ${ingredient} for ${game.saucepanDuration}ms`);
         AUDIO.playPlace();
+        AUDIO.playBoiling(); // Bubbling sound!
       } else {
         showToast(`${ingredient} cannot be processed! (Only: milk → yogurt)`);
       }
@@ -640,6 +652,7 @@ function handleDelivery() {
     
     // Customer walks out, then next riddle
     game.customerState = 'walking_out';
+    AUDIO.playCustomerHappy(); // Happy they got their food!
     setTimeout(() => nextRiddle(), 2500); // Give time for walking animation
   } else {
     // Failure - restart the level!
@@ -648,6 +661,7 @@ function handleDelivery() {
     showToast(`Wrong! ${result.reason} - Restarting level...`);
     console.log(`FAILED: ${result.reason} - Restarting Level ${game.currentLevel}`);
     AUDIO.playFailure();
+    AUDIO.playCustomerAngry(); // Angry customer sound
     
     // Update god relationship (negative)
     updateGodRelationship(game.currentCustomer.id, false);
@@ -947,6 +961,9 @@ function checkStoryProgression() {
 
 // Start game function
 function startGame() {
+  // Play menu select sound
+  AUDIO.playMenuSelect();
+  
   game.state = 'playing';
   game.score = 0;
   game.currentLevel = 1;
@@ -1182,12 +1199,15 @@ function updateFatesAI(deltaTime) {
         if (attackType < 0.4) {
           // Scissors attack
           launchScissorsAttack(fate);
+          AUDIO.playScissors(); // Sharp cutting sound
         } else if (attackType < 0.7) {
           // String trap
           createStringTrap(fate);
+          AUDIO.playStringTrap(); // Web spinning sound
         } else {
           // String shot
           launchStringShot(fate);
+          AUDIO.playStringTrap(); // Web sound for shots too
         }
       }
       
@@ -1383,6 +1403,7 @@ function takeDamage(damage) {
   game.bossFight.invulnerable = true;
   game.bossFight.invulnerabilityTimer = 1000; // 1 second invulnerability
   
+  AUDIO.playDamage(); // Player hurt sound
   showToast(`-${damage} HP!`);
   
   if (game.bossFight.playerHealth <= 0) {
@@ -1427,6 +1448,10 @@ function bossFightWon() {
   game.state = 'won';
   const survivalTime = Math.floor(game.bossFight.survivalTimer / 1000);
   showToast(`🏆 YOU SURVIVED ${survivalTime} SECONDS! You are FREE!`);
+  
+  // Play epic victory sounds!
+  AUDIO.playVictory(); // Epic victory melody
+  setTimeout(() => AUDIO.playCollarBreak(), 500); // Collar breaking sound
   
   console.log(`🏆 Boss fight WON! Player survived ${survivalTime} seconds!`);
 }

@@ -463,24 +463,184 @@ function renderMenu() {
   }
 }
 
-// Win screen
+// Win screen - EPIC VICTORY CELEBRATION!
 function renderWinScreen() {
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+  // Animated gradient background
+  const time = Date.now() * 0.001;
+  const bgGrad = ctx.createRadialGradient(
+    canvas.width/2, canvas.height/2, 0,
+    canvas.width/2, canvas.height/2, canvas.width
+  );
+  bgGrad.addColorStop(0, `rgba(255, 215, 0, ${0.2 + Math.sin(time) * 0.1})`); // Pulsing gold center
+  bgGrad.addColorStop(0.3, 'rgba(139, 69, 19, 0.9)'); // Bronze
+  bgGrad.addColorStop(0.6, 'rgba(26, 13, 8, 0.95)'); // Dark brown
+  bgGrad.addColorStop(1, '#000000'); // Black
+  ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   
+  // Animated golden particles (fireworks effect)
+  for (let i = 0; i < 50; i++) {
+    const angle = (time * 0.5 + i * 0.5) % (Math.PI * 2);
+    const radius = 100 + Math.sin(time * 2 + i) * 200;
+    const x = canvas.width/2 + Math.cos(angle) * radius;
+    const y = canvas.height/2 + Math.sin(angle) * radius;
+    const size = 2 + Math.sin(time * 3 + i) * 3;
+    
+    ctx.fillStyle = `rgba(255, 215, 0, ${0.5 + Math.sin(time * 2 + i) * 0.5})`;
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  // Broken collar animation at top
+  const collarY = canvas.height * 0.15;
+  ctx.strokeStyle = '#8B4513';
+  ctx.lineWidth = 8;
+  
+  // Left half of collar
+  ctx.save();
+  ctx.translate(canvas.width/2 - 50, collarY);
+  ctx.rotate(-0.2 + Math.sin(time * 2) * 0.1); // Swaying
+  ctx.beginPath();
+  ctx.arc(0, 0, 80, Math.PI * 0.5, Math.PI * 1.5);
+  ctx.stroke();
+  
+  // Crack marks
+  ctx.strokeStyle = '#FFD700';
+  ctx.lineWidth = 2;
+  for (let i = 0; i < 5; i++) {
+    ctx.beginPath();
+    ctx.moveTo(-20 + i * 10, -10);
+    ctx.lineTo(-15 + i * 10, 10);
+    ctx.stroke();
+  }
+  ctx.restore();
+  
+  // Right half of collar
+  ctx.save();
+  ctx.translate(canvas.width/2 + 50, collarY);
+  ctx.rotate(0.2 - Math.sin(time * 2) * 0.1); // Opposite sway
+  ctx.strokeStyle = '#8B4513';
+  ctx.lineWidth = 8;
+  ctx.beginPath();
+  ctx.arc(0, 0, 80, -Math.PI * 0.5, Math.PI * 0.5);
+  ctx.stroke();
+  
+  // Crack marks
+  ctx.strokeStyle = '#FFD700';
+  ctx.lineWidth = 2;
+  for (let i = 0; i < 5; i++) {
+    ctx.beginPath();
+    ctx.moveTo(-20 + i * 10, -10);
+    ctx.lineTo(-15 + i * 10, 10);
+    ctx.stroke();
+  }
+  ctx.restore();
+  
+  // Main title with pulsing effect
+  const titleScale = 1 + Math.sin(time * 3) * 0.1;
+  ctx.save();
+  ctx.translate(canvas.width/2, canvas.height * 0.35);
+  ctx.scale(titleScale, titleScale);
+  
+  // Golden glow effect
+  ctx.shadowColor = '#FFD700';
+  ctx.shadowBlur = 30 + Math.sin(time * 4) * 10;
+  
   ctx.fillStyle = '#FFD700';
-  ctx.font = 'bold 64px Arial';
+  ctx.font = 'bold 72px Cinzel, serif';
   ctx.textAlign = 'center';
-  ctx.fillText('VICTORY!', canvas.width/2, canvas.height/2 - 50);
+  ctx.fillText('FREEDOM!', 0, 0);
+  
+  ctx.shadowBlur = 0;
+  ctx.restore();
+  
+  // Epic subtitle
+  ctx.fillStyle = '#FFA500';
+  ctx.font = 'bold 36px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('You Have Broken The Chains of Fate!', canvas.width/2, canvas.height * 0.45);
+  
+  // Story text
+  ctx.fillStyle = '#E6D2A3';
+  ctx.font = '24px Crimson Text, serif';
+  ctx.fillText('The collar shatters into golden dust...', canvas.width/2, canvas.height * 0.52);
+  ctx.fillText('The Fates bow in defeat, their prophecy undone.', canvas.width/2, canvas.height * 0.56);
+  ctx.fillText('You walk free from Tartarus, a legend born!', canvas.width/2, canvas.height * 0.60);
+  
+  // Stats box with ornate border
+  const statsY = canvas.height * 0.68;
+  const statsWidth = 400;
+  const statsHeight = 120;
+  const statsX = canvas.width/2 - statsWidth/2;
+  
+  // Ornate border
+  ctx.strokeStyle = '#FFD700';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(statsX, statsY, statsWidth, statsHeight);
+  
+  // Inner glow
+  ctx.strokeStyle = 'rgba(255, 215, 0, 0.3)';
+  ctx.lineWidth = 6;
+  ctx.strokeRect(statsX - 3, statsY - 3, statsWidth + 6, statsHeight + 6);
+  
+  // Stats title
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 20px Cinzel, serif';
+  ctx.fillText('⚔️ LEGENDARY ACHIEVEMENTS ⚔️', canvas.width/2, statsY + 25);
+  
+  // Calculate stats
+  const survivalTime = game.bossFight?.survivalTimer ? Math.floor(game.bossFight.survivalTimer / 1000) : 60;
   
   ctx.fillStyle = '#FFF';
-  ctx.font = '24px Arial';
-  ctx.fillText(`You defeated the Fates and earned your freedom!`, canvas.width/2, canvas.height/2);
-  ctx.fillText(`Final Score: ${game.score}`, canvas.width/2, canvas.height/2 + 40);
+  ctx.font = '18px Crimson Text, serif';
+  ctx.fillText(`⭐ Total Dishes Served: ${game.score}`, canvas.width/2, statsY + 50);
+  ctx.fillText(`⏱️ Survived The Fates: ${survivalTime} seconds`, canvas.width/2, statsY + 75);
+  ctx.fillText(`🏛️ Trials Conquered: All 4 Levels`, canvas.width/2, statsY + 100);
   
-  ctx.fillStyle = '#CCC';
-  ctx.font = '18px Arial';
-  ctx.fillText('Refresh to play again', canvas.width/2, canvas.height/2 + 80);
+  // Greek decorations
+  const decorY = canvas.height * 0.85;
+  ctx.fillStyle = '#CD853F';
+  ctx.font = '32px serif';
+  ctx.fillText('⚡ 🏛️ ⚱️ 🔱 ✨ 🗡️ 🏛️ ⚡', canvas.width/2, decorY);
+  
+  // Play again prompt with pulsing
+  const promptScale = 0.9 + Math.sin(time * 2) * 0.1;
+  ctx.save();
+  ctx.translate(canvas.width/2, canvas.height * 0.92);
+  ctx.scale(promptScale, promptScale);
+  
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 22px Cinzel, serif';
+  ctx.fillText('Press F5 to Begin a New Legend', 0, 0);
+  
+  ctx.restore();
+  
+  // Corner laurel wreaths
+  const wreathSize = 60;
+  ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
+  ctx.font = `${wreathSize}px serif`;
+  ctx.textAlign = 'left';
+  ctx.fillText('🌿', 20, wreathSize);
+  ctx.textAlign = 'right';
+  ctx.fillText('🌿', canvas.width - 20, wreathSize);
+  ctx.textAlign = 'left';
+  ctx.fillText('🌿', 20, canvas.height - 20);
+  ctx.textAlign = 'right';
+  ctx.fillText('🌿', canvas.width - 20, canvas.height - 20);
+  
+  // Floating text effects
+  for (let i = 0; i < 3; i++) {
+    const floatY = 50 + Math.sin(time + i * 2) * 30;
+    const floatX = 100 + i * (canvas.width - 200) / 3;
+    
+    ctx.fillStyle = `rgba(255, 215, 0, ${0.3 + Math.sin(time + i) * 0.2})`;
+    ctx.font = '16px Cinzel, serif';
+    ctx.textAlign = 'center';
+    
+    const messages = ['HERO', 'LEGEND', 'FREE'];
+    ctx.fillText(messages[i], floatX, floatY);
+  }
 }
 
 // Pause overlay

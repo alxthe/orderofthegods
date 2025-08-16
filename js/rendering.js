@@ -58,8 +58,12 @@ function renderKitchen() {
     // Draw background scaled to fit screen
     ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
     
-    // Add overlay for kitchen area definition
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    // Add dark overlay to entire screen for better text contrast
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)'; // Darken entire background
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Add darker overlay for non-kitchen areas
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'; // Additional darkening
     ctx.fillRect(0, 0, canvas.width, KITCHEN.BOUNDS.TOP); // Top
     ctx.fillRect(0, KITCHEN.BOUNDS.BOTTOM, canvas.width, canvas.height); // Bottom
     ctx.fillRect(0, 0, KITCHEN.BOUNDS.LEFT, canvas.height); // Left

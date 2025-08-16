@@ -29,6 +29,16 @@ function update(deltaTime) {
       timerSpeed = 2; // Timer counts down 2x faster with Hermes
     }
     game.timer -= (deltaTime / 1000) * timerSpeed;
+    
+    // Warning sounds when timer is low
+    if (game.timer <= 5 && game.timer > 4.9) {
+      AUDIO.playWarning(); // Warning at 5 seconds
+    } else if (game.timer <= 3 && game.timer > 2.9) {
+      AUDIO.playWarning(); // Warning at 3 seconds
+    } else if (game.timer <= 1 && game.timer > 0.9) {
+      AUDIO.playTick(); // Urgent tick at 1 second
+    }
+    
     if (game.timer <= 0) {
       game.timer = 0;
       // SIMPLE timeout handling - no scrambling!
