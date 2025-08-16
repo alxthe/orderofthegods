@@ -1,0 +1,239 @@
+As an expert game developer, you should create a comprehensive prompt that captures everything from your documentation to build the first playable phase of your game. Let me analyze all your design documents and create the perfect implementation prompt.
+
+## **🎮 MASTER PROMPT: Build Order of the Gods - Phase 1 (Core Gameplay)**
+
+---
+
+### **PROJECT CONTEXT**
+You are building a 24-hour hackathon game called "Order of the Gods" - a fast-paced, single-screen kitchen puzzle game. The player is trapped in a mythic Greek kitchen, serving divine customers by solving ingredient riddles. This is built with vanilla JavaScript and HTML5 Canvas, keyboard-only controls, no frameworks.
+
+### **PHASE 1 DELIVERABLES (Hours 0-8)**
+Create a working game with:
+1. WASD movement in a bounded kitchen
+2. Ingredient pickup/place mechanics
+3. Basic riddle display and validation
+4. Score counter to 30
+5. Simple win condition
+
+---
+
+### **TECHNICAL SPECIFICATIONS**
+
+**Canvas Setup:**
+- 1280x720 resolution
+- Fixed top-down camera
+- No scrolling or panning
+- Dark background (#1a1a1a)
+
+**Kitchen Layout (exact positions):**
+```
+COUNTER (Top): X=640, Y=120 (customer spawn + deliver zone)
+TABLE (Center): X=640, Y=360 (plate with 5 slots)
+BINS (Walls):
+- BREAD: X=160, Y=260 (left wall)
+- TOMATO: X=160, Y=460 (left wall)
+- CHEESE: X=1120, Y=260 (right wall)
+- MEAT: X=1120, Y=460 (right wall)
+- EGG: X=430, Y=620 (bottom wall)
+- PEPPER: X=850, Y=620 (bottom wall)
+```
+
+**Player System:**
+- Start position: X=640, Y=360
+- Movement speed: 5 pixels per frame
+- Size: 32x32 pixels
+- Instant start/stop (no acceleration)
+- Diagonal movement normalized
+- Bounds checking (keep in kitchen)
+
+**Input System:**
+```javascript
+const input = {
+  keys: {},
+  init() {
+    document.addEventListener('keydown', (e) => {
+      this.keys[e.key.toLowerCase()] = true;
+      if (['w','a','s','d','e','q','enter','escape'].includes(e.key.toLowerCase())) {
+        e.preventDefault();
+      }
+    });
+    document.addEventListener('keyup', (e) => {
+      this.keys[e.key.toLowerCase()] = false;
+    });
+  }
+};
+```
+
+**Collision System:**
+- Generous hitboxes (8px buffer)
+- Table zone: 180px radius
+- Bin zones: 120px radius
+- Deliver zone: 720x80px rectangle
+
+**Ingredient System:**
+- Player can carry ONE item at a time
+- E key to pickup (at bins)
+- E key to place (at table)
+- Q key to undo top item (at table only)
+- Enter to deliver (at counter only)
+- Plate holds max 5 items
+
+**Riddle System (START WITH COUNT ONLY):**
+```javascript
+const riddles = [
+  { id: "r1", text: "Bread with tomato", type: "COUNT", counts: { bread: 1, tomato: 1 }},
+  { id: "r2", text: "2 cheese, 1 meat", type: "COUNT", counts: { cheese: 2, meat: 1 }},
+  { id: "r3", text: "Egg and pepper", type: "COUNT", counts: { egg: 1, pepper: 1 }},
+  // Add 10 more simple COUNT riddles
+];
+```
+
+**Game State:**
+```javascript
+const game = {
+  state: 'playing', // 'menu', 'playing', 'won'
+  score: 0,
+  currentRiddle: null,
+  player: { x: 640, y: 360, carrying: null },
+  plate: [],
+  timer: 22,
+  level: 1
+};
+```
+
+**Validation Logic:**
+```javascript
+function validatePlate(plate, riddle) {
+  const plateCounts = {};
+  plate.forEach(item => plateCounts[item] = (plateCounts[item] || 0) + 1);
+  
+  for (let ingredient in riddle.counts) {
+    if (plateCounts[ingredient] !== riddle.counts[ingredient]) return false;
+  }
+  for (let ingredient in plateCounts) {
+    if (!riddle.counts[ingredient]) return false;
+  }
+  return true;
+}
+```
+
+**Visual Requirements:**
+- Draw kitchen walls (simple rectangles)
+- Draw bins with labels (BREAD, TOMATO, etc.)
+- Draw table with 5 plate slots
+- Draw player (yellow square 32x32)
+- Draw carried item above player
+- Show riddle text at top-center
+- Show score "Points: N/30" at top-right
+- Simple text feedback ("Correct!", "Wrong!")
+
+**Core Game Loop:**
+```javascript
+function gameLoop() {
+  update();
+  render();
+  requestAnimationFrame(gameLoop);
+}
+
+function update() {
+  updatePlayer();
+  updateInteractionZones();
+  updateTimer();
+}
+
+function render() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  renderKitchen();
+  renderPlayer();
+  renderUI();
+}
+```
+
+---
+
+### **IMPLEMENTATION ORDER**
+
+**Step 1: Basic Setup (30 min)**
+- Create HTML with canvas
+- Initialize canvas context
+- Set up game state object
+- Start game loop
+
+**Step 2: Movement (1 hour)**
+- Implement WASD input
+- Add player movement
+- Add boundary checking
+- Test movement feels good
+
+**Step 3: Kitchen Layout (1 hour)**
+- Draw walls and floor
+- Draw ingredient bins with labels
+- Draw table with plate slots
+- Draw counter/deliver zone
+
+**Step 4: Interaction Zones (1 hour)**
+- Detect when player near bins
+- Detect when player at table
+- Detect when player at counter
+- Visual feedback for zones
+
+**Step 5: Pickup/Place (2 hours)**
+- E to pickup at bins
+- E to place at table
+- Q to undo at table
+- Visual feedback for carrying
+
+**Step 6: Riddle System (2 hours)**
+- Display riddle text
+- Implement plate validation
+- Score increment on success
+- Win at 30 points
+
+**Step 7: Polish (30 min)**
+- Add timer display
+- Add feedback messages
+- Test full game loop
+- Fix any bugs
+
+---
+
+### **CONSTRAINTS (DO NOT VIOLATE)**
+- NO mouse support - keyboard only
+- NO touch support - laptop only
+- NO audio for Phase 1
+- NO complex animations
+- NO EXCLUDE/SANDWICH riddles yet
+- Platform detection: block if viewport < 900px
+
+---
+
+### **SUCCESS CRITERIA**
+✅ Player can move with WASD
+✅ Player can pick up ingredients with E
+✅ Player can place on plate with E
+✅ Player can undo with Q
+✅ Player can deliver with Enter
+✅ Riddles validate correctly
+✅ Score increases on success
+✅ Game wins at 30 points
+✅ No crashes or major bugs
+
+---
+
+### **DEBUG FEATURES**
+- Press ~ to show hitboxes
+- Press F1 to skip to next riddle
+- Press F2 to add 10 points
+- Console.log all important events
+
+---
+
+### **DELIVERABLE**
+A single `index.html` file with inline CSS and JavaScript that runs the complete Phase 1 game. The game should be playable, feel responsive, and demonstrate the core mechanics. Graphics can be simple rectangles and text - focus on gameplay, not visuals.
+
+**Remember: A working game with simple graphics is better than a broken game with fancy graphics. Ship something that works!**
+
+---
+
+## **Use this prompt to build Phase 1 of your game. This captures everything from your documentation and focuses on what's achievable in the first 8 hours of your hackathon!** 🚀
+

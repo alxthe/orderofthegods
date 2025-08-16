@@ -1,0 +1,1224 @@
+# 🎮 MASTER BUILD PROMPT: Order of the Gods - Complete Phase 1 Implementation
+
+## **YOUR MISSION**
+You are an expert game developer. Build a fully playable hackathon game called "Order of the Gods" in a single HTML file. This is a fast-paced kitchen puzzle game where players solve ingredient riddles under time pressure to serve mythological Greek customers. The game must be keyboard-only, work perfectly at 60 FPS, and be completable in one 8-hour coding session.
+
+---
+
+## **GAME OVERVIEW IN PLAIN ENGLISH**
+
+### What You're Building
+A single-screen kitchen game where:
+1. You control a yellow square (the player) with WASD keys
+2. You run around collecting ingredients from 6 bins on the walls
+3. You solve riddles like "2 bread, 1 cheese" by placing ingredients on a table
+4. You deliver completed plates to earn points before time runs out
+5. You win by scoring 30 points as the timer gets progressively faster
+
+### The Core Experience
+- **Movement**: Sprint across the kitchen using WASD (takes 2-3 seconds to cross)
+- **Collection**: Press E at ingredient bins to pick up items (one at a time)
+- **Assembly**: Press E at the table to place ingredients on a plate (max 5 items)
+- **Delivery**: Press Enter at the counter to serve your plate
+- **Pressure**: You have 22 seconds per riddle, dropping to 15 seconds at higher levels
+
+---
+
+## **COMPLETE TECHNICAL SPECIFICATION**
+
+### HTML Structure (Start Here)
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order of the Gods</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+    canvas {
+      border: 1px solid #333;
+      background: #1a1a1a;
+      cursor: none; /* Hide mouse cursor */
+    }
+    .mobile-warning {
+      display: none;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      font-size: 24px;
+    }
+    /* Block mobile and small screens */
+    @media (max-width: 900px) {
+      canvas { display: none !important; }
+      .mobile-warning { display: block !important; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="1280" height="720"></canvas>
+  <div class="mobile-warning">
+    <h2>🖥️ Laptop + Keyboard Required</h2>
+    <p>This game requires a laptop or desktop computer with keyboard controls.</p>
+    <p>WASD keys required for movement.</p>
+  </div>
+
+  <script>
+    // ENTIRE GAME CODE GOES HERE
+    // Follow the implementation sections below in order
+  </script>
+</body>
+</html>
+```
+
+### 1. CANVAS & CONSTANTS SETUP
+```javascript
+// Get canvas and context
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// Verify canvas support
+if (!ctx) {
+  alert('Your browser does not support Canvas. Please use Chrome, Firefox, or Safari.');
+  throw new Error('Canvas not supported');
+}
+
+// EXACT KITCHEN LAYOUT COORDINATES (DO NOT CHANGE)
+const KITCHEN = {
+  BOUNDS: {
+    LEFT: 80,
+    RIGHT: 1200, 
+    TOP: 80,
+    BOTTOM: 640
+  },
+  POSITIONS: {
+    COUNTER: { x: 640, y: 120 },     // Delivery zone at top
+    TABLE: { x: 640, y: 360 },       // Central plate assembly
+    BINS: {
+      BREAD: { x: 160, y: 260 },     // Left wall upper
+      TOMATO: { x: 160, y: 460 },    // Left wall lower
+      CHEESE: { x: 1120, y: 260 },   // Right wall upper
+      MEAT: { x: 1120, y: 460 },     // Right wall lower
+      EGG: { x: 430, y: 620 },       // Bottom wall left
+      PEPPER: { x: 850, y: 620 }     // Bottom wall right
+    }
+  },
+  ZONES: {
+    TABLE_RADIUS: 90,        // Distance to interact with table
+    BIN_RADIUS: 60,          // Distance to interact with bins
+    COUNTER_WIDTH: 360,      // Width of delivery zone
+    COUNTER_HEIGHT: 40,      // Height of delivery zone
+    INTERACTION_BUFFER: 8    // Extra pixels for generous collision
+  }
+};
+
+// Game configuration
+const CONFIG = {
+  PLAYER_SPEED: 5,           // Pixels per frame (300 px/sec at 60fps)
+  PLAYER_SIZE: 32,           // Player square size
+  MAX_PLATE_SIZE: 5,         // Maximum ingredients on plate
+  MAX_CARRY: 1,              // Can only carry one ingredient
+  
+  // Timing
+  LEVEL_1_TIME: 22,          // Seconds per riddle (level 1)
+  LEVEL_2_TIME: 18,          // Seconds per riddle (level 2)
+  LEVEL_3_TIME: 15,          // Seconds per riddle (level 3)
+  
+  // Progression
+  LEVEL_2_SCORE: 10,         // Score needed for level 2
+  LEVEL_3_SCORE: 20,         // Score needed for level 3
+  WIN_SCORE: 30,             // Score needed to win
+  
+  // Visual
+  COLORS: {
+    PLAYER: '#FFD700',       // Gold
+    BREAD: '#DEB887',        // Burlywood
+    TOMATO: '#FF6347',       // Tomato red
+    CHEESE: '#FFD700',       // Gold
+    MEAT: '#8B0000',         // Dark red
+    EGG: '#FFFACD',          // Lemon chiffon
+    PEPPER: '#FF4500',       // Orange red
+    TABLE: '#8B4513',        // Saddle brown
+    COUNTER: '#696969',      // Dim gray
+    WALL: '#4a4a4a',         // Gray
+    FLOOR: '#2a2a2a'         // Dark gray
+  }
+};
+```
+
+### 2. COMPLETE GAME STATE
+```javascript
+// Main game state object
+const game = {
+  // Game flow
+  state: 'menu',              // 'menu', 'playing', 'paused', 'won'
+  score: 0,
+  level: 1,
+  
+  // Player
+  player: {
+    x: 640,                   // Start at table center
+    y: 360,
+    carrying: null,           // null or ingredient name string
+    currentZone: null,        // Which interaction zone player is in
+    speed: CONFIG.PLAYER_SPEED
+  },
+  
+  // Plate & ingredients
+  plate: [],                  // Array of ingredient strings, max 5
+  
+  // Riddle system
+  currentRiddle: null,        // Current riddle object
+  riddleIndex: 0,             // Track which riddle we're on
+  usedRiddles: [],            // Track used riddles to avoid repeats
+  
+  // Customer system
+  currentCustomer: null,      // Current customer object
+  customerIndex: 0,           // Rotation index
+  customerMessage: '',        // What customer is saying
+  messageTimer: 0,            // How long to show message
+  
+  // Timing
+  timer: CONFIG.LEVEL_1_TIME, // Current timer
+  timePerRiddle: CONFIG.LEVEL_1_TIME,
+  lastTime: 0,                // For delta time
+  deliveryDebounce: 0,        // Prevent double delivery
+  
+  // Feedback
+  toastMessage: '',           // Current toast message
+  toastTimer: 0,              // How long to show toast
+  
+  // Debug
+  debugMode: false,
+  showHitboxes: false
+};
+```
+
+### 3. INPUT SYSTEM (KEYBOARD ONLY)
+```javascript
+// Input handling system
+const input = {
+  keys: {},
+  
+  init() {
+    // Keydown handler
+    document.addEventListener('keydown', (e) => {
+      const key = e.key.toLowerCase();
+      this.keys[key] = true;
+      
+      // Prevent defaults for game keys
+      if (['w','a','s','d','e','q','enter','escape'].includes(key)) {
+        e.preventDefault();
+      }
+      
+      // Special keys
+      if (key === 'escape' && game.state === 'playing') {
+        game.state = 'paused';
+      } else if (key === 'escape' && game.state === 'paused') {
+        game.state = 'playing';
+      }
+      
+      // Debug keys
+      if (key === '`' || key === '~') {
+        game.debugMode = !game.debugMode;
+        console.log('Debug mode:', game.debugMode);
+      }
+    });
+    
+    // Keyup handler
+    document.addEventListener('keyup', (e) => {
+      this.keys[e.key.toLowerCase()] = false;
+    });
+    
+    // Window blur (auto-pause)
+    window.addEventListener('blur', () => {
+      this.keys = {}; // Clear all keys
+      if (game.state === 'playing') {
+        game.state = 'paused';
+      }
+    });
+    
+    console.log('Input system initialized');
+  },
+  
+  // Check if key is pressed
+  isPressed(key) {
+    return !!this.keys[key.toLowerCase()];
+  },
+  
+  // Get movement vector (normalized for diagonal)
+  getMovementVector() {
+    let x = 0, y = 0;
+    
+    if (this.isPressed('a')) x -= 1;
+    if (this.isPressed('d')) x += 1;
+    if (this.isPressed('w')) y -= 1;
+    if (this.isPressed('s')) y += 1;
+    
+    // Normalize diagonal movement
+    if (x !== 0 && y !== 0) {
+      x *= 0.707; // 1/sqrt(2)
+      y *= 0.707;
+    }
+    
+    return { x, y };
+  }
+};
+```
+
+### 4. RIDDLE DATABASE (COMPLETE SET)
+```javascript
+// All riddles for the game
+const RIDDLES = [
+  // LEVEL 1 - Simple COUNT riddles (22 seconds)
+  { id: "l1_1", text: "Bread with tomato", type: "COUNT", level: 1, 
+    counts: { bread: 1, tomato: 1 }},
+  { id: "l1_2", text: "Meat with cheese", type: "COUNT", level: 1,
+    counts: { meat: 1, cheese: 1 }},
+  { id: "l1_3", text: "Egg with pepper", type: "COUNT", level: 1,
+    counts: { egg: 1, pepper: 1 }},
+  { id: "l1_4", text: "2 bread, 1 tomato", type: "COUNT", level: 1,
+    counts: { bread: 2, tomato: 1 }},
+  { id: "l1_5", text: "2 cheese, 1 meat", type: "COUNT", level: 1,
+    counts: { cheese: 2, meat: 1 }},
+  { id: "l1_6", text: "Bread, cheese, bread", type: "SANDWICH", level: 1,
+    sandwich: ["bread", "cheese", "bread"]},
+  { id: "l1_7", text: "Bread, tomato, bread", type: "SANDWICH", level: 1,
+    sandwich: ["bread", "tomato", "bread"]},
+  { id: "l1_8", text: "3 cheese", type: "COUNT", level: 1,
+    counts: { cheese: 3 }},
+  
+  // LEVEL 2 - Add EXCLUDE riddles (18 seconds)
+  { id: "l2_1", text: "Tomato and meat, no egg", type: "EXCLUDE", level: 2,
+    counts: { tomato: 1, meat: 1 }, exclude: ["egg"]},
+  { id: "l2_2", text: "2 meat, no cheese", type: "EXCLUDE", level: 2,
+    counts: { meat: 2 }, exclude: ["cheese"]},
+  { id: "l2_3", text: "Cheese and pepper, no tomato", type: "EXCLUDE", level: 2,
+    counts: { cheese: 1, pepper: 1 }, exclude: ["tomato"]},
+  { id: "l2_4", text: "2 cheese, 1 tomato", type: "COUNT", level: 2,
+    counts: { cheese: 2, tomato: 1 }},
+  { id: "l2_5", text: "Bread, meat, bread", type: "SANDWICH", level: 2,
+    sandwich: ["bread", "meat", "bread"]},
+  { id: "l2_6", text: "3 tomato", type: "COUNT", level: 2,
+    counts: { tomato: 3 }},
+  
+  // LEVEL 3 - Complex combinations (15 seconds)
+  { id: "l3_1", text: "Bread, meat, tomato", type: "COUNT", level: 3,
+    counts: { bread: 1, meat: 1, tomato: 1 }},
+  { id: "l3_2", text: "Meat, cheese, pepper", type: "COUNT", level: 3,
+    counts: { meat: 1, cheese: 1, pepper: 1 }},
+  { id: "l3_3", text: "2 cheese, no pepper", type: "EXCLUDE", level: 3,
+    counts: { cheese: 2 }, exclude: ["pepper"]},
+  { id: "l3_4", text: "Bread, pepper, bread", type: "SANDWICH", level: 3,
+    sandwich: ["bread", "pepper", "bread"]},
+  { id: "l3_5", text: "2 meat, 1 pepper", type: "COUNT", level: 3,
+    counts: { meat: 2, pepper: 1 }},
+  { id: "l3_6", text: "Bread, tomato, cheese, meat", type: "COUNT", level: 3,
+    counts: { bread: 1, tomato: 1, cheese: 1, meat: 1 }}
+];
+
+// Customer database
+const CUSTOMERS = [
+  { id: "minotaur", name: "Minotaur", 
+    success: ["The labyrinth rests.", "Straight through."],
+    failure: ["Lost already?"], 
+    timeout: ["The maze does not wait."]},
+  { id: "ghost", name: "Ghost",
+    success: ["The veil shivers.", "Peace flows."],
+    failure: ["Whispers say no."],
+    timeout: ["Time slipped through you."]},
+  { id: "medusa", name: "Medusa",
+    success: ["Stone-cold perfect.", "Acceptable gaze."],
+    failure: ["You froze."],
+    timeout: ["Petrified by seconds?"]},
+  { id: "hermes", name: "Hermes",
+    success: ["Swift and sure.", "Wings approved."],
+    failure: ["Outpaced again."],
+    timeout: ["Wings beat you."]},
+  { id: "hades", name: "Hades",
+    success: ["Acceptable—even below.", "Death approves."],
+    failure: ["Back to the shadows."],
+    timeout: ["Eternity felt shorter."]},
+  { id: "sphinx", name: "Sphinx",
+    success: ["Your mind is awake.", "The riddle yields."],
+    failure: ["Answer me properly."],
+    timeout: ["Silence is not an answer."]}
+];
+```
+
+### 5. COLLISION & ZONE DETECTION
+```javascript
+// Check what zone the player is in
+function updatePlayerZone() {
+  const player = game.player;
+  const prevZone = player.currentZone;
+  player.currentZone = null;
+  
+  // Check table zone (circular)
+  const tableDist = distance(player.x, player.y, 
+                            KITCHEN.POSITIONS.TABLE.x, 
+                            KITCHEN.POSITIONS.TABLE.y);
+  if (tableDist < KITCHEN.ZONES.TABLE_RADIUS) {
+    player.currentZone = 'table';
+    return;
+  }
+  
+  // Check counter/delivery zone (rectangular)
+  const counter = KITCHEN.POSITIONS.COUNTER;
+  if (Math.abs(player.x - counter.x) < KITCHEN.ZONES.COUNTER_WIDTH/2 &&
+      Math.abs(player.y - counter.y) < KITCHEN.ZONES.COUNTER_HEIGHT/2 + 30) {
+    player.currentZone = 'counter';
+    return;
+  }
+  
+  // Check ingredient bins (circular)
+  for (let [ingredient, pos] of Object.entries(KITCHEN.POSITIONS.BINS)) {
+    const dist = distance(player.x, player.y, pos.x, pos.y);
+    if (dist < KITCHEN.ZONES.BIN_RADIUS) {
+      player.currentZone = `bin_${ingredient.toLowerCase()}`;
+      return;
+    }
+  }
+  
+  // Log zone changes for debugging
+  if (prevZone !== player.currentZone && game.debugMode) {
+    console.log(`Zone change: ${prevZone} → ${player.currentZone}`);
+  }
+}
+
+// Distance helper
+function distance(x1, y1, x2, y2) {
+  return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+}
+```
+
+### 6. CORE GAME MECHANICS
+```javascript
+// Player movement update
+function updatePlayer(deltaTime) {
+  if (game.state !== 'playing') return;
+  
+  const movement = input.getMovementVector();
+  const player = game.player;
+  
+  // Calculate new position
+  const newX = player.x + (movement.x * player.speed);
+  const newY = player.y + (movement.y * player.speed);
+  
+  // Apply boundaries
+  const halfSize = CONFIG.PLAYER_SIZE / 2;
+  player.x = Math.max(KITCHEN.BOUNDS.LEFT + halfSize,
+                     Math.min(KITCHEN.BOUNDS.RIGHT - halfSize, newX));
+  player.y = Math.max(KITCHEN.BOUNDS.TOP + halfSize,
+                     Math.min(KITCHEN.BOUNDS.BOTTOM - halfSize, newY));
+  
+  // Update current zone
+  updatePlayerZone();
+}
+
+// Pickup/place mechanics
+function handleInteraction() {
+  const player = game.player;
+  const zone = player.currentZone;
+  
+  if (!zone) {
+    showToast("Nothing here to interact with");
+    return;
+  }
+  
+  // At ingredient bin
+  if (zone.startsWith('bin_')) {
+    const ingredient = zone.replace('bin_', '');
+    
+    if (player.carrying) {
+      showToast("Hands full!");
+    } else {
+      player.carrying = ingredient;
+      showToast(`Picked up ${ingredient}`);
+      console.log(`Picked up: ${ingredient}`);
+    }
+  }
+  
+  // At table
+  else if (zone === 'table') {
+    if (player.carrying) {
+      if (game.plate.length >= CONFIG.MAX_PLATE_SIZE) {
+        showToast("Plate is full!");
+      } else {
+        game.plate.push(player.carrying);
+        showToast(`Placed ${player.carrying}`);
+        console.log(`Plate now: ${game.plate.join(', ')}`);
+        player.carrying = null;
+      }
+    } else {
+      showToast("Pick up an ingredient first");
+    }
+  }
+}
+
+// Undo function (Q key at table)
+function handleUndo() {
+  if (game.player.currentZone !== 'table') {
+    showToast("Go to table to undo");
+    return;
+  }
+  
+  if (game.plate.length === 0) {
+    showToast("Nothing to undo");
+    return;
+  }
+  
+  const removed = game.plate.pop();
+  showToast(`Removed ${removed}`);
+  console.log(`Undid ${removed}, plate now: ${game.plate.join(', ')}`);
+}
+
+// Delivery function
+function handleDelivery() {
+  if (game.player.currentZone !== 'counter') {
+    showToast("Go to counter to deliver");
+    return;
+  }
+  
+  if (game.deliveryDebounce > 0) return; // Prevent double delivery
+  
+  if (game.plate.length === 0) {
+    showToast("Nothing to serve");
+    return;
+  }
+  
+  // Validate the plate
+  const result = validatePlate(game.plate, game.currentRiddle);
+  
+  if (result.success) {
+    // Success!
+    game.score++;
+    game.customerMessage = randomChoice(game.currentCustomer.success);
+    game.messageTimer = 2000;
+    showToast("Correct! +1 point");
+    console.log(`SUCCESS! Score: ${game.score}`);
+    
+    // Check for level up
+    updateLevel();
+    
+    // Check for win
+    if (game.score >= CONFIG.WIN_SCORE) {
+      game.state = 'won';
+      console.log("GAME WON!");
+      return;
+    }
+    
+    // Next riddle
+    setTimeout(() => nextRiddle(), 1500);
+  } else {
+    // Failure
+    game.customerMessage = randomChoice(game.currentCustomer.failure);
+    game.messageTimer = 2000;
+    showToast(`Wrong! ${result.reason}`);
+    console.log(`FAILED: ${result.reason}`);
+  }
+  
+  // Clear plate and set debounce
+  game.plate = [];
+  game.deliveryDebounce = 300;
+}
+
+// Toast message system
+function showToast(message) {
+  game.toastMessage = message;
+  game.toastTimer = 2000; // Show for 2 seconds
+}
+```
+
+### 7. RIDDLE VALIDATION SYSTEM
+```javascript
+// Validate plate against riddle
+function validatePlate(plate, riddle) {
+  if (!riddle) return { success: false, reason: "No active riddle" };
+  
+  // COUNT validation
+  if (riddle.type === "COUNT") {
+    const plateCounts = {};
+    plate.forEach(item => {
+      plateCounts[item] = (plateCounts[item] || 0) + 1;
+    });
+    
+    // Check exact matches
+    for (let ingredient in riddle.counts) {
+      if (plateCounts[ingredient] !== riddle.counts[ingredient]) {
+        return { success: false, reason: "Wrong ingredients" };
+      }
+    }
+    
+    // Check no extras
+    for (let ingredient in plateCounts) {
+      if (!riddle.counts[ingredient]) {
+        return { success: false, reason: "Extra ingredients" };
+      }
+    }
+    
+    return { success: true };
+  }
+  
+  // EXCLUDE validation
+  if (riddle.type === "EXCLUDE") {
+    const plateCounts = {};
+    plate.forEach(item => {
+      plateCounts[item] = (plateCounts[item] || 0) + 1;
+    });
+    
+    // Check excluded items
+    for (let excluded of riddle.exclude || []) {
+      if (plateCounts[excluded] > 0) {
+        return { success: false, reason: `Contains ${excluded}!` };
+      }
+    }
+    
+    // Check required items
+    for (let ingredient in riddle.counts) {
+      if (plateCounts[ingredient] !== riddle.counts[ingredient]) {
+        return { success: false, reason: "Wrong ingredients" };
+      }
+    }
+    
+    return { success: true };
+  }
+  
+  // SANDWICH validation
+  if (riddle.type === "SANDWICH") {
+    if (plate.length !== 3) {
+      return { success: false, reason: "Not a sandwich (need 3)" };
+    }
+    
+    for (let i = 0; i < 3; i++) {
+      if (plate[i] !== riddle.sandwich[i]) {
+        return { success: false, reason: "Wrong sandwich order" };
+      }
+    }
+    
+    return { success: true };
+  }
+  
+  return { success: false, reason: "Unknown riddle type" };
+}
+
+// Get next riddle
+function nextRiddle() {
+  // Get riddles for current level
+  const levelRiddles = RIDDLES.filter(r => r.level === game.level);
+  
+  // Avoid repeats
+  const available = levelRiddles.filter(r => !game.usedRiddles.includes(r.id));
+  
+  if (available.length === 0) {
+    // Reset if we've used all riddles
+    game.usedRiddles = [];
+    nextRiddle();
+    return;
+  }
+  
+  // Pick random riddle
+  game.currentRiddle = randomChoice(available);
+  game.usedRiddles.push(game.currentRiddle.id);
+  
+  // Reset timer
+  game.timer = game.timePerRiddle;
+  
+  // Get next customer
+  game.currentCustomer = CUSTOMERS[game.customerIndex % CUSTOMERS.length];
+  game.customerIndex++;
+  
+  // Clear plate
+  game.plate = [];
+  
+  console.log(`New riddle: ${game.currentRiddle.text} (${game.currentRiddle.type})`);
+}
+
+// Update level based on score
+function updateLevel() {
+  const prevLevel = game.level;
+  
+  if (game.score >= CONFIG.LEVEL_3_SCORE) {
+    game.level = 3;
+    game.timePerRiddle = CONFIG.LEVEL_3_TIME;
+  } else if (game.score >= CONFIG.LEVEL_2_SCORE) {
+    game.level = 2;
+    game.timePerRiddle = CONFIG.LEVEL_2_TIME;
+  }
+  
+  if (game.level > prevLevel) {
+    showToast(`SPEED UP! Level ${game.level}`);
+    console.log(`Level up to ${game.level}!`);
+  }
+}
+
+// Random choice helper
+function randomChoice(array) {
+  return array[Math.floor(Math.random() * array.length)];
+}
+```
+
+### 8. RENDERING SYSTEM
+```javascript
+// Main render function
+function render() {
+  // Clear canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  // Draw based on game state
+  if (game.state === 'menu') {
+    renderMenu();
+  } else if (game.state === 'playing' || game.state === 'paused') {
+    renderKitchen();
+    renderPlayer();
+    renderUI();
+    if (game.state === 'paused') {
+      renderPauseOverlay();
+    }
+  } else if (game.state === 'won') {
+    renderWinScreen();
+  }
+  
+  // Debug info
+  if (game.debugMode) {
+    renderDebug();
+  }
+}
+
+// Render kitchen layout
+function renderKitchen() {
+  // Floor
+  ctx.fillStyle = CONFIG.COLORS.FLOOR;
+  ctx.fillRect(KITCHEN.BOUNDS.LEFT, KITCHEN.BOUNDS.TOP,
+               KITCHEN.BOUNDS.RIGHT - KITCHEN.BOUNDS.LEFT,
+               KITCHEN.BOUNDS.BOTTOM - KITCHEN.BOUNDS.TOP);
+  
+  // Walls
+  ctx.fillStyle = CONFIG.COLORS.WALL;
+  ctx.fillRect(0, 0, canvas.width, KITCHEN.BOUNDS.TOP); // Top
+  ctx.fillRect(0, KITCHEN.BOUNDS.BOTTOM, canvas.width, canvas.height); // Bottom
+  ctx.fillRect(0, 0, KITCHEN.BOUNDS.LEFT, canvas.height); // Left
+  ctx.fillRect(KITCHEN.BOUNDS.RIGHT, 0, canvas.width, canvas.height); // Right
+  
+  // Ingredient bins
+  const binSize = 60;
+  for (let [ingredient, pos] of Object.entries(KITCHEN.POSITIONS.BINS)) {
+    // Bin color
+    ctx.fillStyle = CONFIG.COLORS[ingredient.toUpperCase()];
+    ctx.fillRect(pos.x - binSize/2, pos.y - binSize/2, binSize, binSize);
+    
+    // Bin border
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(pos.x - binSize/2, pos.y - binSize/2, binSize, binSize);
+    
+    // Bin label
+    ctx.fillStyle = '#FFF';
+    ctx.fillRect(pos.x - 30, pos.y - 10, 60, 20);
+    ctx.fillStyle = '#000';
+    ctx.font = 'bold 12px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(ingredient, pos.x, pos.y + 4);
+    
+    // Highlight if player is near
+    if (game.player.currentZone === `bin_${ingredient.toLowerCase()}`) {
+      ctx.strokeStyle = '#FFD700';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(pos.x - binSize/2 - 5, pos.y - binSize/2 - 5, 
+                    binSize + 10, binSize + 10);
+    }
+  }
+  
+  // Table
+  const table = KITCHEN.POSITIONS.TABLE;
+  ctx.fillStyle = CONFIG.COLORS.TABLE;
+  ctx.fillRect(table.x - 100, table.y - 60, 200, 120);
+  ctx.strokeStyle = '#654321';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(table.x - 100, table.y - 60, 200, 120);
+  
+  // Plate slots on table
+  for (let i = 0; i < 5; i++) {
+    const slotX = table.x - 60 + (i * 30);
+    ctx.fillStyle = '#D2691E';
+    ctx.beginPath();
+    ctx.arc(slotX, table.y, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#8B4513';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Show ingredient in slot
+    if (game.plate[i]) {
+      ctx.fillStyle = '#000';
+      ctx.font = '10px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(game.plate[i].substr(0, 3).toUpperCase(), slotX, table.y + 3);
+    }
+  }
+  
+  // Highlight table if player is near
+  if (game.player.currentZone === 'table') {
+    ctx.strokeStyle = '#FFD700';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(table.x - 105, table.y - 65, 210, 130);
+  }
+  
+  // Counter/delivery zone
+  const counter = KITCHEN.POSITIONS.COUNTER;
+  ctx.fillStyle = CONFIG.COLORS.COUNTER;
+  ctx.fillRect(counter.x - 180, counter.y - 20, 360, 40);
+  ctx.strokeStyle = '#2F4F4F';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(counter.x - 180, counter.y - 20, 360, 40);
+  
+  // Delivery zone indicator
+  if (game.player.currentZone === 'counter') {
+    ctx.strokeStyle = '#FFD700';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([5, 5]);
+    ctx.strokeRect(counter.x - 175, counter.y - 15, 350, 30);
+    ctx.setLineDash([]);
+  }
+  
+  // Labels
+  ctx.fillStyle = '#FFF';
+  ctx.font = 'bold 14px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('TABLE', table.x, table.y - 75);
+  ctx.fillText('DELIVERY COUNTER', counter.x, counter.y - 30);
+}
+
+// Render player
+function renderPlayer() {
+  const player = game.player;
+  
+  // Player square
+  ctx.fillStyle = CONFIG.COLORS.PLAYER;
+  ctx.fillRect(player.x - CONFIG.PLAYER_SIZE/2,
+               player.y - CONFIG.PLAYER_SIZE/2,
+               CONFIG.PLAYER_SIZE, CONFIG.PLAYER_SIZE);
+  
+  // Carried item
+  if (player.carrying) {
+    ctx.fillStyle = 'white';
+    ctx.fillRect(player.x - 20, player.y - CONFIG.PLAYER_SIZE/2 - 25, 40, 20);
+    ctx.fillStyle = 'black';
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(player.carrying.toUpperCase(), player.x, player.y - CONFIG.PLAYER_SIZE/2 - 10);
+  }
+}
+
+// Render UI
+function renderUI() {
+  // Score (top-right)
+  ctx.fillStyle = 'white';
+  ctx.font = 'bold 20px Arial';
+  ctx.textAlign = 'right';
+  ctx.fillText(`Points: ${game.score}/${CONFIG.WIN_SCORE}`, canvas.width - 20, 35);
+  ctx.fillText(`Level ${game.level}`, canvas.width - 20, 60);
+  
+  // Timer (top-center)
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 28px Arial';
+  if (game.timer <= 5) {
+    ctx.fillStyle = '#FF4500';
+  } else if (game.timer <= 10) {
+    ctx.fillStyle = '#FFA500';
+  } else {
+    ctx.fillStyle = '#32CD32';
+  }
+  ctx.fillText(`${Math.ceil(game.timer)}s`, canvas.width/2, 40);
+  
+  // Current riddle (below timer)
+  if (game.currentRiddle) {
+    ctx.fillStyle = 'white';
+    ctx.font = '18px Arial';
+    ctx.fillText(`For the riddle: ${game.currentRiddle.text}`, canvas.width/2, 70);
+  }
+  
+  // Customer and message
+  if (game.currentCustomer) {
+    ctx.fillStyle = '#FFD700';
+    ctx.font = '16px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText(game.currentCustomer.name, 20, 35);
+    
+    if (game.customerMessage && game.messageTimer > 0) {
+      ctx.fillStyle = 'white';
+      ctx.font = '14px Arial';
+      ctx.fillText(`"${game.customerMessage}"`, 20, 55);
+    }
+  }
+  
+  // Toast message (center)
+  if (game.toastMessage && game.toastTimer > 0) {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    const width = ctx.measureText(game.toastMessage).width + 40;
+    ctx.fillRect(canvas.width/2 - width/2, canvas.height/2 - 30, width, 60);
+    
+    ctx.fillStyle = 'white';
+    ctx.font = '18px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(game.toastMessage, canvas.width/2, canvas.height/2);
+  }
+  
+  // Controls (bottom)
+  ctx.fillStyle = '#AAA';
+  ctx.font = '12px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('WASD: Move | E: Pickup/Place | Q: Undo | Enter: Deliver | Esc: Pause',
+               canvas.width/2, canvas.height - 10);
+}
+
+// Menu screen
+function renderMenu() {
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 48px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('ORDER OF THE GODS', canvas.width/2, 200);
+  
+  ctx.fillStyle = 'white';
+  ctx.font = '24px Arial';
+  ctx.fillText('You are trapped in the Feast Hall of Eternity', canvas.width/2, 280);
+  ctx.fillText('Serve the gods by solving ingredient riddles', canvas.width/2, 320);
+  
+  ctx.font = '32px Arial';
+  ctx.fillText('Press ENTER to Start', canvas.width/2, 420);
+  
+  ctx.font = '16px Arial';
+  ctx.fillStyle = '#AAA';
+  ctx.fillText('Score 30 points to earn your freedom', canvas.width/2, 480);
+  ctx.fillText('The timer gets faster as you progress!', canvas.width/2, 510);
+  
+  // Check for enter key to start
+  if (input.isPressed('enter')) {
+    startGame();
+  }
+}
+
+// Win screen
+function renderWinScreen() {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 64px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('YOU FED THE PANTHEON!', canvas.width/2, 250);
+  
+  ctx.fillStyle = 'white';
+  ctx.font = '32px Arial';
+  ctx.fillText(`Final Score: ${game.score} points`, canvas.width/2, 350);
+  
+  ctx.font = '24px Arial';
+  ctx.fillText('The collar loosens... for tonight', canvas.width/2, 420);
+  
+  ctx.font = '32px Arial';
+  ctx.fillText('Press ENTER to Play Again', canvas.width/2, 520);
+  
+  // Check for restart
+  if (input.isPressed('enter')) {
+    location.reload(); // Simple restart
+  }
+}
+
+// Pause overlay
+function renderPauseOverlay() {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  ctx.fillStyle = 'white';
+  ctx.font = 'bold 48px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('PAUSED', canvas.width/2, canvas.height/2);
+  
+  ctx.font = '24px Arial';
+  ctx.fillText('Press ESC to Resume', canvas.width/2, canvas.height/2 + 50);
+}
+
+// Debug info
+function renderDebug() {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+  ctx.fillRect(10, 100, 300, 200);
+  
+  ctx.fillStyle = '#0F0';
+  ctx.font = '12px monospace';
+  ctx.textAlign = 'left';
+  
+  const info = [
+    `Player: (${Math.round(game.player.x)}, ${Math.round(game.player.y)})`,
+    `Zone: ${game.player.currentZone || 'none'}`,
+    `Carrying: ${game.player.carrying || 'none'}`,
+    `Plate: [${game.plate.join(', ')}]`,
+    `Riddle: ${game.currentRiddle ? game.currentRiddle.id : 'none'}`,
+    `Type: ${game.currentRiddle ? game.currentRiddle.type : 'none'}`,
+    `Customer: ${game.currentCustomer ? game.currentCustomer.name : 'none'}`,
+    `State: ${game.state}`,
+    `FPS: ${Math.round(1000 / (performance.now() - game.lastTime))}`
+  ];
+  
+  info.forEach((line, i) => {
+    ctx.fillText(line, 15, 120 + i * 15);
+  });
+  
+  // Show hitboxes if enabled
+  if (game.showHitboxes) {
+    // Table zone
+    ctx.strokeStyle = 'lime';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(KITCHEN.POSITIONS.TABLE.x, KITCHEN.POSITIONS.TABLE.y,
+            KITCHEN.ZONES.TABLE_RADIUS, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    // Bin zones
+    for (let pos of Object.values(KITCHEN.POSITIONS.BINS)) {
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, KITCHEN.ZONES.BIN_RADIUS, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    
+    // Counter zone
+    const counter = KITCHEN.POSITIONS.COUNTER;
+    ctx.strokeRect(counter.x - KITCHEN.ZONES.COUNTER_WIDTH/2,
+                  counter.y - KITCHEN.ZONES.COUNTER_HEIGHT/2 - 30,
+                  KITCHEN.ZONES.COUNTER_WIDTH,
+                  KITCHEN.ZONES.COUNTER_HEIGHT + 60);
+  }
+}
+```
+
+### 9. GAME LOOP & INITIALIZATION
+```javascript
+// Main update function
+function update(deltaTime) {
+  if (game.state !== 'playing') return;
+  
+  // Update timers
+  game.timer -= deltaTime / 1000;
+  if (game.timer <= 0) {
+    game.timer = 0;
+    // Timeout!
+    game.customerMessage = randomChoice(game.currentCustomer.timeout);
+    game.messageTimer = 2000;
+    showToast("Time's up!");
+    game.plate = [];
+    setTimeout(() => nextRiddle(), 1500);
+  }
+  
+  // Update player
+  updatePlayer(deltaTime);
+  
+  // Handle input
+  if (input.isPressed('e')) {
+    if (!input.ePressed) { // Prevent key repeat
+      handleInteraction();
+      input.ePressed = true;
+    }
+  } else {
+    input.ePressed = false;
+  }
+  
+  if (input.isPressed('q')) {
+    if (!input.qPressed) {
+      handleUndo();
+      input.qPressed = true;
+    }
+  } else {
+    input.qPressed = false;
+  }
+  
+  if (input.isPressed('enter')) {
+    if (!input.enterPressed) {
+      handleDelivery();
+      input.enterPressed = true;
+    }
+  } else {
+    input.enterPressed = false;
+  }
+  
+  // Update timers
+  if (game.toastTimer > 0) {
+    game.toastTimer -= deltaTime;
+  }
+  if (game.messageTimer > 0) {
+    game.messageTimer -= deltaTime;
+  }
+  if (game.deliveryDebounce > 0) {
+    game.deliveryDebounce -= deltaTime;
+  }
+}
+
+// Main game loop
+function gameLoop(currentTime) {
+  const deltaTime = currentTime - game.lastTime;
+  game.lastTime = currentTime;
+  
+  // Skip huge deltas (first frame, tab switch)
+  if (deltaTime < 100) {
+    update(deltaTime);
+  }
+  
+  render();
+  requestAnimationFrame(gameLoop);
+}
+
+// Start the game
+function startGame() {
+  game.state = 'playing';
+  game.score = 0;
+  game.level = 1;
+  game.timePerRiddle = CONFIG.LEVEL_1_TIME;
+  game.plate = [];
+  game.usedRiddles = [];
+  game.customerIndex = 0;
+  
+  // Get first riddle
+  nextRiddle();
+  
+  console.log('Game started!');
+}
+
+// Initialize everything
+function init() {
+  console.log('Initializing Order of the Gods...');
+  
+  // Check for mobile/small screen
+  if (window.innerWidth < 900) {
+    document.querySelector('.mobile-warning').style.display = 'block';
+    canvas.style.display = 'none';
+    return;
+  }
+  
+  // Initialize input
+  input.init();
+  
+  // Start at menu
+  game.state = 'menu';
+  
+  // Debug commands
+  window.debug = {
+    win: () => { game.score = 29; },
+    showHitboxes: () => { game.showHitboxes = !game.showHitboxes; },
+    nextRiddle: () => { nextRiddle(); },
+    addScore: (n) => { game.score += n; updateLevel(); },
+    teleport: (x, y) => { game.player.x = x; game.player.y = y; }
+  };
+  
+  // Start game loop
+  game.lastTime = performance.now();
+  requestAnimationFrame(gameLoop);
+  
+  console.log('Game initialized! Press ENTER to start.');
+}
+
+// Start when page loads
+window.addEventListener('load', init);
+```
+
+---
+
+## **CRITICAL IMPLEMENTATION CHECKLIST**
+
+### Phase 1: Foundation (Hour 0-2)
+- [ ] HTML structure with canvas and mobile warning
+- [ ] Canvas initialization and verification
+- [ ] Complete game state object
+- [ ] Input system with WASD movement
+- [ ] Basic game loop running at 60 FPS
+- [ ] Player movement with boundary checking
+
+### Phase 2: Kitchen & Zones (Hour 2-4)
+- [ ] Kitchen layout rendering (walls, floor)
+- [ ] All 6 ingredient bins positioned and labeled
+- [ ] Table with 5 plate slots visible
+- [ ] Counter/delivery zone marked
+- [ ] Zone detection working (console logs zone changes)
+- [ ] Visual feedback when in zones
+
+### Phase 3: Core Mechanics (Hour 4-6)
+- [ ] E key picks up ingredients at bins
+- [ ] E key places ingredients on table
+- [ ] Q key removes top ingredient (table only)
+- [ ] Enter delivers plate (counter only)
+- [ ] Plate max 5 items enforced
+- [ ] Toast messages showing feedback
+
+### Phase 4: Riddle System (Hour 6-7)
+- [ ] Riddles display correctly
+- [ ] COUNT validation works
+- [ ] EXCLUDE validation works
+- [ ] SANDWICH validation works
+- [ ] Score increases on success
+- [ ] Timer counts down and resets
+- [ ] Level progression at 10, 20 points
+
+### Phase 5: Polish & Win (Hour 7-8)
+- [ ] Customer rotation working
+- [ ] Customer responses showing
+- [ ] Win condition at 30 points
+- [ ] Menu and win screens
+- [ ] Pause functionality
+- [ ] All debug features working
+
+---
+
+## **TESTING YOUR GAME**
+
+### Quick Functionality Test
+1. **Movement**: WASD moves player smoothly
+2. **Pickup**: Can pick up each ingredient type
+3. **Assembly**: Can place 5 items on plate
+4. **Delivery**: Can deliver and get points
+5. **Win**: Can reach 30 points and see win screen
+
+### Debug Commands (F12 Console)
+```javascript
+debug.win()              // Jump to 29 points
+debug.addScore(10)       // Add 10 points
+debug.nextRiddle()       // Skip to next riddle
+debug.showHitboxes()     // Toggle zone visualization
+debug.teleport(640, 360) // Teleport to center
+```
+
+---
+
+## **COMMON PITFALLS TO AVOID**
+
+1. **DON'T** add mouse support - keyboard only
+2. **DON'T** allow more than 5 items on plate
+3. **DON'T** let player carry multiple items
+4. **DON'T** forget to normalize diagonal movement
+5. **DON'T** allow delivery from wrong zone
+6. **DON'T** let timer go negative
+7. **DON'T** forget delivery debounce (prevents double delivery)
+8. **DON'T** make hitboxes too small (be generous)
+
+---
+
+## **FINAL REMINDERS**
+
+- **Simple graphics are fine** - rectangles and text work great
+- **Focus on gameplay** - mechanics matter more than visuals
+- **Test frequently** - verify each system as you build it
+- **Keep it simple** - don't add features not in the spec
+- **Ship something playable** - a working game beats a broken one
+
+**YOU HAVE 8 HOURS. BUILD IN THIS ORDER. TEST EACH STEP. SHIP SOMETHING THAT WORKS!**
+
+Good luck! You're building Order of the Gods - where every constraint becomes a feature, every limitation drives focus, and every second counts. The gods are waiting to be served! 🏛️🎮

@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order of the Gods</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+    canvas {
+      border: 1px solid #333;
+      background: #1a1a1a;
+      cursor: none; /* Hide mouse cursor */
+    }
+    .mobile-warning {
+      display: none;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      font-size: 24px;
+    }
+    /* Block mobile and small screens */
+    @media (max-width: 900px) {
+      canvas { display: none !important; }
+      .mobile-warning { display: block !important; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="1280" height="720"></canvas>
+  <div class="mobile-warning">
+    <h2>🖥️ Laptop + Keyboard Required</h2>
+    <p>This game requires a laptop or desktop computer with keyboard controls.</p>
+    <p>WASD keys required for movement.</p>
+  </div>
+
+  <script>
+    // =============================================================================
+    // ORDER OF THE GODS - PHASE 1 IMPLEMENTATION
+    // =============================================================================
+    
+    console.log("🏛️ Order of the Gods - Starting Phase 1...");
+    
+    // Get canvas and context
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Verify canvas support
+    if (!ctx) {
+      alert('Your browser does not support Canvas. Please use Chrome, Firefox, or Safari.');
+      throw new Error('Canvas not supported');
+    }
+    
+    console.log(`✅ Canvas initialized: ${canvas.width}x${canvas.height}`);
+    
+    // =============================================================================
+    // CONSTANTS & CONFIGURATION
+    // =============================================================================
+    
+    // EXACT KITCHEN LAYOUT COORDINATES (DO NOT CHANGE)
+    const KITCHEN = {
+      BOUNDS: {
+        LEFT: 80,
+        RIGHT: 1200, 
+        TOP: 80,
+        BOTTOM: 640
+      },
+      POSITIONS: {
+        COUNTER: { x: 640, y: 120 },     // Delivery zone at top
+        TABLE: { x: 640, y: 360 },       // Central plate assembly
+        BINS: {
+          BREAD: { x: 160, y: 260 },     // Left wall upper
+          TOMATO: { x: 160, y: 460 },    // Left wall lower
+          CHEESE: { x: 1120, y: 260 },   // Right wall upper
+          MEAT: { x: 1120, y: 460 },     // Right wall lower
+          EGG: { x: 430, y: 620 },       // Bottom wall left
+          PEPPER: { x: 850, y: 620 }     // Bottom wall right
+        }
+      },
+      ZONES: {
+        TABLE_RADIUS: 90,        // Distance to interact with table
+        BIN_RADIUS: 60,          // Distance to interact with bins
+        COUNTER_WIDTH: 360,      // Width of delivery zone
+        COUNTER_HEIGHT: 40,      // Height of delivery zone
+        INTERACTION_BUFFER: 8    // Extra pixels for generous collision
+      }
+    };
+    
+    // Game configuration
+    const CONFIG = {
+      PLAYER_SPEED: 5,           // Pixels per frame (300 px/sec at 60fps)
+      PLAYER_SIZE: 32,           // Player square size
+      MAX_PLATE_SIZE: 5,         // Maximum ingredients on plate
+      MAX_CARRY: 1,              // Can only carry one ingredient
+      
+      // Timing
+      LEVEL_1_TIME: 22,          // Seconds per riddle (level 1)
+      LEVEL_2_TIME: 18,          // Seconds per riddle (level 2)
+      LEVEL_3_TIME: 15,          // Seconds per riddle (level 3)
+      
+      // Progression
+      LEVEL_2_SCORE: 10,         // Score needed for level 2
+      LEVEL_3_SCORE: 20,         // Score needed for level 3
+      WIN_SCORE: 30,             // Score needed to win
+      
+      // Visual
+      COLORS: {
+        PLAYER: '#FFD700',       // Gold
+        BREAD: '#DEB887',        // Burlywood
+        TOMATO: '#FF6347',       // Tomato red
+        CHEESE: '#FFD700',       // Gold
+        MEAT: '#8B0000',         // Dark red
+        EGG: '#FFFACD',          // Lemon chiffon
+        PEPPER: '#FF4500',       // Orange red
+        TABLE: '#8B4513',        // Saddle brown
+        COUNTER: '#696969',      // Dim gray
+        WALL: '#4a4a4a',         // Gray
+        FLOOR: '#2a2a2a'         // Dark gray
+      }
+    };
+    
+    console.log("✅ Configuration loaded");
+    
+    // =============================================================================
+    // GAME STATE
+    // =============================================================================
+    
+    // Main game state object
+    const game = {
+      // Game flow
+      state: 'menu',              // 'menu', 'playing', 'paused', 'won'
+      score: 0,
+      level: 1,
+      
+      // Player
+      player: {
+        x: 640,                   // Start at table center
+        y: 360,
+        carrying: null,           // null or ingredient name string
+        currentZone: null,        // Which interaction zone player is in
+        speed: CONFIG.PLAYER_SPEED
+      },
+      
+      // Plate & ingredients
+      plate: [],                  // Array of ingredient strings, max 5
+      
+      // Riddle system
+      currentRiddle: null,        // Current riddle object
+      riddleIndex: 0,             // Track which riddle we're on
+      usedRiddles: [],            // Track used riddles to avoid repeats
+      
+      // Customer system
+      currentCustomer: null,      // Current customer object
+      customerIndex: 0,           // Rotation index
+      customerMessage: '',        // What customer is saying
+      messageTimer: 0,            // How long to show message
+      
+      // Timing
+      timer: CONFIG.LEVEL_1_TIME, // Current timer
+      timePerRiddle: CONFIG.LEVEL_1_TIME,
+      lastTime: 0,                // For delta time
+      deliveryDebounce: 0,        // Prevent double delivery
+      
+      // Feedback
+      toastMessage: '',           // Current toast message
+      toastTimer: 0,              // How long to show toast
+      
+      // Debug
+      debugMode: false,
+      showHitboxes: false,
+      frameCount: 0,
+      lastFPSTime: 0,
+      currentFPS: 60
+    };
+    
+    console.log("✅ Game state initialized:", game);
+    
+    // =============================================================================
+    // INPUT SYSTEM (KEYBOARD ONLY)
+    // =============================================================================
+    
+    const input = {
+      keys: {},
+      keyPressed: {}, // Track single presses to prevent repeats
+      
+      init() {
+        // Keydown handler
+        document.addEventListener('keydown', (e) => {
+          const key = e.key.toLowerCase();
+          this.keys[key] = true;
+          
+          // Prevent defaults for game keys
+          if (['w','a','s','d','e','q','enter','escape'].includes(key)) {
+            e.preventDefault();
+          }
+          
+          // Special keys
+          if (key === 'escape' && game.state === 'playing') {
+            game.state = 'paused';
+            console.log("Game paused");
+          } else if (key === 'escape' && game.state === 'paused') {
+            game.state = 'playing';
+            console.log("Game resumed");
+          }
+          
+          // Debug keys
+          if (key === '`' || key === '~') {
+            game.debugMode = !game.debugMode;
+            console.log('Debug mode:', game.debugMode);
+          }
+          
+          if (key === 'f1' && game.debugMode) {
+            game.showHitboxes = !game.showHitboxes;
+            console.log('Show hitboxes:', game.showHitboxes);
+          }
+        });
+        
+        // Keyup handler
+        document.addEventListener('keyup', (e) => {
+          const key = e.key.toLowerCase();
+          this.keys[key] = false;
+          this.keyPressed[key] = false;
+        });
+        
+        // Window blur (auto-pause)
+        window.addEventListener('blur', () => {
+          this.keys = {}; // Clear all keys
+          this.keyPressed = {};
+          if (game.state === 'playing') {
+            game.state = 'paused';
+            console.log("Game auto-paused (window blur)");
+          }
+        });
+        
+        console.log('✅ Input system initialized');
+      },
+      
+      // Check if key is currently pressed
+      isPressed(key) {
+        return !!this.keys[key.toLowerCase()];
+      },
+      
+      // Check if key was just pressed (single press)
+      wasPressed(key) {
+        const k = key.toLowerCase();
+        if (this.keys[k] && !this.keyPressed[k]) {
+          this.keyPressed[k] = true;
+          return true;
+        }
+        return false;
+      },
+      
+      // Get movement vector (normalized for diagonal)
+      getMovementVector() {
+        let x = 0, y = 0;
+        
+        if (this.isPressed('a')) x -= 1;
+        if (this.isPressed('d')) x += 1;
+        if (this.isPressed('w')) y -= 1;
+        if (this.isPressed('s')) y += 1;
+        
+        // Normalize diagonal movement
+        if (x !== 0 && y !== 0) {
+          x *= 0.707; // 1/sqrt(2)
+          y *= 0.707;
+        }
+        
+        return { x, y };
+      }
+    };
+    
+    // =============================================================================
+    // UTILITY FUNCTIONS
+    // =============================================================================
+    
+    // Distance helper
+    function distance(x1, y1, x2, y2) {
+      return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+    }
+    
+    // Random choice helper
+    function randomChoice(array) {
+      return array[Math.floor(Math.random() * array.length)];
+    }
+    
+    // Toast message system
+    function showToast(message) {
+      game.toastMessage = message;
+      game.toastTimer = 2000; // Show for 2 seconds
+      console.log(`Toast: ${message}`);
+    }
+    
+    // =============================================================================
+    // COLLISION & ZONE DETECTION
+    // =============================================================================
+    
+    // Check what zone the player is in
+    function updatePlayerZone() {
+      const player = game.player;
+      const prevZone = player.currentZone;
+      player.currentZone = null;
+      
+      // Check table zone (circular)
+      const tableDist = distance(player.x, player.y, 
+                                KITCHEN.POSITIONS.TABLE.x, 
+                                KITCHEN.POSITIONS.TABLE.y);
+      if (tableDist < KITCHEN.ZONES.TABLE_RADIUS) {
+        player.currentZone = 'table';
+        return;
+      }
+      
+      // Check counter/delivery zone (rectangular)
+      const counter = KITCHEN.POSITIONS.COUNTER;
+      if (Math.abs(player.x - counter.x) < KITCHEN.ZONES.COUNTER_WIDTH/2 &&
+          Math.abs(player.y - counter.y) < KITCHEN.ZONES.COUNTER_HEIGHT/2 + 30) {
+        player.currentZone = 'counter';
+        return;
+      }
+      
+      // Check ingredient bins (circular)
+      for (let [ingredient, pos] of Object.entries(KITCHEN.POSITIONS.BINS)) {
+        const dist = distance(player.x, player.y, pos.x, pos.y);
+        if (dist < KITCHEN.ZONES.BIN_RADIUS) {
+          player.currentZone = `bin_${ingredient.toLowerCase()}`;
+          return;
+        }
+      }
+      
+      // Log zone changes for debugging
+      if (prevZone !== player.currentZone && game.debugMode) {
+        console.log(`Zone change: ${prevZone} → ${player.currentZone}`);
+      }
+    }
+    
+    // =============================================================================
+    // PLAYER MECHANICS
+    // =============================================================================
+    
+    // Player movement update
+    function updatePlayer(deltaTime) {
+      if (game.state !== 'playing') return;
+      
+      const movement = input.getMovementVector();
+      const player = game.player;
+      
+      // Calculate new position
+      const newX = player.x + (movement.x * player.speed);
+      const newY = player.y + (movement.y * player.speed);
+      
+      // Apply boundaries
+      const halfSize = CONFIG.PLAYER_SIZE / 2;
+      player.x = Math.max(KITCHEN.BOUNDS.LEFT + halfSize,
+                         Math.min(KITCHEN.BOUNDS.RIGHT - halfSize, newX));
+      player.y = Math.max(KITCHEN.BOUNDS.TOP + halfSize,
+                         Math.min(KITCHEN.BOUNDS.BOTTOM - halfSize, newY));
+      
+      // Update current zone
+      updatePlayerZone();
+    }
+    
+    // Pickup/place mechanics
+    function handleInteraction() {
+      const player = game.player;
+      const zone = player.currentZone;
+      
+      if (!zone) {
+        showToast("Nothing here to interact with");
+        return;
+      }
+      
+      // At ingredient bin
+      if (zone.startsWith('bin_')) {
+        const ingredient = zone.replace('bin_', '');
+        
+        if (player.carrying) {
+          showToast("Hands full!");
+        } else {
+          player.carrying = ingredient;
+          showToast(`Picked up ${ingredient}`);
+          console.log(`Picked up: ${ingredient}`);
+        }
+      }
+      
+      // At table
+      else if (zone === 'table') {
+        if (player.carrying) {
+          if (game.plate.length >= CONFIG.MAX_PLATE_SIZE) {
+            showToast("Plate is full!");
+          } else {
+            game.plate.push(player.carrying);
+            showToast(`Placed ${player.carrying}`);
+            console.log(`Plate now: ${game.plate.join(', ')}`);
+            player.carrying = null;
+          }
+        } else {
+          showToast("Pick up an ingredient first");
+        }
+      }
+    }
+    
+    // Undo function (Q key at table)
+    function handleUndo() {
+      if (game.player.currentZone !== 'table') {
+        showToast("Go to table to undo");
+        return;
+      }
+      
+      if (game.plate.length === 0) {
+        showToast("Nothing to undo");
+        return;
+      }
+      
+      const removed = game.plate.pop();
+      showToast(`Removed ${removed}`);
+      console.log(`Undid ${removed}, plate now: ${game.plate.join(', ')}`);
+    }
+    
+    // Delivery function (placeholder for now)
+    function handleDelivery() {
+      if (game.player.currentZone !== 'counter') {
+        showToast("Go to counter to deliver");
+        return;
+      }
+      
+      if (game.deliveryDebounce > 0) return; // Prevent double delivery
+      
+      if (game.plate.length === 0) {
+        showToast("Nothing to serve");
+        return;
+      }
+      
+      // For Phase 1, just simulate success
+      game.score++;
+      showToast("Delivered! +1 point");
+      console.log(`SUCCESS! Score: ${game.score}`);
+      
+      // Clear plate and set debounce
+      game.plate = [];
+      game.deliveryDebounce = 300;
+      
+      // Check for win
+      if (game.score >= CONFIG.WIN_SCORE) {
+        game.state = 'won';
+        console.log("GAME WON!");
+      }
+    }
+    
+    // =============================================================================
+    // RENDERING SYSTEM
+    // =============================================================================
+    
+    // Render kitchen layout
+    function renderKitchen() {
+      // Floor
+      ctx.fillStyle = CONFIG.COLORS.FLOOR;
+      ctx.fillRect(KITCHEN.BOUNDS.LEFT, KITCHEN.BOUNDS.TOP,
+                   KITCHEN.BOUNDS.RIGHT - KITCHEN.BOUNDS.LEFT,
+                   KITCHEN.BOUNDS.BOTTOM - KITCHEN.BOUNDS.TOP);
+      
+      // Walls
+      ctx.fillStyle = CONFIG.COLORS.WALL;
+      ctx.fillRect(0, 0, canvas.width, KITCHEN.BOUNDS.TOP); // Top
+      ctx.fillRect(0, KITCHEN.BOUNDS.BOTTOM, canvas.width, canvas.height); // Bottom
+      ctx.fillRect(0, 0, KITCHEN.BOUNDS.LEFT, canvas.height); // Left
+      ctx.fillRect(KITCHEN.BOUNDS.RIGHT, 0, canvas.width, canvas.height); // Right
+      
+      // Ingredient bins
+      const binSize = 60;
+      for (let [ingredient, pos] of Object.entries(KITCHEN.POSITIONS.BINS)) {
+        // Bin color
+        ctx.fillStyle = CONFIG.COLORS[ingredient.toUpperCase()];
+        ctx.fillRect(pos.x - binSize/2, pos.y - binSize/2, binSize, binSize);
+        
+        // Bin border
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(pos.x - binSize/2, pos.y - binSize/2, binSize, binSize);
+        
+        // Bin label background
+        ctx.fillStyle = '#FFF';
+        ctx.fillRect(pos.x - 30, pos.y - 10, 60, 20);
+        
+        // Bin label text
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(ingredient, pos.x, pos.y + 4);
+        
+        // Highlight if player is near
+        if (game.player.currentZone === `bin_${ingredient.toLowerCase()}`) {
+          ctx.strokeStyle = '#FFD700';
+          ctx.lineWidth = 3;
+          ctx.strokeRect(pos.x - binSize/2 - 5, pos.y - binSize/2 - 5, 
+                        binSize + 10, binSize + 10);
+        }
+      }
+      
+      // Table
+      const table = KITCHEN.POSITIONS.TABLE;
+      ctx.fillStyle = CONFIG.COLORS.TABLE;
+      ctx.fillRect(table.x - 100, table.y - 60, 200, 120);
+      ctx.strokeStyle = '#654321';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(table.x - 100, table.y - 60, 200, 120);
+      
+      // Plate slots on table
+      for (let i = 0; i < 5; i++) {
+        const slotX = table.x - 60 + (i * 30);
+        ctx.fillStyle = '#D2691E';
+        ctx.beginPath();
+        ctx.arc(slotX, table.y, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#8B4513';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Show ingredient in slot
+        if (game.plate[i]) {
+          ctx.fillStyle = '#000';
+          ctx.font = '10px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText(game.plate[i].substr(0, 3).toUpperCase(), slotX, table.y + 3);
+        }
+      }
+      
+      // Highlight table if player is near
+      if (game.player.currentZone === 'table') {
+        ctx.strokeStyle = '#FFD700';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(table.x - 105, table.y - 65, 210, 130);
+      }
+      
+      // Counter/delivery zone
+      const counter = KITCHEN.POSITIONS.COUNTER;
+      ctx.fillStyle = CONFIG.COLORS.COUNTER;
+      ctx.fillRect(counter.x - 180, counter.y - 20, 360, 40);
+      ctx.strokeStyle = '#2F4F4F';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(counter.x - 180, counter.y - 20, 360, 40);
+      
+      // Delivery zone indicator
+      if (game.player.currentZone === 'counter') {
+        ctx.strokeStyle = '#FFD700';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([5, 5]);
+        ctx.strokeRect(counter.x - 175, counter.y - 15, 350, 30);
+        ctx.setLineDash([]);
+      }
+      
+      // Labels
+      ctx.fillStyle = '#FFF';
+      ctx.font = 'bold 14px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('TABLE', table.x, table.y - 75);
+      ctx.fillText('DELIVERY COUNTER', counter.x, counter.y - 30);
+    }
+    
+    // Render player
+    function renderPlayer() {
+      const player = game.player;
+      
+      // Player square
+      ctx.fillStyle = CONFIG.COLORS.PLAYER;
+      ctx.fillRect(player.x - CONFIG.PLAYER_SIZE/2,
+                   player.y - CONFIG.PLAYER_SIZE/2,
+                   CONFIG.PLAYER_SIZE, CONFIG.PLAYER_SIZE);
+      
+      // Player border
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(player.x - CONFIG.PLAYER_SIZE/2,
+                     player.y - CONFIG.PLAYER_SIZE/2,
+                     CONFIG.PLAYER_SIZE, CONFIG.PLAYER_SIZE);
+      
+      // Carried item
+      if (player.carrying) {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(player.x - 20, player.y - CONFIG.PLAYER_SIZE/2 - 25, 40, 20);
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(player.x - 20, player.y - CONFIG.PLAYER_SIZE/2 - 25, 40, 20);
+        ctx.fillStyle = 'black';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(player.carrying.toUpperCase(), player.x, player.y - CONFIG.PLAYER_SIZE/2 - 10);
+      }
+    }
+    
+    // Render UI
+    function renderUI() {
+      // Score (top-right)
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 20px Arial';
+      ctx.textAlign = 'right';
+      ctx.fillText(`Points: ${game.score}/${CONFIG.WIN_SCORE}`, canvas.width - 20, 35);
+      ctx.fillText(`Level ${game.level}`, canvas.width - 20, 60);
+      
+      // Current zone (for testing - top-left)
+      ctx.fillStyle = 'white';
+      ctx.font = '16px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText(`Zone: ${game.player.currentZone || 'none'}`, 20, 35);
+      if (game.player.carrying) {
+        ctx.fillText(`Carrying: ${game.player.carrying}`, 20, 60);
+      }
+      
+      // Plate contents (below table)
+      if (game.plate.length > 0) {
+        ctx.fillStyle = 'white';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Plate: ${game.plate.join(', ')}`, 
+                     KITCHEN.POSITIONS.TABLE.x, 
+                     KITCHEN.POSITIONS.TABLE.y + 100);
+      }
+      
+      // Toast message (center)
+      if (game.toastMessage && game.toastTimer > 0) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        const width = ctx.measureText(game.toastMessage).width + 40;
+        ctx.fillRect(canvas.width/2 - width/2, canvas.height/2 - 30, width, 60);
+        
+        ctx.fillStyle = 'white';
+        ctx.font = '18px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(game.toastMessage, canvas.width/2, canvas.height/2);
+      }
+      
+      // Controls (bottom)
+      ctx.fillStyle = '#AAA';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('WASD: Move | E: Pickup/Place | Q: Undo | Enter: Deliver | ~: Debug',
+                   canvas.width/2, canvas.height - 10);
+      
+      // FPS counter (debug)
+      if (game.debugMode) {
+        ctx.fillStyle = '#0F0';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText(`FPS: ${game.currentFPS}`, 20, canvas.height - 40);
+      }
+    }
+    
+    // Menu screen
+    function renderMenu() {
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.fillStyle = '#FFD700';
+      ctx.font = 'bold 48px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('ORDER OF THE GODS', canvas.width/2, 200);
+      
+      ctx.fillStyle = 'white';
+      ctx.font = '24px Arial';
+      ctx.fillText('Phase 1 - Core Mechanics Test', canvas.width/2, 280);
+      ctx.fillText('Move around, pick up ingredients, place on table', canvas.width/2, 320);
+      
+      ctx.font = '32px Arial';
+      ctx.fillText('Press ENTER to Start', canvas.width/2, 420);
+      
+      ctx.font = '16px Arial';
+      ctx.fillStyle = '#AAA';
+      ctx.fillText('WASD to move, E to pickup/place, Q to undo', canvas.width/2, 480);
+      ctx.fillText('Press ~ for debug mode', canvas.width/2, 510);
+      
+      // Check for enter key to start
+      if (input.wasPressed('enter')) {
+        startGame();
+      }
+    }
+    
+    // Win screen
+    function renderWinScreen() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.fillStyle = '#FFD700';
+      ctx.font = 'bold 64px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('PHASE 1 COMPLETE!', canvas.width/2, 250);
+      
+      ctx.fillStyle = 'white';
+      ctx.font = '32px Arial';
+      ctx.fillText(`Final Score: ${game.score} points`, canvas.width/2, 350);
+      
+      ctx.font = '24px Arial';
+      ctx.fillText('Core mechanics working!', canvas.width/2, 420);
+      
+      ctx.font = '32px Arial';
+      ctx.fillText('Press ENTER to Restart', canvas.width/2, 520);
+      
+      // Check for restart
+      if (input.wasPressed('enter')) {
+        location.reload(); // Simple restart
+      }
+    }
+    
+    // Pause overlay
+    function renderPauseOverlay() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 48px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('PAUSED', canvas.width/2, canvas.height/2);
+      
+      ctx.font = '24px Arial';
+      ctx.fillText('Press ESC to Resume', canvas.width/2, canvas.height/2 + 50);
+    }
+    
+    // Debug info
+    function renderDebug() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+      ctx.fillRect(10, 100, 300, 200);
+      
+      ctx.fillStyle = '#0F0';
+      ctx.font = '12px monospace';
+      ctx.textAlign = 'left';
+      
+      const info = [
+        `Player: (${Math.round(game.player.x)}, ${Math.round(game.player.y)})`,
+        `Zone: ${game.player.currentZone || 'none'}`,
+        `Carrying: ${game.player.carrying || 'none'}`,
+        `Plate: [${game.plate.join(', ')}]`,
+        `State: ${game.state}`,
+        `Score: ${game.score}/${CONFIG.WIN_SCORE}`,
+        `FPS: ${game.currentFPS}`,
+        '',
+        'Debug Controls:',
+        '~ : Toggle debug',
+        'F1: Toggle hitboxes',
+        'F2: Add score (TODO)',
+        'F3: Skip (TODO)'
+      ];
+      
+      info.forEach((line, i) => {
+        ctx.fillText(line, 15, 120 + i * 15);
+      });
+      
+      // Show hitboxes if enabled
+      if (game.showHitboxes) {
+        // Table zone
+        ctx.strokeStyle = 'lime';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(KITCHEN.POSITIONS.TABLE.x, KITCHEN.POSITIONS.TABLE.y,
+                KITCHEN.ZONES.TABLE_RADIUS, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Bin zones
+        for (let pos of Object.values(KITCHEN.POSITIONS.BINS)) {
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, KITCHEN.ZONES.BIN_RADIUS, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        
+        // Counter zone
+        const counter = KITCHEN.POSITIONS.COUNTER;
+        ctx.strokeRect(counter.x - KITCHEN.ZONES.COUNTER_WIDTH/2,
+                      counter.y - KITCHEN.ZONES.COUNTER_HEIGHT/2 - 30,
+                      KITCHEN.ZONES.COUNTER_WIDTH,
+                      KITCHEN.ZONES.COUNTER_HEIGHT + 60);
+      }
+    }
+    
+    // Main render function
+    function render() {
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw based on game state
+      if (game.state === 'menu') {
+        renderMenu();
+      } else if (game.state === 'playing' || game.state === 'paused') {
+        renderKitchen();
+        renderPlayer();
+        renderUI();
+        if (game.state === 'paused') {
+          renderPauseOverlay();
+        }
+      } else if (game.state === 'won') {
+        renderWinScreen();
+      }
+      
+      // Debug info
+      if (game.debugMode) {
+        renderDebug();
+      }
+    }
+    
+    // =============================================================================
+    // GAME LOOP & UPDATE
+    // =============================================================================
+    
+    // Main update function
+    function update(deltaTime) {
+      if (game.state !== 'playing') return;
+      
+      // Update player
+      updatePlayer(deltaTime);
+      
+      // Handle input
+      if (input.wasPressed('e')) {
+        handleInteraction();
+      }
+      
+      if (input.wasPressed('q')) {
+        handleUndo();
+      }
+      
+      if (input.wasPressed('enter')) {
+        handleDelivery();
+      }
+      
+      // Update timers
+      if (game.toastTimer > 0) {
+        game.toastTimer -= deltaTime;
+      }
+      if (game.deliveryDebounce > 0) {
+        game.deliveryDebounce -= deltaTime;
+      }
+    }
+    
+    // FPS calculation
+    function updateFPS(currentTime) {
+      game.frameCount++;
+      if (currentTime - game.lastFPSTime >= 1000) {
+        game.currentFPS = game.frameCount;
+        game.frameCount = 0;
+        game.lastFPSTime = currentTime;
+      }
+    }
+    
+    // Main game loop
+    function gameLoop(currentTime) {
+      const deltaTime = currentTime - game.lastTime;
+      game.lastTime = currentTime;
+      
+      // Update FPS
+      updateFPS(currentTime);
+      
+      // Skip huge deltas (first frame, tab switch)
+      if (deltaTime < 100) {
+        update(deltaTime);
+      }
+      
+      render();
+      requestAnimationFrame(gameLoop);
+    }
+    
+    // =============================================================================
+    // GAME INITIALIZATION
+    // =============================================================================
+    
+    // Start the game
+    function startGame() {
+      game.state = 'playing';
+      game.score = 0;
+      game.level = 1;
+      game.plate = [];
+      game.player.carrying = null;
+      
+      console.log('🎮 Game started! Phase 1 testing mode.');
+      showToast("Phase 1 Active - Test the mechanics!");
+    }
+    
+    // Initialize everything
+    function init() {
+      console.log('🏛️ Initializing Order of the Gods...');
+      
+      // Check for mobile/small screen
+      if (window.innerWidth < 900) {
+        document.querySelector('.mobile-warning').style.display = 'block';
+        canvas.style.display = 'none';
+        console.log('❌ Mobile device detected - game blocked');
+        return;
+      }
+      
+      // Initialize input
+      input.init();
+      
+      // Start at menu
+      game.state = 'menu';
+      
+      // Debug commands
+      window.debug = {
+        showState: () => console.log(game),
+        addScore: (n) => { game.score += n; console.log(`Score: ${game.score}`); },
+        teleport: (x, y) => { 
+          game.player.x = x; 
+          game.player.y = y; 
+          console.log(`Teleported to ${x}, ${y}`);
+        },
+        testCorners: () => {
+          const corners = [
+            { x: KITCHEN.BOUNDS.LEFT + 20, y: KITCHEN.BOUNDS.TOP + 20 },
+            { x: KITCHEN.BOUNDS.RIGHT - 20, y: KITCHEN.BOUNDS.TOP + 20 },
+            { x: KITCHEN.BOUNDS.LEFT + 20, y: KITCHEN.BOUNDS.BOTTOM - 20 },
+            { x: KITCHEN.BOUNDS.RIGHT - 20, y: KITCHEN.BOUNDS.BOTTOM - 20 }
+          ];
+          
+          let i = 0;
+          const interval = setInterval(() => {
+            if (i >= corners.length) {
+              clearInterval(interval);
+              debug.teleport(640, 360); // Return to center
+              return;
+            }
+            debug.teleport(corners[i].x, corners[i].y);
+            i++;
+          }, 1000);
+        },
+        win: () => { game.score = CONFIG.WIN_SCORE; game.state = 'won'; },
+        start: () => startGame()
+      };
+      
+      // Start game loop
+      game.lastTime = performance.now();
+      game.lastFPSTime = performance.now();
+      requestAnimationFrame(gameLoop);
+      
+      console.log('✅ Game initialized! Press ENTER to start.');
+      console.log('💡 Debug commands available: debug.showState(), debug.teleport(x,y), etc.');
+    }
+    
+    // Start when page loads
+    window.addEventListener('load', init);
+    
+  </script>
+</body>
+</html>
