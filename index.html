@@ -56,9 +56,13 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
-    // Set canvas to full screen dimensions
+    // Set canvas to full screen dimensions with proper scaling
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    
+    // Improve image rendering quality
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     
     // Verify canvas support
     if (!ctx) {
@@ -86,7 +90,7 @@
         TOP: 160,     // Below header (120px + sprite height buffer)
         BOTTOM: window.innerHeight - 80, // Dynamic based on screen height
         QUEUE_X: 200, // Where customers line up
-        ENTRANCE_Y: 240, // Where customers enter from (adjusted for larger 128px sprites)
+        ENTRANCE_Y: 260, // Where customers enter from (adjusted for larger 144px sprites)
         EXIT_Y: window.innerHeight - 100   // Where customers exit to (near bottom)
       },
       POSITIONS: {
@@ -1232,7 +1236,12 @@
         if (game.plate[i]) {
           const ingredientImg = ASSETS.ingredients[game.plate[i]];
           if (ingredientImg && ASSETS.loaded) {
-            const imgSize = 36; // Increased size for better visibility
+            const imgSize = 48; // Much larger for better visibility
+            
+            // Ensure high quality rendering for plate ingredients
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            
             ctx.drawImage(
               ingredientImg,
               slotX - imgSize/2,
@@ -1380,12 +1389,18 @@
     function renderPlayer() {
       const player = game.player;
       
-      // Draw player character sprite if available
+      // FORCE character sprite usage - debug loading
       const characterImg = ASSETS.player?.character;
+      console.log('🎭 Player sprite check:', characterImg ? 'LOADED' : 'MISSING', 'Assets loaded:', ASSETS.loaded);
+      
       if (characterImg && ASSETS.loaded) {
-        const spriteSize = 64; // Increased size for better visibility
+        const spriteSize = 80; // Increased size for much better visibility
         
-        // Draw character sprite
+        // Ensure high quality rendering
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        
+        // Draw character sprite with better positioning
         ctx.drawImage(
           characterImg,
           player.x - spriteSize/2,
@@ -1395,8 +1410,8 @@
         );
         
         // Add subtle glow around player for visibility
-        ctx.shadowColor = 'rgba(255, 255, 255, 0.3)';
-        ctx.shadowBlur = 8;
+        ctx.shadowColor = 'rgba(255, 255, 255, 0.4)';
+        ctx.shadowBlur = 10;
         ctx.drawImage(
           characterImg,
           player.x - spriteSize/2,
@@ -1405,8 +1420,17 @@
           spriteSize
         );
         ctx.shadowBlur = 0;
+        
+        // Debug indicator that sprite is working
+        if (game.debugMode) {
+          ctx.fillStyle = '#0F0';
+          ctx.font = '12px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('SPRITE', player.x, player.y - spriteSize/2 - 10);
+        }
       } else {
-        // Fallback to classic square design
+        // FORCE debug message and fallback
+        console.log('❌ Using fallback square - Character sprite not loaded!');
         ctx.fillStyle = CONFIG.COLORS.PLAYER;
         ctx.fillRect(player.x - CONFIG.PLAYER_SIZE/2,
                      player.y - CONFIG.PLAYER_SIZE/2,
@@ -1418,40 +1442,52 @@
         ctx.strokeRect(player.x - CONFIG.PLAYER_SIZE/2,
                        player.y - CONFIG.PLAYER_SIZE/2,
                        CONFIG.PLAYER_SIZE, CONFIG.PLAYER_SIZE);
+        
+        // Debug indicator that fallback is being used
+        if (game.debugMode) {
+          ctx.fillStyle = '#F00';
+          ctx.font = '12px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('FALLBACK', player.x, player.y - CONFIG.PLAYER_SIZE/2 - 10);
+        }
       }
       
-      // Carried item (Phase 5 - Enhanced appearance)
+      // Carried item (Enhanced with high quality rendering)
       if (player.carrying) {
         const carriedImg = ASSETS.ingredients[player.carrying];
         if (carriedImg && ASSETS.loaded) {
-          // Draw ingredient PNG above player with better size
-          const imgSize = 56; // Increased size for better visibility
+          // Much larger size for better visibility and quality
+          const imgSize = 80; // Significantly increased size
+          
+          // Ensure high quality rendering for carried items
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
           
           // Add background circle for contrast
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
           ctx.beginPath();
-          ctx.arc(player.x, player.y - CONFIG.PLAYER_SIZE/2 - imgSize/2 - 8, imgSize/2 + 4, 0, Math.PI * 2);
+          ctx.arc(player.x, player.y - 50 - imgSize/2, imgSize/2 + 8, 0, Math.PI * 2);
           ctx.fill();
-          ctx.strokeStyle = '#FFD700';
-          ctx.lineWidth = 2;
+          ctx.strokeStyle = '#DAA520'; // Dark goldenrod
+          ctx.lineWidth = 3;
           ctx.stroke();
           
-          // Draw the ingredient image
+          // Draw the ingredient image with perfect positioning
           ctx.drawImage(
             carriedImg,
             player.x - imgSize/2,
-            player.y - CONFIG.PLAYER_SIZE/2 - imgSize - 8,
+            player.y - 50 - imgSize,
             imgSize,
             imgSize
           );
           
-          // Add golden glow effect
+          // Add enhanced golden glow effect
           ctx.shadowColor = '#FFD700';
-          ctx.shadowBlur = 8;
+          ctx.shadowBlur = 12;
           ctx.drawImage(
             carriedImg,
             player.x - imgSize/2,
-            player.y - CONFIG.PLAYER_SIZE/2 - imgSize - 8,
+            player.y - 50 - imgSize,
             imgSize,
             imgSize
           );
@@ -1499,11 +1535,15 @@
       ctx.setLineDash([]);
       
       const customerImg = ASSETS.customers[game.currentCustomer.id];
-      const spriteWidth = 96;   // Universal width for all customer sprites (increased resolution)
-      const spriteHeight = 128; // Universal height for all customer sprites (increased resolution)
+      const spriteWidth = 112;   // Increased width for better visibility and quality
+      const spriteHeight = 144; // Increased height for better visibility and quality
       
       if (customerImg && ASSETS.loaded) {
-        // Draw customer sprite at animated position with vertical proportions
+        // Ensure high quality rendering for customers
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        
+        // Draw customer sprite at animated position with proper proportions
         ctx.drawImage(
           customerImg,
           game.customerPosition.x - spriteWidth/2,
@@ -2076,15 +2116,49 @@
         game.timer -= deltaTime / 1000;
         if (game.timer <= 0) {
           game.timer = 0;
-          // Clean timeout handling - no scramble, just clear message
+          // Clean timeout handling - simple transition, no scramble
           game.customerMessage = "TIMED OUT!!!";
           game.messageTimer = 2000;
           showToast("TIMED OUT!!!");
-          console.log("TIMEOUT! Moving to next riddle...");
+          console.log("TIMEOUT! Simple transition to next customer...");
           AUDIO.playTimeout(); // Audio feedback
           game.plate = []; // Clear plate
+          
+          // Simple customer transition - no scrambling
           game.customerState = 'walking_out';
-          setTimeout(() => nextRiddle(), 2500); // Give time for walking animation
+          setTimeout(() => {
+            // Move to next customer in ordered sequence (no random shuffling on timeout)
+            if (game.shuffledCustomers.length === 0) {
+              game.shuffledCustomers = shuffleCustomers();
+            }
+            game.currentCustomer = game.shuffledCustomers[game.customerIndex % game.shuffledCustomers.length];
+            game.customerIndex++;
+            
+            // Get next riddle for this customer
+            const levelRiddles = RIDDLES.filter(r => r.level === game.level);
+            const available = levelRiddles.filter(r => !game.usedRiddles.includes(r.id));
+            
+            if (available.length === 0) {
+              game.usedRiddles = [];
+              const freshRiddles = levelRiddles.filter(r => !game.usedRiddles.includes(r.id));
+              game.currentRiddle = randomChoice(freshRiddles);
+            } else {
+              game.currentRiddle = randomChoice(available);
+            }
+            
+            game.usedRiddles.push(game.currentRiddle.id);
+            game.timer = game.timePerRiddle;
+            game.customerMessage = '';
+            game.messageTimer = 0;
+            
+            // Reset customer animation cleanly
+            game.customerState = 'walking_in';
+            game.customerPosition.x = KITCHEN.CUSTOMER_AREA.LEFT;
+            game.customerPosition.y = KITCHEN.CUSTOMER_AREA.ENTRANCE_Y;
+            game.customerAnimation = 0;
+            
+            console.log(`🎭 Next customer: ${game.currentCustomer.name} with riddle: ${game.currentRiddle.text.substring(0, 30)}...`);
+          }, 2500); // Give time for walking animation
         }
       }
       
