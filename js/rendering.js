@@ -73,6 +73,10 @@ function renderKitchen() {
     renderTrashBin();
     renderOven();
     renderCuttingBoard();
+    // Level 3+ only: Render saucepan
+    if (game.currentLevel >= 3) {
+      renderSaucepan();
+    }
     renderKitchenLabels();
   } else {
     // Level 4: Minimal mystical elements for The Fates
@@ -121,6 +125,14 @@ function renderFallbackBackground() {
 function renderIngredientCrates() {
   const crateSize = 80;
   for (let [ingredient, pos] of Object.entries(KITCHEN.POSITIONS.BINS)) {
+    // Skip Level 2+ ingredients in Level 1
+    if (game.currentLevel < 2 && (ingredient === 'oliveoil' || ingredient === 'olives')) {
+      continue;
+    }
+    // Skip Level 3+ ingredients in Levels 1-2
+    if (game.currentLevel < 3 && ingredient === 'milk') {
+      continue;
+    }
     
     // Draw wooden crate background using crate.png
     const crateImg = ASSETS.ui.crate;
@@ -225,6 +237,14 @@ function renderCrateInteraction(pos, ingredient) {
 function renderFatesIngredientSources() {
   // Render floating mystical orbs for each ingredient
   for (let [ingredient, pos] of Object.entries(KITCHEN.POSITIONS.BINS)) {
+    // Skip Level 2+ ingredients in Level 1 (though this is Level 4, keep consistent)
+    if (game.currentLevel < 2 && (ingredient === 'oliveoil' || ingredient === 'olives')) {
+      continue;
+    }
+    // Skip Level 3+ ingredients in Levels 1-2 (though this is Level 4, keep consistent)
+    if (game.currentLevel < 3 && ingredient === 'milk') {
+      continue;
+    }
     // Mystical floating orb
     const glowGrad = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, 50);
     glowGrad.addColorStop(0, 'rgba(147, 112, 219, 0.8)'); // Medium purple
@@ -393,8 +413,11 @@ function renderTableInteraction(table, tableWidth, tableHeight) {
 
 // Render ingredient slots on the table
 function renderTableSlots(table) {
-  for (let i = 0; i < 5; i++) {
-    const angle = (i * Math.PI * 2) / 5 - Math.PI/2; // Start at top, go clockwise
+  // Level 2+ gets 6 slots, Level 1 gets 5 slots
+  const maxSlots = game.currentLevel >= 2 ? 6 : 5;
+  
+  for (let i = 0; i < maxSlots; i++) {
+    const angle = (i * Math.PI * 2) / maxSlots - Math.PI/2; // Start at top, go clockwise
     const radius = 60; // Distance from center (fits within table bounds)
     const slotX = table.x + Math.cos(angle) * radius;
     const slotY = table.y + Math.sin(angle) * radius;
@@ -714,6 +737,52 @@ function renderCuttingBoard() {
   }
 }
 
+// Render divine saucepan (Level 3+)
+function renderSaucepan() {
+  const saucepan = KITCHEN.POSITIONS.SAUCEPAN;
+  const saucepanImg = ASSETS.kitchen?.saucepan;
+  const saucepanSize = 80;
+  
+  if (saucepanImg && ASSETS.loaded) {
+    // Draw saucepan sprite
+    ctx.drawImage(
+      saucepanImg,
+      saucepan.x - saucepanSize/2,
+      saucepan.y - saucepanSize/2,
+      saucepanSize,
+      saucepanSize
+    );
+  } else {
+    // Fallback saucepan appearance - metallic pot
+    const saucepanGradient = ctx.createRadialGradient(saucepan.x, saucepan.y, 10, saucepan.x, saucepan.y, 40);
+    saucepanGradient.addColorStop(0, '#C0C0C0'); // Silver (metal)
+    saucepanGradient.addColorStop(0.7, '#696969'); // Dim gray
+    saucepanGradient.addColorStop(1, '#2F4F4F'); // Dark slate gray
+    ctx.fillStyle = saucepanGradient;
+    ctx.fillRect(saucepan.x - saucepanSize/2, saucepan.y - saucepanSize/2, saucepanSize, saucepanSize);
+    
+    // Steam effect if something is processing
+    if (game.saucepanItem) {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      for (let i = 0; i < 3; i++) {
+        const steamX = saucepan.x + (Math.random() - 0.5) * 20;
+        const steamY = saucepan.y - 30 - (i * 10);
+        ctx.beginPath();
+        ctx.arc(steamX, steamY, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+  
+  // Interaction highlight
+  if (game.player.currentZone === 'saucepan') {
+    ctx.strokeStyle = '#FFD700';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(saucepan.x - saucepanSize/2 - 5, saucepan.y - saucepanSize/2 - 5, 
+                  saucepanSize + 10, saucepanSize + 10);
+  }
+}
+
 // Render kitchen labels and status
 function renderKitchenLabels() {
   const table = KITCHEN.POSITIONS.TABLE;
@@ -721,6 +790,7 @@ function renderKitchenLabels() {
   const trash = KITCHEN.POSITIONS.TRASH;
   const oven = KITCHEN.POSITIONS.OVEN;
   const cuttingBoard = KITCHEN.POSITIONS.CUTTING_BOARD;
+  const saucepan = KITCHEN.POSITIONS.SAUCEPAN;
   
   // Labels
   ctx.fillStyle = '#FFF';
@@ -791,6 +861,42 @@ function renderKitchenLabels() {
     ctx.fillStyle = '#32CD32'; // Green when ready to cut
     ctx.font = '10px Cinzel, serif';
     ctx.fillText('Press E to slice', cuttingBoard.x, cuttingBoard.y + 70);
+  }
+  
+  // Saucepan station (Level 3+)
+  if (game.currentLevel >= 3) {
+    ctx.fillStyle = '#FFD700'; // Gold for divine stations
+    ctx.font = 'bold 12px Cinzel, serif';
+    ctx.fillText('DIVINE SAUCEPAN', saucepan.x, saucepan.y + 55);
+    
+    // Saucepan status
+    if (game.saucepanItem) {
+      if (game.saucepanTimer > 0) {
+        const timeLeft = Math.ceil(game.saucepanTimer / 1000);
+        ctx.fillStyle = '#FF6347'; // Tomato red for processing status
+        ctx.font = '10px Cinzel, serif';
+        ctx.fillText(`Making ${game.saucepanItem}... ${timeLeft}s`, saucepan.x, saucepan.y + 70);
+        
+        // Processing progress bar
+        const barWidth = 60;
+        const barHeight = 6;
+        const progress = 1 - (game.saucepanTimer / game.saucepanDuration);
+        
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(saucepan.x - barWidth/2, saucepan.y + 75, barWidth, barHeight);
+        
+        ctx.fillStyle = '#32CD32';
+        ctx.fillRect(saucepan.x - barWidth/2, saucepan.y + 75, barWidth * progress, barHeight);
+      } else {
+        ctx.fillStyle = '#32CD32'; // Green when ready
+        ctx.font = '10px Cinzel, serif';
+        ctx.fillText(`${game.saucepanItem} ready! Press E`, saucepan.x, saucepan.y + 70);
+      }
+    } else if (game.player.currentZone === 'saucepan' && game.player.carrying === 'milk') {
+      ctx.fillStyle = '#32CD32'; // Green when ready to process
+      ctx.font = '10px Cinzel, serif';
+      ctx.fillText('Press E to make yogurt', saucepan.x, saucepan.y + 70);
+    }
   }
 }
 

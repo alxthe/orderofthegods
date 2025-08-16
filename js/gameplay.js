@@ -134,6 +134,15 @@ function validatePlate(plate, riddle) {
       return { success: false, reason: "All items must be different!" };
     }
     
+    // Check for required ingredients (if specified)
+    if (riddle.required) {
+      for (let required of riddle.required) {
+        if (!plate.includes(required)) {
+          return { success: false, reason: `Must include ${required}` };
+        }
+      }
+    }
+    
     return { success: true };
   }
   
@@ -334,7 +343,9 @@ function handleInteraction() {
   // At table
   else if (zone === 'table') {
     if (player.carrying) {
-      if (game.plate.length >= CONFIG.MAX_PLATE_SIZE) {
+      // Level-dependent plate size (Level 2+ gets 6 slots, Level 1 gets 5)
+      const maxPlateSize = game.currentLevel >= 2 ? CONFIG.MAX_PLATE_SIZE_LEVEL_2 : CONFIG.MAX_PLATE_SIZE;
+      if (game.plate.length >= maxPlateSize) {
         showToast("Plate is full!");
       } else {
         game.plate.push(player.carrying);
@@ -402,6 +413,35 @@ function handleInteraction() {
       }
     } else {
       showToast("Place ingredient to cook");
+    }
+  }
+  
+  // At saucepan (Level 3+)
+  else if (zone === 'saucepan' && game.currentLevel >= 3) {
+    if (player.carrying) {
+      const ingredient = player.carrying;
+      const saucepanItems = ['milk']; // Only milk can be processed in saucepan
+      
+      if (saucepanItems.includes(ingredient)) {
+        game.saucepanItem = 'yogurt'; // Milk becomes yogurt
+        game.saucepanTimer = game.saucepanDuration; // Start 3-second processing timer
+        player.carrying = null;
+        showToast(`Making yogurt... 3 seconds (E to retrieve)`);
+        console.log(`Started making yogurt from ${ingredient} for ${game.saucepanDuration}ms`);
+        AUDIO.playPlace();
+      } else {
+        showToast(`${ingredient} cannot be processed! (Only: milk → yogurt)`);
+      }
+    } else if (game.saucepanItem) {
+      const timeLeft = Math.ceil(game.saucepanTimer / 1000);
+      if (timeLeft > 0) {
+        showToast(`Still processing... ${timeLeft}s remaining`);
+      } else {
+        // Item is done processing, retrieve it
+        handleSaucepanRetrieve();
+      }
+    } else {
+      showToast("Place milk to make yogurt");
     }
   }
 }
@@ -504,6 +544,38 @@ function handleCuttingRetrieve() {
   console.log(`Retrieved: ${cutItem}`);
   game.cuttingItem = null;
   game.cuttingTimer = 0;
+  AUDIO.playPickup();
+}
+
+// Saucepan retrieval function (E key at saucepan when done)
+function handleSaucepanRetrieve() {
+  if (game.player.currentZone !== 'saucepan') {
+    showToast("Go to saucepan to retrieve processed items");
+    return;
+  }
+  
+  if (!game.saucepanItem) {
+    showToast("Nothing processing in saucepan");
+    return;
+  }
+  
+  if (game.saucepanTimer > 0) {
+    const timeLeft = Math.ceil(game.saucepanTimer / 1000);
+    showToast(`Still processing! Wait ${timeLeft} more seconds`);
+    return;
+  }
+  
+  if (game.player.carrying) {
+    showToast("Hands full! Can't retrieve from saucepan");
+    return;
+  }
+  
+  // Saucepan produces yogurt from milk
+  game.player.carrying = game.saucepanItem; // Should be 'yogurt'
+  showToast(`Retrieved ${game.saucepanItem} from divine saucepan!`);
+  console.log(`Retrieved: ${game.saucepanItem}`);
+  game.saucepanItem = null;
+  game.saucepanTimer = 0;
   AUDIO.playPickup();
 }
 

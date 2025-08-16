@@ -25,6 +25,7 @@ const KITCHEN = {
     TRASH: { x: window.innerWidth - 150, y: window.innerHeight - 150 }, // Trash bin - bottom right corner (responsive)
     OVEN: { x: 450, y: 280 },         // Divine cooking oven (left side)
     CUTTING_BOARD: { x: window.innerWidth - 250, y: 380 }, // Ancient cutting board (right side, responsive)
+    SAUCEPAN: { x: Math.max(800, window.innerWidth * 0.6), y: 300 }, // Divine saucepan (center-right, Level 3+)
     BINS: {
       bread: { x: 360, y: 260 },     // Left side bins
       tomato: { x: 360, y: 460 },    
@@ -34,7 +35,9 @@ const KITCHEN = {
       pepper: { x: Math.max(750, window.innerWidth * 0.5), y: window.innerHeight - 180 },
       bacon: { x: Math.max(850, window.innerWidth * 0.55), y: window.innerHeight - 180 },    // New ingredients!
       avocado: { x: Math.max(950, window.innerWidth * 0.6), y: window.innerHeight - 180 },
-      oliveoil: { x: Math.max(1050, window.innerWidth * 0.65), y: window.innerHeight - 180 } // Level 2 olive oil!
+      oliveoil: { x: Math.max(1050, window.innerWidth * 0.65), y: window.innerHeight - 180 }, // Level 2 olive oil!
+      olives: { x: Math.max(1150, window.innerWidth * 0.7), y: window.innerHeight - 180 }, // Level 2 olives!
+      milk: { x: 300, y: 180 } // Level 3+ milk crate (top-left area)
     }
   },
   ZONES: {
@@ -43,6 +46,7 @@ const KITCHEN = {
     TRASH_RADIUS: 50,        // Distance to interact with trash
     OVEN_RADIUS: 70,         // Distance to interact with oven
     CUTTING_RADIUS: 70,      // Distance to interact with cutting board
+    SAUCEPAN_RADIUS: 70,     // Distance to interact with saucepan
     COUNTER_WIDTH: 360,      // Width of delivery zone
     COUNTER_HEIGHT: 40,      // Height of delivery zone
     INTERACTION_BUFFER: 8    // Extra pixels for generous collision
@@ -53,7 +57,8 @@ const KITCHEN = {
 const CONFIG = {
   PLAYER_SPEED: 5,           // Pixels per frame (300 px/sec at 60fps)
   PLAYER_SIZE: 32,           // Player square size
-  MAX_PLATE_SIZE: 5,         // Maximum ingredients on plate
+  MAX_PLATE_SIZE: 5,         // Maximum ingredients on plate (Level 1)
+  MAX_PLATE_SIZE_LEVEL_2: 6, // Maximum ingredients on plate for Level 2+
   MAX_CARRY: 1,              // Can only carry one ingredient
   
   // Timing
@@ -82,6 +87,9 @@ const CONFIG = {
     EGG: '#FFFACD',          // Lemon chiffon
     PEPPER: '#FF4500',       // Orange red
     OLIVEOIL: '#228B22',     // Forest green (olive color)
+    OLIVES: '#6B8E23',       // Olive drab (darker olive color)
+    MILK: '#F5F5DC',         // Beige (creamy milk color)
+    YOGURT: '#FFF8DC',       // Cornsilk (slightly yellower than milk)
     TABLE: '#8B4513',        // Saddle brown
     COUNTER: '#696969',      // Dim gray
     WALL: '#4a4a4a',         // Gray
@@ -100,7 +108,10 @@ const ASSET_FILES = {
     pepper: 'assets/food/pepper.png',
     bacon: 'assets/food/bacon.png',
     avocado: 'assets/food/avocado.png',
-    oliveoil: 'assets/food/oliveoil.png'
+    oliveoil: 'assets/food/oliveoil.png',
+    olives: 'assets/level 2/olives.png',
+    milk: 'assets/level 3/milk.png',
+    yogurt: 'assets/level 3/yogurt.png'
   },
   customers: {
     // Level 1 - Tartarus Creatures (5 total)
@@ -135,6 +146,7 @@ const ASSET_FILES = {
   kitchen: {
     oven: 'assets/backgrounds & tools/oven.png',
     cuttingBoard: 'assets/backgrounds & tools/cutting-board.png',
+    saucepan: 'assets/level 3/saucepan.png',
     feastHall: 'assets/level 1/feast-hall.png',
     mountOlympus: 'assets/level 3/mount-olympus.png',
     acropolisAthens: 'assets/level 2/acropolis-athens.png',
@@ -149,7 +161,8 @@ const ASSET_FILES = {
   cookedIngredients: {
     cooked_meat: 'assets/cut & cooked/cut & cooked/cooked-meat.png',
     cooked_egg: 'assets/cut & cooked/cut & cooked/cooked-egg.png',
-    cooked_bacon: 'assets/cut & cooked/cut & cooked/cooked-bacon.png'
+    cooked_bacon: 'assets/cut & cooked/cut & cooked/cooked-bacon.png',
+    yogurt: 'assets/level 3/yogurt.png'
   },
   player: {
     character: 'assets/backgrounds & tools/main-character.png'

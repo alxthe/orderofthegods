@@ -128,6 +128,18 @@ function update(deltaTime) {
       }
     }
   }
+  
+  // Update saucepan timer (Level 3+)
+  if (game.saucepanTimer > 0) {
+    game.saucepanTimer -= deltaTime;
+    if (game.saucepanTimer <= 0) {
+      game.saucepanTimer = 0;
+      if (game.saucepanItem) {
+        showToast(`${game.saucepanItem} finished processing! Press E to retrieve`);
+        AUDIO.playSuccess(); // Sound when processing completes
+      }
+    }
+  }
 }
 
 // FPS calculation

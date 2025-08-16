@@ -112,6 +112,11 @@ const game = {
   cuttingTimer: 0,            // Timer for cutting (3 seconds = 3000ms)
   cuttingDuration: 3000,      // How long items take to cut
   
+  // New Saucepan Mechanics (Level 3+)
+  saucepanItem: null,         // Item currently being processed in saucepan
+  saucepanTimer: 0,           // Timer for saucepan processing (3 seconds = 3000ms)
+  saucepanDuration: 3000,     // How long items take to process in saucepan
+  
   // Anti-scrambling protection
   processingNextRiddle: false, // Prevent multiple nextRiddle() calls
   

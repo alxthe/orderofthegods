@@ -52,8 +52,28 @@ function updatePlayerZone() {
     return;
   }
   
+  // Check saucepan zone (circular) - Level 3+
+  if (game.currentLevel >= 3) {
+    const saucepanDist = distance(player.x, player.y, 
+                                 KITCHEN.POSITIONS.SAUCEPAN.x, 
+                                 KITCHEN.POSITIONS.SAUCEPAN.y);
+    if (saucepanDist < KITCHEN.ZONES.SAUCEPAN_RADIUS) {
+      player.currentZone = 'saucepan';
+      return;
+    }
+  }
+  
   // Check ingredient bins (circular)
   for (let [ingredient, pos] of Object.entries(KITCHEN.POSITIONS.BINS)) {
+    // Skip Level 2+ ingredients in Level 1
+    if (game.currentLevel < 2 && (ingredient === 'oliveoil' || ingredient === 'olives')) {
+      continue;
+    }
+    // Skip Level 3+ ingredients in Levels 1-2
+    if (game.currentLevel < 3 && ingredient === 'milk') {
+      continue;
+    }
+    
     const dist = distance(player.x, player.y, pos.x, pos.y);
     if (dist < KITCHEN.ZONES.BIN_RADIUS) {
       player.currentZone = `bin_${ingredient.toLowerCase()}`;

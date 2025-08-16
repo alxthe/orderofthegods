@@ -52,6 +52,20 @@ const RIDDLES = [
   { id: "l2_13", text: "EXACTLY 3 items with oliveoil", type: "COUNT", level: 2,
     counts: { oliveoil: 1 }, totalCount: 3},
   
+  // LEVEL 2 - OLIVE RIDDLES (More Mediterranean flavors!)
+  { id: "l2_14", text: "2 olives + 1 cheese", type: "COUNT", level: 2,
+    counts: { olives: 2, cheese: 1 }},
+  { id: "l2_15", text: "SANDWICH: bread + olives + tomato + bread", type: "SANDWICH", level: 2,
+    sandwich: ["bread", "olives", "tomato", "bread"]},
+  { id: "l2_16", text: "1 olives + 1 oliveoil + 1 bread", type: "COUNT", level: 2,
+    counts: { olives: 1, oliveoil: 1, bread: 1 }},
+  { id: "l2_17", text: "3 olives (NO pepper)", type: "EXCLUDE", level: 2,
+    counts: { olives: 3 }, excludes: ["pepper"]},
+  { id: "l2_18", text: "EXACTLY 6 items with olives", type: "COUNT", level: 2,
+    counts: { olives: 1 }, totalCount: 6},
+  { id: "l2_19", text: "2 olives + 2 avocado + 1 meat + 1 bread", type: "COUNT", level: 2,
+    counts: { olives: 2, avocado: 2, meat: 1, bread: 1 }},
+  
   // LEVEL 3 - Godly COMPLEX riddles (15 seconds)
   { id: "l3_1", text: "EXACTLY 3 items total", type: "TOTALCOUNT", level: 3,
     totalCount: 3},
@@ -68,7 +82,21 @@ const RIDDLES = [
   { id: "l3_7", text: "2 meat + 2 tomato (NO bread)", type: "EXCLUDE", level: 3,
     counts: { meat: 2, tomato: 2 }, excludes: ["bread"]},
   { id: "l3_8", text: "SANDWICH: bread + meat + cheese + tomato + bread", type: "SANDWICH", level: 3,
-    sandwich: ["bread", "meat", "cheese", "tomato", "bread"]}
+    sandwich: ["bread", "meat", "cheese", "tomato", "bread"]},
+  
+  // LEVEL 3 - MILK & YOGURT RIDDLES (Complex divine challenges!)
+  { id: "l3_9", text: "2 milk + 1 yogurt + 1 cheese", type: "COUNT", level: 3,
+    counts: { milk: 2, yogurt: 1, cheese: 1 }, timeBonus: 25},
+  { id: "l3_10", text: "EXACTLY 6 items: must include milk AND yogurt", type: "COUNT", level: 3,
+    counts: { milk: 1, yogurt: 1 }, totalCount: 6, timeBonus: 30},
+  { id: "l3_11", text: "3 yogurt + 2 olives (NO milk)", type: "EXCLUDE", level: 3,
+    counts: { yogurt: 3, olives: 2 }, excludes: ["milk"], timeBonus: 25},
+  { id: "l3_12", text: "SANDWICH: bread + yogurt + oliveoil + olives + bread", type: "SANDWICH", level: 3,
+    sandwich: ["bread", "yogurt", "oliveoil", "olives", "bread"], timeBonus: 35},
+  { id: "l3_13", text: "1 milk + 1 yogurt + 1 of each: bread, cheese, meat, tomato", type: "COUNT", level: 3,
+    counts: { milk: 1, yogurt: 1, bread: 1, cheese: 1, meat: 1, tomato: 1 }, timeBonus: 40},
+  { id: "l3_14", text: "6 DIFFERENT items including BOTH milk and yogurt", type: "UNIQUE", level: 3,
+    totalCount: 6, unique: true, required: ["milk", "yogurt"], timeBonus: 45}
 ];
 
 // ADVANCED COOKING/CUTTING RIDDLES
@@ -165,6 +193,82 @@ const ADVANCED_RIDDLES = [
     type: "COOKING",
     required: ["oliveoil", "bread", "cut_cheese"],
     timeBonus: 25
+  },
+  
+  // Level 2 - Olive Advanced Combinations
+  {
+    id: 'olives_cut_tomato',
+    text: "OLIVES + SLICED tomato",
+    level: 2,
+    type: "COOKING",
+    required: ["olives", "cut_tomato"],
+    timeBonus: 20
+  },
+  {
+    id: 'olives_cooked_meat',
+    text: "OLIVES + COOKED meat",
+    level: 2,
+    type: "COOKING",
+    required: ["olives", "cooked_meat"],
+    timeBonus: 20
+  },
+  {
+    id: 'olives_oliveoil_bread',
+    text: "OLIVES + OLIVE OIL + bread",
+    level: 2,
+    type: "COOKING",
+    required: ["olives", "oliveoil", "bread"],
+    timeBonus: 25
+  },
+  {
+    id: 'olives_avocado_combo',
+    text: "OLIVES + avocado + SLICED cheese",
+    level: 2,
+    type: "COOKING",
+    required: ["olives", "avocado", "cut_cheese"],
+    timeBonus: 25
+  },
+  
+  // Level 3 - Milk & Yogurt Advanced Combinations (Saucepan required!)
+  {
+    id: 'yogurt_cut_tomato',
+    text: "YOGURT + SLICED tomato",
+    level: 3,
+    type: "COOKING",
+    required: ["yogurt", "cut_tomato"],
+    timeBonus: 30
+  },
+  {
+    id: 'milk_yogurt_combo',
+    text: "MILK + YOGURT + bread",
+    level: 3,
+    type: "COOKING",
+    required: ["milk", "yogurt", "bread"],
+    timeBonus: 35
+  },
+  {
+    id: 'yogurt_cooked_meat',
+    text: "YOGURT + COOKED meat + SLICED cheese",
+    level: 3,
+    type: "COOKING",
+    required: ["yogurt", "cooked_meat", "cut_cheese"],
+    timeBonus: 40
+  },
+  {
+    id: 'complex_dairy_feast',
+    text: "MILK + YOGURT + OLIVE OIL + SLICED avocado + COOKED bacon",
+    level: 3,
+    type: "COOKING",
+    required: ["milk", "yogurt", "oliveoil", "cut_avocado", "cooked_bacon"],
+    timeBonus: 50
+  },
+  {
+    id: 'divine_dairy_sandwich',
+    text: "BREAD + YOGURT + SLICED tomato + OLIVES + BREAD",
+    level: 3,
+    type: "COOKING",
+    required: ["bread", "yogurt", "cut_tomato", "olives", "bread"],
+    timeBonus: 45
   }
 ];
 
