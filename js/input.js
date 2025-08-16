@@ -5,8 +5,14 @@
 const input = {
   keys: {},
   keyPressed: {}, // Track single presses to prevent repeats
+  clickPressed: false, // Track mouse clicks
   
   init() {
+    // Mouse click handler (for story panels)
+    document.addEventListener('click', () => {
+      this.clickPressed = true;
+    });
+    
     // Keydown handler
     document.addEventListener('keydown', (e) => {
       const key = e.key.toLowerCase();
@@ -52,6 +58,7 @@ const input = {
     window.addEventListener('blur', () => {
       this.keys = {}; // Clear all keys
       this.keyPressed = {};
+      this.clickPressed = false; // Clear click state
       if (game.state === 'playing') {
         game.state = 'paused';
         console.log("Game auto-paused (window blur)");
@@ -71,6 +78,15 @@ const input = {
     const k = key.toLowerCase();
     if (this.keys[k] && !this.keyPressed[k]) {
       this.keyPressed[k] = true;
+      return true;
+    }
+    return false;
+  },
+  
+  // Check if mouse was just clicked (single click)
+  wasClicked() {
+    if (this.clickPressed) {
+      this.clickPressed = false;
       return true;
     }
     return false;

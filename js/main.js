@@ -79,10 +79,19 @@ function update(deltaTime) {
     console.log(`Debug mode: ${game.debugMode ? 'ON' : 'OFF'}`);
   }
   
-  // Story panel interaction (Enter or Space only - ESC handled by input.js for pause)
-  if (game.showingStory && (input.wasPressed('enter') || input.wasPressed('space'))) {
+  // Story panel interaction (Enter, Space, or Click - ESC handled by input.js for pause)
+  if (game.showingStory && (input.wasPressed('enter') || input.wasPressed('space') || input.wasClicked())) {
     game.showingStory = false;
     game.storyPanel = null;
+    
+    // Clear the auto-dismissal timeout if user manually dismisses
+    if (game.storyTimeout) {
+      clearTimeout(game.storyTimeout);
+      game.storyTimeout = null;
+    }
+    
+    // Immediately proceed to next riddle when user dismisses story
+    nextRiddle();
   }
   
   // Update timers

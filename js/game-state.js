@@ -54,6 +54,7 @@ const game = {
   collarCracks: 0,            // Visual collar progression (0-5 cracks)
   showingStory: false,        // Whether story panel is currently displayed
   storyPanel: null,           // Current story panel content
+  storyTimeout: null,         // Track setTimeout ID for story panels
   
   // Special Power Effects
   frozen: false,              // Player frozen by Medusa

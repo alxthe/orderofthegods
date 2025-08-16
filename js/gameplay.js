@@ -634,7 +634,16 @@ function advanceToLevel2() {
   };
   game.showingStory = true;
   
-  setTimeout(() => nextRiddle(), 3000);
+  // Clear any existing story timeout
+  if (game.storyTimeout) {
+    clearTimeout(game.storyTimeout);
+  }
+  
+  // Set new timeout and store the ID
+  game.storyTimeout = setTimeout(() => {
+    game.storyTimeout = null;
+    nextRiddle();
+  }, 3000);
 }
 
 // Advance to Level 3: Gods Only (Very Hard)
@@ -659,7 +668,16 @@ function advanceToLevel3() {
   };
   game.showingStory = true;
   
-  setTimeout(() => nextRiddle(), 3000);
+  // Clear any existing story timeout
+  if (game.storyTimeout) {
+    clearTimeout(game.storyTimeout);
+  }
+  
+  // Set new timeout and store the ID
+  game.storyTimeout = setTimeout(() => {
+    game.storyTimeout = null;
+    nextRiddle();
+  }, 3000);
 }
 
 // Advance to Level 4: The Fates (Boss Battle)
@@ -684,7 +702,16 @@ function advanceToLevel4() {
   };
   game.showingStory = true;
   
-  setTimeout(() => nextRiddle(), 3000);
+  // Clear any existing story timeout
+  if (game.storyTimeout) {
+    clearTimeout(game.storyTimeout);
+  }
+  
+  // Set new timeout and store the ID
+  game.storyTimeout = setTimeout(() => {
+    game.storyTimeout = null;
+    nextRiddle();
+  }, 3000);
 }
 
 // Restart current level after failure
@@ -742,7 +769,17 @@ function restartLevel() {
   };
   game.showingStory = true;
   
-  setTimeout(() => nextRiddle(), 3000);
+  // Clear any existing story timeout
+  if (game.storyTimeout) {
+    clearTimeout(game.storyTimeout);
+  }
+  
+  // Set new timeout and store the ID
+  game.storyTimeout = setTimeout(() => {
+    game.storyTimeout = null;
+    nextRiddle();
+  }, 3000);
+  
   console.log(`🔄 Level ${currentLevelNum} restarted - Score reset to ${game.score}`);
 }
 
@@ -835,6 +872,16 @@ function startGame() {
   game.shuffledCustomers = shuffleCustomers(); // Randomize customer order each game
   game.player.carrying = null;
   game.processingNextRiddle = false; // Reset anti-scrambling flag
+  
+  // Clear any existing story timeouts
+  if (game.storyTimeout) {
+    clearTimeout(game.storyTimeout);
+    game.storyTimeout = null;
+  }
+  
+  // Clear story panel state
+  game.showingStory = false;
+  game.storyPanel = null;
   
   // Clear all special power effects
   game.frozen = false;
