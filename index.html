@@ -100,7 +100,7 @@
         TABLE: { x: Math.max(640, window.innerWidth * 0.5), y: Math.max(360, window.innerHeight * 0.4) },       // Central plate assembly (responsive)
         TRASH: { x: window.innerWidth - 150, y: window.innerHeight - 150 }, // Trash bin - bottom right corner (responsive)
         OVEN: { x: 450, y: 280 },         // Divine cooking oven (left side)
-        KNIFE_BLOCK: { x: window.innerWidth - 250, y: 280 }, // Ancient knife block (right side, responsive)
+        CUTTING_BOARD: { x: window.innerWidth - 250, y: 320 }, // Ancient cutting board (right side, responsive)
         BINS: {
           bread: { x: 360, y: 260 },     // Left side bins
           tomato: { x: 360, y: 460 },    
@@ -117,7 +117,7 @@
         BIN_RADIUS: 60,          // Distance to interact with bins
         TRASH_RADIUS: 50,        // Distance to interact with trash
         OVEN_RADIUS: 70,         // Distance to interact with oven
-        KNIFE_RADIUS: 70,        // Distance to interact with knife block
+        CUTTING_RADIUS: 70,      // Distance to interact with cutting board
         COUNTER_WIDTH: 360,      // Width of delivery zone
         COUNTER_HEIGHT: 40,      // Height of delivery zone
         INTERACTION_BUFFER: 8    // Extra pixels for generous collision
@@ -195,14 +195,17 @@
         ghost: 'assets/restless-spirit.png',
         zeus: 'assets/zeus.png',       // Lord of Olympus!
         hera: 'assets/hera.png',       // Queen of the gods!
-        hydra: 'assets/hydra.png'      // Legendary beast!
+        hydra: 'assets/hydra.png',     // Legendary beast!
+        chimera: 'assets/chimera.png'  // Three-headed monster!
       },
       ui: {
         plate: 'assets/plate.png',
         crate: 'assets/crate.png'
       },
       kitchen: {
-        oven: 'assets/oven.png'        // Divine cooking station!
+        oven: 'assets/oven.png',           // Divine cooking station!
+        cuttingBoard: 'assets/cutting-board.png',  // Ancient cutting board!
+        feastHall: 'assets/feast-hall.png'  // Background enhancement!
       },
       player: {
         character: 'assets/main-character.png'
@@ -552,7 +555,11 @@
       { id: "ghost", name: "Restless Spirit",
         success: ["The veil shivers.", "Peace flows.", "Rest is granted."],
         failure: ["Whispers say no.", "Unrest grows.", "The dead are displeased."],
-        timeout: ["Time slipped through you.", "Eternity waits not.", "The spirit fades."]}
+        timeout: ["Time slipped through you.", "Eternity waits not.", "The spirit fades."]},
+      { id: "chimera", name: "Chimera",
+        success: ["All three heads agree!", "Lion purrs, goat bleats, serpent hisses approval.", "Unified in satisfaction."],
+        failure: ["The lion roars, goat screams, serpent spits!", "Three minds in chaos.", "Disagreement breeds fury."],
+        timeout: ["Three heads, three opinions, three times the impatience.", "Chimera cannot wait.", "Beast's patience expires."]}
     ];
     
     // Randomize customer order for each game
@@ -633,12 +640,14 @@
         zeus: { favor: 0, interactions: 0, arc: 'demanding' },     // Expects perfection
         hera: { favor: 0, interactions: 0, arc: 'judgmental' },    // Watches for weakness
         hydra: { favor: 0, interactions: 0, arc: 'chaotic' },      // Unpredictable beast
+        chimera: { favor: 0, interactions: 0, arc: 'volatile' },   // Three personalities in one
         ghost: { favor: 0, interactions: 0, arc: 'sorrowful' }     // Seeks understanding
       },
       
       // New Cooking Mechanics
-      hasKnife: false,            // Whether player has picked up knife for cutting
       cookingItem: null,          // Item currently being cooked in oven
+      cookingTimer: 0,            // Timer for cooking (3 seconds = 3000ms)
+      cookingDuration: 3000,      // How long items take to cook
       
       // Debug
       debugMode: false,
@@ -665,7 +674,7 @@
           this.keys[key] = true;
           
           // Prevent defaults for game keys
-          if (['w','a','s','d','e','q','x','c','v','enter','escape'].includes(key)) {
+          if (['w','a','s','d','e','q','x','v','enter','escape'].includes(key)) {
             e.preventDefault();
           }
           
@@ -899,12 +908,12 @@
       // Reset timer
       game.timer = game.timePerRiddle;
       
-      // Get next customer from shuffled order
-      if (game.shuffledCustomers.length === 0) {
-        game.shuffledCustomers = shuffleCustomers();
-      }
-      game.currentCustomer = game.shuffledCustomers[game.customerIndex % game.shuffledCustomers.length];
+      // Get next customer from existing shuffled order (NO RE-SHUFFLING)
       game.customerIndex++;
+      if (game.customerIndex >= game.shuffledCustomers.length) {
+        game.customerIndex = 0; // Loop back to start of list
+      }
+      game.currentCustomer = game.shuffledCustomers[game.customerIndex];
       game.customerMessage = '';
       game.messageTimer = 0;
       
@@ -984,12 +993,12 @@
         return;
       }
       
-      // Check knife block zone (circular)
-      const knifeDist = distance(player.x, player.y, 
-                                KITCHEN.POSITIONS.KNIFE_BLOCK.x, 
-                                KITCHEN.POSITIONS.KNIFE_BLOCK.y);
-      if (knifeDist < KITCHEN.ZONES.KNIFE_RADIUS) {
-        player.currentZone = 'knife_block';
+      // Check cutting board zone (circular)
+      const cuttingDist = distance(player.x, player.y, 
+                                  KITCHEN.POSITIONS.CUTTING_BOARD.x, 
+                                  KITCHEN.POSITIONS.CUTTING_BOARD.y);
+      if (cuttingDist < KITCHEN.ZONES.CUTTING_RADIUS) {
+        player.currentZone = 'cutting_board';
         return;
       }
       
@@ -1103,15 +1112,21 @@
         }
       }
       
-      // At knife block
-      else if (zone === 'knife_block') {
-        if (!game.hasKnife) {
-          game.hasKnife = true;
-          showToast("Ancient blade acquired! (C to cut)");
-          console.log("Player now has knife");
-          AUDIO.playPickup();
+      // At cutting board
+      else if (zone === 'cutting_board') {
+        if (player.carrying) {
+          // Cut the item directly at the cutting board
+          const ingredient = player.carrying;
+          if (['tomato', 'cheese', 'meat', 'avocado', 'bacon'].includes(ingredient)) {
+            player.carrying = `cut_${ingredient}`;
+            showToast(`Sliced ${ingredient} on ancient cutting board!`);
+            console.log(`Cut ${ingredient} into cut_${ingredient}`);
+            AUDIO.playPlace(); // Cutting sound
+          } else {
+            showToast(`Cannot cut ${ingredient} on cutting board`);
+          }
         } else {
-          showToast("Already have knife");
+          showToast("Bring ingredient to cutting board to slice");
         }
       }
       
@@ -1119,12 +1134,18 @@
       else if (zone === 'oven') {
         if (player.carrying) {
           game.cookingItem = player.carrying;
+          game.cookingTimer = game.cookingDuration; // Start 3-second cooking timer
           player.carrying = null;
-          showToast(`${game.cookingItem} cooking... (V to retrieve)`);
-          console.log(`Started cooking: ${game.cookingItem}`);
+          showToast(`${game.cookingItem} cooking... 3 seconds (V to retrieve)`);
+          console.log(`Started cooking: ${game.cookingItem} for ${game.cookingDuration}ms`);
           AUDIO.playPlace();
         } else if (game.cookingItem) {
-          showToast("Something is already cooking!");
+          const timeLeft = Math.ceil(game.cookingTimer / 1000);
+          if (timeLeft > 0) {
+            showToast(`Still cooking... ${timeLeft}s remaining`);
+          } else {
+            showToast("Cooked! Press V to retrieve");
+          }
         } else {
           showToast("Place ingredient to cook");
         }
@@ -1168,30 +1189,8 @@
       AUDIO.playTrash(); // Phase 3 - Audio feedback
     }
     
-    // Cutting function (C key with knife)
-    function handleCutting() {
-      if (!game.hasKnife) {
-        showToast("Need knife from knife block first!");
-        return;
-      }
-      
-      if (!game.player.carrying) {
-        showToast("Need ingredient to cut!");
-        return;
-      }
-      
-      const ingredient = game.player.carrying;
-      
-      // Only certain ingredients can be cut
-      if (['tomato', 'cheese', 'meat', 'avocado', 'bacon'].includes(ingredient)) {
-        game.player.carrying = `cut_${ingredient}`;
-        showToast(`Sliced ${ingredient} with ancient blade!`);
-        console.log(`Cut ${ingredient} into cut_${ingredient}`);
-        AUDIO.playPlace(); // Cutting sound
-      } else {
-        showToast(`Cannot cut ${ingredient}`);
-      }
-    }
+    // Cutting now handled directly at cutting board via handleInteraction()
+    // No separate cutting function needed
     
     // Oven retrieval function (V key at oven)
     function handleOvenRetrieve() {
@@ -1205,6 +1204,12 @@
         return;
       }
       
+      if (game.cookingTimer > 0) {
+        const timeLeft = Math.ceil(game.cookingTimer / 1000);
+        showToast(`Still cooking! Wait ${timeLeft} more seconds`);
+        return;
+      }
+      
       if (game.player.carrying) {
         showToast("Hands full! Can't retrieve from oven");
         return;
@@ -1215,6 +1220,7 @@
       showToast(`Retrieved ${cookedItem} from divine flames!`);
       console.log(`Retrieved: ${cookedItem}`);
       game.cookingItem = null;
+      game.cookingTimer = 0;
       AUDIO.playPickup();
     }
     
@@ -1495,18 +1501,51 @@
     
     // Render kitchen layout
     function renderKitchen() {
-      // Floor
-      ctx.fillStyle = CONFIG.COLORS.FLOOR;
-      ctx.fillRect(KITCHEN.BOUNDS.LEFT, KITCHEN.BOUNDS.TOP,
-                   KITCHEN.BOUNDS.RIGHT - KITCHEN.BOUNDS.LEFT,
-                   KITCHEN.BOUNDS.BOTTOM - KITCHEN.BOUNDS.TOP);
+      // Background - try to use feast hall image first
+      const feastHallImg = ASSETS.kitchen?.feastHall;
       
-      // Walls
-      ctx.fillStyle = CONFIG.COLORS.WALL;
-      ctx.fillRect(0, 0, canvas.width, KITCHEN.BOUNDS.TOP); // Top
-      ctx.fillRect(0, KITCHEN.BOUNDS.BOTTOM, canvas.width, canvas.height); // Bottom
-      ctx.fillRect(0, 0, KITCHEN.BOUNDS.LEFT, canvas.height); // Left
-      ctx.fillRect(KITCHEN.BOUNDS.RIGHT, 0, canvas.width, canvas.height); // Right
+      if (feastHallImg && ASSETS.loaded) {
+        // Draw feast hall background scaled to fit screen
+        ctx.drawImage(feastHallImg, 0, 0, canvas.width, canvas.height);
+        
+        // Add overlay for kitchen area definition
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillRect(0, 0, canvas.width, KITCHEN.BOUNDS.TOP); // Top
+        ctx.fillRect(0, KITCHEN.BOUNDS.BOTTOM, canvas.width, canvas.height); // Bottom
+        ctx.fillRect(0, 0, KITCHEN.BOUNDS.LEFT, canvas.height); // Left
+        ctx.fillRect(KITCHEN.BOUNDS.RIGHT, 0, canvas.width, canvas.height); // Right
+      } else {
+        // Fallback - enhanced dungeon floor and walls
+        // Floor with stone pattern
+        const floorGradient = ctx.createLinearGradient(0, KITCHEN.BOUNDS.TOP, 0, KITCHEN.BOUNDS.BOTTOM);
+        floorGradient.addColorStop(0, '#8B7355'); // Dark tan
+        floorGradient.addColorStop(0.5, '#A0522D'); // Sienna
+        floorGradient.addColorStop(1, '#654321'); // Dark brown
+        ctx.fillStyle = floorGradient;
+        ctx.fillRect(KITCHEN.BOUNDS.LEFT, KITCHEN.BOUNDS.TOP,
+                     KITCHEN.BOUNDS.RIGHT - KITCHEN.BOUNDS.LEFT,
+                     KITCHEN.BOUNDS.BOTTOM - KITCHEN.BOUNDS.TOP);
+        
+        // Stone floor tiles
+        ctx.strokeStyle = '#2F1B14';
+        ctx.lineWidth = 1;
+        for (let x = KITCHEN.BOUNDS.LEFT; x < KITCHEN.BOUNDS.RIGHT; x += 50) {
+          for (let y = KITCHEN.BOUNDS.TOP; y < KITCHEN.BOUNDS.BOTTOM; y += 50) {
+            ctx.strokeRect(x, y, 50, 50);
+          }
+        }
+        
+        // Walls with dungeon theme
+        const wallGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        wallGradient.addColorStop(0, '#2F4F4F'); // Dark slate gray
+        wallGradient.addColorStop(0.5, '#1C1C1C'); // Very dark gray
+        wallGradient.addColorStop(1, '#000000'); // Black
+        ctx.fillStyle = wallGradient;
+        ctx.fillRect(0, 0, canvas.width, KITCHEN.BOUNDS.TOP); // Top
+        ctx.fillRect(0, KITCHEN.BOUNDS.BOTTOM, canvas.width, canvas.height); // Bottom
+        ctx.fillRect(0, 0, KITCHEN.BOUNDS.LEFT, canvas.height); // Left
+        ctx.fillRect(KITCHEN.BOUNDS.RIGHT, 0, canvas.width, canvas.height); // Right
+      }
       
       // Ingredient crates (Mount Olympus dungeon style with crate.png)
       const crateSize = 80; // Good size for clear crates with fixed positioning
@@ -1820,35 +1859,47 @@
         }
       }
       
-      // Ancient Knife Block
-      const knife = KITCHEN.POSITIONS.KNIFE_BLOCK;
-      const knifeSize = 60;
+      // Ancient Cutting Board
+      const cuttingBoard = KITCHEN.POSITIONS.CUTTING_BOARD;
+      const boardImg = ASSETS.kitchen?.cuttingBoard;
+      const boardSize = 80;
       
-      // Draw knife block as stone pedestal with blades
-      const knifeGradient = ctx.createLinearGradient(knife.x - knifeSize/2, knife.y - knifeSize/2, 
-                                                    knife.x + knifeSize/2, knife.y + knifeSize/2);
-      knifeGradient.addColorStop(0, '#696969'); // Dim gray (stone)
-      knifeGradient.addColorStop(0.5, '#2F4F4F'); // Dark slate gray
-      knifeGradient.addColorStop(1, '#000000'); // Black
-      ctx.fillStyle = knifeGradient;
-      ctx.fillRect(knife.x - knifeSize/2, knife.y - knifeSize/2, knifeSize, knifeSize);
+      if (boardImg && ASSETS.loaded) {
+        // Draw cutting board sprite
+        ctx.drawImage(
+          boardImg,
+          cuttingBoard.x - boardSize/2,
+          cuttingBoard.y - boardSize/2,
+          boardSize,
+          boardSize
+        );
+      } else {
+        // Fallback cutting board appearance - wooden surface
+        const boardGradient = ctx.createLinearGradient(cuttingBoard.x - boardSize/2, cuttingBoard.y - boardSize/2, 
+                                                      cuttingBoard.x + boardSize/2, cuttingBoard.y + boardSize/2);
+        boardGradient.addColorStop(0, '#D2B48C'); // Tan (wood)
+        boardGradient.addColorStop(0.5, '#CD853F'); // Peru
+        boardGradient.addColorStop(1, '#8B4513'); // Saddle brown
+        ctx.fillStyle = boardGradient;
+        ctx.fillRect(cuttingBoard.x - boardSize/2, cuttingBoard.y - boardSize/2, boardSize, boardSize);
+        
+        // Draw cutting marks
+        ctx.strokeStyle = '#654321';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 5; i++) {
+          ctx.beginPath();
+          ctx.moveTo(cuttingBoard.x - 20 + Math.random() * 40, cuttingBoard.y - 20);
+          ctx.lineTo(cuttingBoard.x - 15 + Math.random() * 30, cuttingBoard.y + 20);
+          ctx.stroke();
+        }
+      }
       
-      // Draw knife handles sticking out
-      for (let i = 0; i < 3; i++) {
-        const handleX = knife.x - 15 + (i * 15);
-        const handleY = knife.y - 20;
-        
-        // Handle
-        ctx.fillStyle = '#8B4513'; // Saddle brown
-        ctx.fillRect(handleX - 2, handleY, 4, 15);
-        
-        // Blade glint
-        ctx.strokeStyle = game.hasKnife ? '#C0C0C0' : '#E6E6FA'; // Silver or lavender
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(handleX, handleY - 5);
-        ctx.lineTo(handleX, handleY - 15);
-        ctx.stroke();
+      // Interaction highlight
+      if (game.player.currentZone === 'cutting_board') {
+        ctx.strokeStyle = '#FFD700';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(cuttingBoard.x - boardSize/2 - 5, cuttingBoard.y - boardSize/2 - 5, 
+                      boardSize + 10, boardSize + 10);
       }
       
       // Labels
@@ -1864,18 +1915,36 @@
       ctx.font = 'bold 12px Cinzel, serif';
       ctx.fillText('DIVINE OVEN', oven.x, oven.y + 55);
       if (game.cookingItem) {
-        ctx.fillStyle = '#FF6347'; // Tomato red for cooking status
-        ctx.font = '10px Cinzel, serif';
-        ctx.fillText(`Cooking ${game.cookingItem}...`, oven.x, oven.y + 70);
+        if (game.cookingTimer > 0) {
+          const timeLeft = Math.ceil(game.cookingTimer / 1000);
+          ctx.fillStyle = '#FF6347'; // Tomato red for cooking status
+          ctx.font = '10px Cinzel, serif';
+          ctx.fillText(`Cooking ${game.cookingItem}... ${timeLeft}s`, oven.x, oven.y + 70);
+          
+          // Cooking progress bar
+          const barWidth = 60;
+          const barHeight = 6;
+          const progress = 1 - (game.cookingTimer / game.cookingDuration);
+          
+          ctx.fillStyle = '#8B4513';
+          ctx.fillRect(oven.x - barWidth/2, oven.y + 75, barWidth, barHeight);
+          
+          ctx.fillStyle = '#32CD32';
+          ctx.fillRect(oven.x - barWidth/2, oven.y + 75, barWidth * progress, barHeight);
+        } else {
+          ctx.fillStyle = '#32CD32'; // Green when ready
+          ctx.font = '10px Cinzel, serif';
+          ctx.fillText(`${game.cookingItem} ready! Press V`, oven.x, oven.y + 70);
+        }
       }
       
-      ctx.fillStyle = game.hasKnife ? '#32CD32' : '#FFD700'; // Green if acquired, gold if not
+      ctx.fillStyle = '#FFD700'; // Gold for divine stations
       ctx.font = 'bold 12px Cinzel, serif';
-      ctx.fillText('BLADE PEDESTAL', knife.x, knife.y + 45);
-      if (game.hasKnife) {
-        ctx.fillStyle = '#90EE90'; // Light green
+      ctx.fillText('CUTTING BOARD', cuttingBoard.x, cuttingBoard.y + 55);
+      if (game.player.currentZone === 'cutting_board' && game.player.carrying) {
+        ctx.fillStyle = '#32CD32'; // Green when ready to cut
         ctx.font = '10px Cinzel, serif';
-        ctx.fillText('Ancient Blade Acquired', knife.x, knife.y + 60);
+        ctx.fillText('Press E to slice', cuttingBoard.x, cuttingBoard.y + 70);
       }
     }
     
@@ -2612,15 +2681,15 @@
           AUDIO.playTimeout(); // Audio feedback
           game.plate = []; // Clear plate
           
-          // Simple customer transition - no scrambling
+          // Simple customer transition - NO SCRAMBLING
           game.customerState = 'walking_out';
           setTimeout(() => {
-            // Move to next customer in ordered sequence (no random shuffling on timeout)
-            if (game.shuffledCustomers.length === 0) {
-              game.shuffledCustomers = shuffleCustomers();
-            }
-            game.currentCustomer = game.shuffledCustomers[game.customerIndex % game.shuffledCustomers.length];
+            // Simple ordered progression - no re-shuffling on timeout
             game.customerIndex++;
+            if (game.customerIndex >= game.shuffledCustomers.length) {
+              game.customerIndex = 0; // Loop back to start of shuffled list
+            }
+            game.currentCustomer = game.shuffledCustomers[game.customerIndex];
             
             // Get next riddle for this customer
             const levelRiddles = RIDDLES.filter(r => r.level === game.level);
@@ -2628,8 +2697,7 @@
             
             if (available.length === 0) {
               game.usedRiddles = [];
-              const freshRiddles = levelRiddles.filter(r => !game.usedRiddles.includes(r.id));
-              game.currentRiddle = randomChoice(freshRiddles);
+              game.currentRiddle = randomChoice(levelRiddles);
             } else {
               game.currentRiddle = randomChoice(available);
             }
@@ -2645,7 +2713,7 @@
             game.customerPosition.y = KITCHEN.CUSTOMER_AREA.ENTRANCE_Y;
             game.customerAnimation = 0;
             
-            console.log(`🎭 Next customer: ${game.currentCustomer.name} with riddle: ${game.currentRiddle.text.substring(0, 30)}...`);
+            console.log(`🎭 Next customer: ${game.currentCustomer.name} (index: ${game.customerIndex}) with riddle: ${game.currentRiddle.text.substring(0, 30)}...`);
           }, 2500); // Give time for walking animation
         }
       }
@@ -2673,10 +2741,6 @@
         handleDelivery();
       }
       
-      if (input.wasPressed('c')) {
-        handleCutting();
-      }
-      
       if (input.wasPressed('v')) {
         handleOvenRetrieve();
       }
@@ -2690,6 +2754,18 @@
       }
       if (game.deliveryDebounce > 0) {
         game.deliveryDebounce -= deltaTime;
+      }
+      
+      // Update cooking timer
+      if (game.cookingTimer > 0) {
+        game.cookingTimer -= deltaTime;
+        if (game.cookingTimer <= 0) {
+          game.cookingTimer = 0;
+          if (game.cookingItem) {
+            showToast(`${game.cookingItem} finished cooking! Press V to retrieve`);
+            AUDIO.playSuccess(); // Sound when cooking completes
+          }
+        }
       }
     }
     
@@ -2870,6 +2946,7 @@
       KITCHEN.POSITIONS.BINS.egg.y = window.innerHeight - 180;
       KITCHEN.POSITIONS.BINS.pepper.x = Math.max(850, window.innerWidth * 0.6);
       KITCHEN.POSITIONS.BINS.pepper.y = window.innerHeight - 180;
+      KITCHEN.POSITIONS.CUTTING_BOARD.x = window.innerWidth - 250;
       
       console.log(`🖥️ Canvas resized to: ${canvas.width}x${canvas.height} - positioning fixed`);
     }
