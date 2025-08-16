@@ -74,28 +74,17 @@ function renderCustomers() {
     ctx.strokeRect(game.customerPosition.x - 40, game.customerPosition.y - 60, 80, 120);
   }
   
-  // Customer name plaque with stone carving appearance
-  const nameWidth = Math.max(140, game.currentCustomer.name.length * 8);
-  const nameHeight = 25;
+  // Customer name (no gray box background)
   const nameY = game.customerPosition.y + 90;
   
-  // Stone plaque background
-  ctx.fillStyle = '#696969'; // Dim gray (stone)
-  ctx.fillRect(game.customerPosition.x - nameWidth/2, nameY, nameWidth, nameHeight);
-  
-  // Carved border
-  ctx.strokeStyle = '#2F4F4F'; // Dark slate gray
-  ctx.lineWidth = 2;
-  ctx.strokeRect(game.customerPosition.x - nameWidth/2, nameY, nameWidth, nameHeight);
-  
-  // Customer name with carved text appearance
+  // Customer name with elegant floating text
   ctx.fillStyle = '#FFD700'; // Gold
-  ctx.font = 'bold 14px Cinzel, serif';
+  ctx.font = 'bold 16px Cinzel, serif';
   ctx.textAlign = 'center';
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 1;
-  ctx.strokeText(game.currentCustomer.name, game.customerPosition.x, nameY + 17);
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+  ctx.shadowBlur = 4;
   ctx.fillText(game.currentCustomer.name, game.customerPosition.x, nameY + 17);
+  ctx.shadowBlur = 0;
   
   // Speech bubble for customer messages
   if (game.customerMessage && game.messageTimer > 0) {
@@ -193,15 +182,19 @@ function renderUI() {
     renderStoryPanel();
   }
   
-  // Toast messages (no black boxes - just floating text)
+  // Toast messages (positioned below table)
   if (game.toastMessage && game.toastTimer > 0) {
+    // Position below table area
+    const tableY = Math.max(420, canvas.height * 0.45);
+    const toastY = tableY + 180; // Below the table
+    
     ctx.fillStyle = '#FFD700';
     ctx.font = 'bold 20px Cinzel, serif';
     ctx.textAlign = 'center';
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
     ctx.lineWidth = 3;
-    ctx.strokeText(game.toastMessage, canvas.width/2, canvas.height/2);
-    ctx.fillText(game.toastMessage, canvas.width/2, canvas.height/2);
+    ctx.strokeText(game.toastMessage, canvas.width/2, toastY);
+    ctx.fillText(game.toastMessage, canvas.width/2, toastY);
   }
   
   // Controls (bottom)
@@ -344,16 +337,44 @@ function renderDeveloperButton() {
   
   // Developer button functionality
   if (input.wasPressed('f9')) {
-    // Fast-forward to next level
-    if (game.currentLevel < 4) {
-      const targetScore = getNextLevelScore();
-      game.score = targetScore;
-      showToast(`🚀 DEV: Jumped to Level ${game.currentLevel + 1}!`);
-    } else {
+    // Fast-forward to next level by adding points and triggering level progression
+    const oldLevel = game.currentLevel;
+    
+    if (game.currentLevel === 1) {
+      // Add points to reach Level 2
+      game.score = CONFIG.LEVEL_2_SCORE;
+      game.levelScore = CONFIG.LEVEL_2_SCORE;
+      game.currentLevel = 2;
+      game.timer = CONFIG.LEVEL_2_TIME;
+      showToast(`🚀 DEV: Advanced to Level 2!`);
+    } else if (game.currentLevel === 2) {
+      // Add points to reach Level 3
+      game.score = CONFIG.LEVEL_3_SCORE;
+      game.levelScore = CONFIG.LEVEL_3_SCORE;
+      game.currentLevel = 3;
+      game.timer = CONFIG.LEVEL_3_TIME;
+      showToast(`🚀 DEV: Advanced to Level 3!`);
+    } else if (game.currentLevel === 3) {
+      // Add points to reach Level 4 (Fates)
+      game.score = CONFIG.LEVEL_4_SCORE;
+      game.levelScore = CONFIG.LEVEL_4_SCORE;
+      game.currentLevel = 4;
+      game.timer = CONFIG.LEVEL_4_TIME;
+      showToast(`🚀 DEV: Advanced to Level 4 (Fates)!`);
+    } else if (game.currentLevel === 4) {
+      // Complete the game
       game.score = CONFIG.WIN_SCORE;
       game.state = 'won';
       showToast(`🚀 DEV: Game completed!`);
     }
+    
+    // Trigger new customer for the new level
+    if (game.currentLevel !== oldLevel && game.state === 'playing') {
+      shuffleCustomers();
+      nextRiddle();
+    }
+    
+    console.log(`🚀 DEV BUTTON: Advanced from Level ${oldLevel} to Level ${game.currentLevel} with score ${game.score}`);
   }
 }
 
