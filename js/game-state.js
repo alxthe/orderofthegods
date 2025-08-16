@@ -93,6 +93,11 @@ const game = {
   cookingTimer: 0,            // Timer for cooking (3 seconds = 3000ms)
   cookingDuration: 3000,      // How long items take to cook
   
+  // New Cutting Mechanics
+  cuttingItem: null,          // Item currently being cut on cutting board
+  cuttingTimer: 0,            // Timer for cutting (3 seconds = 3000ms)
+  cuttingDuration: 3000,      // How long items take to cut
+  
   // Anti-scrambling protection
   processingNextRiddle: false, // Prevent multiple nextRiddle() calls
   

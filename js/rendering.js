@@ -670,7 +670,31 @@ function renderKitchenLabels() {
   ctx.fillStyle = '#FFD700'; // Gold for divine stations
   ctx.font = 'bold 12px Cinzel, serif';
   ctx.fillText('CUTTING BOARD', cuttingBoard.x, cuttingBoard.y + 55);
-  if (game.player.currentZone === 'cutting_board' && game.player.carrying) {
+  
+  // Cutting status
+  if (game.cuttingItem) {
+    if (game.cuttingTimer > 0) {
+      const timeLeft = Math.ceil(game.cuttingTimer / 1000);
+      ctx.fillStyle = '#FF6347'; // Tomato red for cutting status
+      ctx.font = '10px Cinzel, serif';
+      ctx.fillText(`Cutting ${game.cuttingItem}... ${timeLeft}s`, cuttingBoard.x, cuttingBoard.y + 70);
+      
+      // Cutting progress bar
+      const barWidth = 60;
+      const barHeight = 6;
+      const progress = 1 - (game.cuttingTimer / game.cuttingDuration);
+      
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(cuttingBoard.x - barWidth/2, cuttingBoard.y + 75, barWidth, barHeight);
+      
+      ctx.fillStyle = '#32CD32';
+      ctx.fillRect(cuttingBoard.x - barWidth/2, cuttingBoard.y + 75, barWidth * progress, barHeight);
+    } else {
+      ctx.fillStyle = '#32CD32'; // Green when ready
+      ctx.font = '10px Cinzel, serif';
+      ctx.fillText(`${game.cuttingItem} ready! Press E`, cuttingBoard.x, cuttingBoard.y + 70);
+    }
+  } else if (game.player.currentZone === 'cutting_board' && game.player.carrying) {
     ctx.fillStyle = '#32CD32'; // Green when ready to cut
     ctx.font = '10px Cinzel, serif';
     ctx.fillText('Press E to slice', cuttingBoard.x, cuttingBoard.y + 70);

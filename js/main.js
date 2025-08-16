@@ -137,6 +137,18 @@ function update(deltaTime) {
       }
     }
   }
+  
+  // Update cutting timer
+  if (game.cuttingTimer > 0) {
+    game.cuttingTimer -= deltaTime;
+    if (game.cuttingTimer <= 0) {
+      game.cuttingTimer = 0;
+      if (game.cuttingItem) {
+        showToast(`${game.cuttingItem} finished cutting! Press E to retrieve`);
+        AUDIO.playSuccess(); // Sound when cutting completes
+      }
+    }
+  }
 }
 
 // FPS calculation

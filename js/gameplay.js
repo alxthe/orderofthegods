@@ -168,6 +168,15 @@ function nextRiddle() {
   game.customerPosition.y = KITCHEN.CUSTOMER_AREA.ENTRANCE_Y;
   game.customerAnimation = 0;
   
+  // Level 1: Activate Medusa's freeze power when she arrives
+  if (game.currentLevel === 1 && game.currentCustomer?.id === 'medusa') {
+    showToast("🐍 MEDUSA approaches! Beware her petrifying gaze!");
+    setTimeout(() => {
+      activateSpecialPower('freeze', 2000); // 2 second freeze
+      console.log("🐍 MEDUSA'S POWER: Player frozen!");
+    }, 1500); // Delayed for warning
+  }
+  
   // Level 2: Activate special powers when heroes arrive
   if (game.currentLevel === 2) {
     const heroId = game.currentCustomer?.id;
@@ -254,20 +263,29 @@ function handleInteraction() {
   // At cutting board
   else if (zone === 'cutting_board') {
     if (player.carrying) {
-      // Cut the item directly at the cutting board - only certain items can be cut
       const ingredient = player.carrying;
       const cuttableItems = ['tomato', 'cheese', 'avocado', 'pepper'];
       
       if (cuttableItems.includes(ingredient)) {
-        player.carrying = `cut_${ingredient}`;
-        showToast(`Sliced ${ingredient} on ancient cutting board!`);
-        console.log(`Cut ${ingredient} into cut_${ingredient}`);
-        AUDIO.playPlace(); // Cutting sound
+        game.cuttingItem = ingredient;
+        game.cuttingTimer = game.cuttingDuration; // Start 3-second cutting timer
+        player.carrying = null;
+        showToast(`${game.cuttingItem} cutting... 3 seconds (E to retrieve)`);
+        console.log(`Started cutting: ${game.cuttingItem} for ${game.cuttingDuration}ms`);
+        AUDIO.playPlace();
       } else {
         showToast(`${ingredient} cannot be cut! (Only: tomato, cheese, avocado, pepper)`);
       }
+    } else if (game.cuttingItem) {
+      const timeLeft = Math.ceil(game.cuttingTimer / 1000);
+      if (timeLeft > 0) {
+        showToast(`Still cutting... ${timeLeft}s remaining`);
+      } else {
+        // Item is done cutting, retrieve it
+        handleCuttingRetrieve();
+      }
     } else {
-      showToast("Bring ingredient to cutting board to slice");
+      showToast("Place ingredient to cut");
     }
   }
   
@@ -369,6 +387,38 @@ function handleOvenRetrieve() {
   AUDIO.playPickup();
 }
 
+// Cutting board retrieval function (E key at cutting board when done)
+function handleCuttingRetrieve() {
+  if (game.player.currentZone !== 'cutting_board') {
+    showToast("Go to cutting board to retrieve cut items");
+    return;
+  }
+  
+  if (!game.cuttingItem) {
+    showToast("Nothing cutting on cutting board");
+    return;
+  }
+  
+  if (game.cuttingTimer > 0) {
+    const timeLeft = Math.ceil(game.cuttingTimer / 1000);
+    showToast(`Still cutting! Wait ${timeLeft} more seconds`);
+    return;
+  }
+  
+  if (game.player.carrying) {
+    showToast("Hands full! Can't retrieve from cutting board");
+    return;
+  }
+  
+  const cutItem = `cut_${game.cuttingItem}`;
+  game.player.carrying = cutItem;
+  showToast(`Retrieved ${cutItem} from ancient cutting board!`);
+  console.log(`Retrieved: ${cutItem}`);
+  game.cuttingItem = null;
+  game.cuttingTimer = 0;
+  AUDIO.playPickup();
+}
+
 // Delivery function
 function handleDelivery() {
   if (game.player.currentZone !== 'counter') {
@@ -426,10 +476,7 @@ function handleDelivery() {
       return;
     }
     
-    // Activate special power for Level 1 Medusa
-    if (game.currentLevel === 1 && game.currentCustomer?.id === 'medusa') {
-      activateSpecialPower('freeze', 2000); // 2 second freeze
-    }
+
     
     // Customer walks out, then next riddle
     game.customerState = 'walking_out';
@@ -703,7 +750,6 @@ function startGame() {
   nextRiddle();
   
   console.log('🏛️ Order of the Gods - Level 1 begins! Gracious time to learn...');
-  showToast("The iron collar tightens... Your trial in the Feast Hall begins!");
 }
 
 console.log("✅ Gameplay system loaded");
