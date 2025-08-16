@@ -205,7 +205,8 @@
       kitchen: {
         oven: 'assets/oven.png',           // Divine cooking station!
         cuttingBoard: 'assets/cutting-board.png',  // Ancient cutting board!
-        feastHall: 'assets/feast-hall.png'  // Background enhancement!
+        feastHall: 'assets/feast-hall.png',  // Background enhancement!
+        olympus: 'assets/olympus.png'      // Olympus background for gods!
       },
       cutIngredients: {
         cut_tomato: 'assets/cut-tomato.png',
@@ -463,19 +464,19 @@
     // All riddles for the game
     const RIDDLES = [
       // LEVEL 1 - Simple COUNT riddles (22 seconds)
-      { id: "l1_1", text: "Golden grain blessed by Demeter with vine's crimson blood", type: "COUNT", level: 1, 
+      { id: "l1_1", text: "1 bread + 1 tomato", type: "COUNT", level: 1, 
         counts: { bread: 1, tomato: 1 }},
-      { id: "l1_2", text: "Hunter's prize paired with the cow's sacred gift", type: "COUNT", level: 1,
+      { id: "l1_2", text: "1 meat + 1 cheese", type: "COUNT", level: 1,
         counts: { meat: 1, cheese: 1 }},
-      { id: "l1_3", text: "Zeus's forbidden treasure touched by flame's essence", type: "COUNT", level: 1,
+      { id: "l1_3", text: "1 egg + 1 pepper", type: "COUNT", level: 1,
         counts: { egg: 1, pepper: 1 }},
-      { id: "l1_4", text: "Twin grains with single crimson orb", type: "COUNT", level: 1,
+      { id: "l1_4", text: "2 bread + 1 tomato", type: "COUNT", level: 1,
         counts: { bread: 2, tomato: 1 }},
-      { id: "l1_5", text: "Double moon's gift crowning the beast", type: "COUNT", level: 1,
+      { id: "l1_5", text: "2 cheese + 1 meat", type: "COUNT", level: 1,
         counts: { cheese: 2, meat: 1 }},
-      { id: "l1_6", text: "Sacred envelope: grain embraces cow's craft", type: "SANDWICH", level: 1,
+      { id: "l1_6", text: "SANDWICH: bread + cheese + bread", type: "SANDWICH", level: 1,
         sandwich: ["bread", "cheese", "bread"]},
-      { id: "l1_7", text: "Divine cradle: bread shelters vine's blood", type: "SANDWICH", level: 1,
+      { id: "l1_7", text: "SANDWICH: bread + tomato + bread", type: "SANDWICH", level: 1,
         sandwich: ["bread", "tomato", "bread"]},
       { id: "l1_8", text: "Trinity of lunar discs", type: "COUNT", level: 1,
         counts: { cheese: 3 }},
@@ -552,19 +553,12 @@
     ];
     
     // Customer database
-    const CUSTOMERS = [
+    // Trial 1: Mythological Creatures (0-10 points)
+    const CREATURES = [
       { id: "minotaur", name: "Minotaur", 
         success: ["The labyrinth rests.", "Straight through.", "Your path is clear."],
         failure: ["Lost already?", "Wrong turn taken.", "The maze claims you."], 
         timeout: ["The maze does not wait.", "Time traps the lost.", "Choose swiftly."]},
-      { id: "medusa", name: "Medusa",
-        success: ["Stone-cold perfect.", "Acceptable gaze.", "Your eyes see truth."],
-        failure: ["You froze.", "Turned to failure.", "Gaze upon your mistake."],
-        timeout: ["Petrified by seconds?", "Time turns you to stone.", "Hesitation kills."]},
-      { id: "hermes", name: "Hermes",
-        success: ["Swift and sure.", "Wings approved.", "Speed and precision unite."],
-        failure: ["Outpaced again.", "Too slow, mortal.", "Haste without thought."],
-        timeout: ["Wings beat you.", "Swift time escapes.", "The messenger departs."]},
       { id: "sphinx", name: "Sphinx",
         success: ["Your mind is awake.", "The riddle yields.", "Wisdom is shown."],
         failure: ["Answer me properly.", "Your mind falters.", "Think harder, mortal."],
@@ -573,10 +567,6 @@
         success: ["Wings of satisfaction.", "Sky-high approval.", "Divine flight achieved."],
         failure: ["Grounded by error.", "Wings clipped.", "Fall from grace."],
         timeout: ["Time flies away.", "Swift as wind departs.", "The sky cannot wait."]},
-      { id: "poseidon", name: "Poseidon",
-        success: ["The seas are pleased.", "Tidal perfection.", "Oceanic approval flows."],
-        failure: ["The depths are angry.", "Storms brew from failure.", "Poseidon's wrath rises."],
-        timeout: ["The tide waits not.", "Waves of time crash over.", "The ocean reclaims all."]},
       { id: "ghost", name: "Restless Spirit",
         success: ["The veil shivers.", "Peace flows.", "Rest is granted."],
         failure: ["Whispers say no.", "Unrest grows.", "The dead are displeased."],
@@ -586,10 +576,40 @@
         failure: ["The lion roars, goat screams, serpent spits!", "Three minds in chaos.", "Disagreement breeds fury."],
         timeout: ["Three heads, three opinions, three times the impatience.", "Chimera cannot wait.", "Beast's patience expires."]}
     ];
+
+    // Trial 2: Greek Gods (10+ points) 
+    const GODS = [
+      { id: "medusa", name: "Medusa",
+        success: ["Stone-cold perfect.", "Acceptable gaze.", "Your eyes see truth."],
+        failure: ["You froze.", "Turned to failure.", "Gaze upon your mistake."],
+        timeout: ["Petrified by seconds?", "Time turns you to stone.", "Hesitation kills."]},
+      { id: "hermes", name: "Hermes",
+        success: ["Swift and sure.", "Wings approved.", "Speed and precision unite."],
+        failure: ["Outpaced again.", "Too slow, mortal.", "Haste without thought."],
+        timeout: ["Wings beat you.", "Swift time escapes.", "The messenger departs."]},
+      { id: "poseidon", name: "Poseidon",
+        success: ["The seas are pleased.", "Tidal perfection.", "Oceanic approval flows."],
+        failure: ["The depths are angry.", "Storms brew from failure.", "Poseidon's wrath rises."],
+        timeout: ["The tide waits not.", "Waves of time crash over.", "The ocean reclaims all."]},
+      { id: "zeus", name: "Zeus",
+        success: ["Thunder rumbles approval.", "Lightning strikes satisfaction.", "The sky king is pleased."],
+        failure: ["Storm clouds gather.", "Lightning of wrath!", "Zeus's anger shakes Olympus."],
+        timeout: ["Divine patience ends.", "Thunder crashes time away.", "Zeus waits for no mortal."]},
+      { id: "hera", name: "Hera",
+        success: ["The queen approves.", "Royal satisfaction.", "Hera's grace shines."],
+        failure: ["Royal displeasure.", "The queen's scorn burns.", "Unworthy of Olympus."],
+        timeout: ["Queens do not wait.", "Royal time is precious.", "Hera's patience expires."]}
+    ];
+
+    // Get current customer pool based on trial
+    function getCurrentCustomers() {
+      return game.trial === 1 ? CREATURES : GODS;
+    }
     
-    // Randomize customer order for each game
+    // Randomize customer order for each trial
     function shuffleCustomers() {
-      const shuffled = [...CUSTOMERS];
+      const currentCustomers = getCurrentCustomers();
+      const shuffled = [...currentCustomers];
       for (let i = shuffled.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
@@ -597,7 +617,7 @@
       return shuffled;
     }
     
-    console.log(`✅ Loaded ${RIDDLES.length} riddles and ${CUSTOMERS.length} customers`);
+    console.log(`✅ Loaded ${RIDDLES.length} riddles, ${CREATURES.length} creatures, and ${GODS.length} gods`);
     
     // =============================================================================
     // GAME STATE
@@ -647,9 +667,10 @@
       toastMessage: '',           // Current toast message
       toastTimer: 0,              // How long to show toast
       
-      // Progressive Story System
-      night: 1,                   // Current night of eternal servitude
-      totalPoints: 0,             // Total points across all nights for story progression
+      // Progressive Trial System
+      trial: 1,                   // Current trial (1=creatures, 2=gods)
+      trialPoints: 0,             // Points in current trial
+      totalPoints: 0,             // Total points across all trials for story progression
       storyUnlocked: [],          // Array of unlocked story fragment IDs
       collarCracks: 0,            // Visual collar progression (0-5 cracks)
       showingStory: false,        // Whether story panel is currently displayed
@@ -1282,11 +1303,12 @@
       if (result.success) {
         // Success!
         game.score++;
+        game.trialPoints++;
         game.totalPoints++; // Track total points for story progression
         game.customerMessage = randomChoice(game.currentCustomer.success);
         game.messageTimer = 2000;
         showToast("Correct! +1 point");
-        console.log(`SUCCESS! Score: ${game.score}`);
+        console.log(`SUCCESS! Trial ${game.trial} - Score: ${game.trialPoints}/10`);
         AUDIO.playSuccess(); // Phase 3 - Audio feedback
         
         // Update god relationship (positive)
@@ -1298,11 +1320,18 @@
         // Check for level up
         updateLevel();
         
-        // Check for win
-        if (game.score >= CONFIG.WIN_SCORE) {
-          game.state = 'won';
-          console.log("GAME WON!");
-          return;
+        // Check for trial completion (10 points per trial)
+        if (game.trialPoints >= 10) {
+          if (game.trial === 1) {
+            // Advance to Trial 2: Gods
+            advanceToTrial2();
+            return;
+          } else {
+            // Won the game after completing Trial 2
+            game.state = 'won';
+            console.log("GAME WON! Completed both trials!");
+            return;
+          }
         }
         
         // Customer walks out, then next riddle
@@ -1335,73 +1364,73 @@
     
     // Add simple and clear cooking riddles
     const ADVANCED_RIDDLES = [
-      // Level 2 - Simple cutting challenges
+      // Level 1 - Super simple cutting
       {
         id: 'cut_tomato_basic',
-        text: "SLICE: 1 tomato (use cutting board)",
-        level: 2,
+        text: "SLICE 1 tomato",
+        level: 1,
         type: "COOKING",
         required: ["cut_tomato"],
-        timeBonus: 10 // Extra time for preparation
+        timeBonus: 10
       },
       {
         id: 'cut_cheese_simple',
-        text: "SLICE: 1 cheese (use cutting board)",
-        level: 2,
+        text: "SLICE 1 cheese",
+        level: 1,
         type: "COOKING", 
         required: ["cut_cheese"],
         timeBonus: 10
       },
       
-      // Level 2 - Simple cooking challenges
+      // Level 1 - Super simple cooking
       {
         id: 'cooked_meat_basic',
-        text: "COOK: 1 meat (use oven, wait 3 seconds)",
-        level: 2,
+        text: "COOK 1 meat",
+        level: 1,
         type: "COOKING",
         required: ["cooked_meat"],
-        timeBonus: 15 // More time for cooking
+        timeBonus: 15
       },
       {
         id: 'cooked_egg_basic',
-        text: "COOK: 1 egg (use oven, wait 3 seconds)",
-        level: 2,
+        text: "COOK 1 egg",
+        level: 1,
         type: "COOKING",
         required: ["cooked_egg"],
         timeBonus: 15
       },
-      
-      // Level 3 - Mixed preparation (simple combinations)
-      {
-        id: 'meat_bread_combo',
-        text: "COOK meat + raw bread (cook the meat, bread stays raw)",
-        level: 3,
-        type: "COOKING",
-        required: ["cooked_meat", "bread"],
-        timeBonus: 20
-      },
-      {
-        id: 'tomato_cheese_combo',
-        text: "SLICE tomato + SLICE cheese (both need cutting board)",
-        level: 3,
-        type: "COOKING",
-        required: ["cut_tomato", "cut_cheese"],
-        timeBonus: 15
-      },
       {
         id: 'pepper_slice_basic',
-        text: "SLICE: 1 pepper (use cutting board)",
-        level: 2,
+        text: "SLICE 1 pepper",
+        level: 1,
         type: "COOKING",
         required: ["cut_pepper"],
         timeBonus: 10
       },
       {
         id: 'cooked_bacon_basic',
-        text: "COOK: 1 bacon (use oven, wait 3 seconds)",
-        level: 2,
+        text: "COOK 1 bacon",
+        level: 1,
         type: "COOKING",
         required: ["cooked_bacon"],
+        timeBonus: 15
+      },
+      
+      // Level 2 - Simple combos
+      {
+        id: 'meat_bread_combo',
+        text: "COOKED meat + bread",
+        level: 2,
+        type: "COOKING",
+        required: ["cooked_meat", "bread"],
+        timeBonus: 20
+      },
+      {
+        id: 'tomato_cheese_combo',
+        text: "SLICED tomato + SLICED cheese",
+        level: 2,
+        type: "COOKING",
+        required: ["cut_tomato", "cut_cheese"],
         timeBonus: 15
       }
     ];
@@ -1532,27 +1561,35 @@
       }
     }
     
-    // Advance to next night
-    function advanceNight() {
-      game.night++;
-      game.score = 0; // Reset score for new night
-      showToast(`🌙 Night ${game.night} of eternal servitude begins...`);
+    // Advance to Trial 2: Greek Gods
+    function advanceToTrial2() {
+      game.trial = 2;
+      game.trialPoints = 0; // Reset trial score
+      game.score = 0; // Reset display score
+      game.level = 1; // Reset level for new trial
       
-      // Show night transition story
-      const nightStories = {
-        2: "Dawn never came. The collar dragged you back to the kitchen as the gods demand more.",
-        3: "Your skill grows, but so does their hunger. The trials intensify.",
-        4: "Whispers speak of ancient laws... perhaps a way to earn freedom through excellence.",
-        5: "The collar grows lighter with each crack. Freedom feels close, yet so distant."
+      showToast("🏛️ TRIAL 2: Now you serve the Greek Gods!");
+      console.log("🏛️ Advanced to Trial 2: Greek Gods");
+      
+      // Re-shuffle customers for new trial (now gods)
+      game.shuffledCustomers = shuffleCustomers();
+      game.customerIndex = 0;
+      
+      // Show transition story
+      game.storyPanel = {
+        title: "Trial 2: The Gods of Olympus",
+        text: "The creatures bow away as thunder rumbles. Zeus himself descends from Olympus with his divine court. Your trials now face the gods themselves. Prove yourself worthy of freedom."
       };
+      game.showingStory = true;
       
-      if (nightStories[game.night]) {
-        game.storyPanel = {
-          title: `Night ${game.night}`,
-          text: nightStories[game.night]
-        };
-        game.showingStory = true;
-      }
+      // Start next riddle with gods
+      setTimeout(() => nextRiddle(), 3000);
+    }
+    
+    // Advance to next night (keeping old function for compatibility)
+    function advanceNight() {
+      game.trial++;
+      showToast(`🌙 Trial ${game.trial} begins...`);
     }
     
     // =============================================================================
@@ -1561,12 +1598,12 @@
     
     // Render kitchen layout
     function renderKitchen() {
-      // Background - try to use feast hall image first
-      const feastHallImg = ASSETS.kitchen?.feastHall;
+      // Background - use olympus for Trial 2, feast hall for Trial 1
+      const backgroundImg = game.trial === 2 ? ASSETS.kitchen?.olympus : ASSETS.kitchen?.feastHall;
       
-      if (feastHallImg && ASSETS.loaded) {
-        // Draw feast hall background scaled to fit screen
-        ctx.drawImage(feastHallImg, 0, 0, canvas.width, canvas.height);
+      if (backgroundImg && ASSETS.loaded) {
+        // Draw background scaled to fit screen
+        ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
         
         // Add overlay for kitchen area definition
         ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
@@ -1683,16 +1720,15 @@
         ctx.strokeText(ingredient.toUpperCase(), pos.x, labelY + 16);
         ctx.fillText(ingredient.toUpperCase(), pos.x, labelY + 16);
         
-        // Golden interaction highlight with divine glow
+        // Subtle glow when player is near (no box)
         if (game.player.currentZone === `bin_${ingredient.toLowerCase()}`) {
-          ctx.strokeStyle = '#FFD700';
-          ctx.lineWidth = 4;
-          ctx.setLineDash([5, 5]);
+          // Just add a subtle text glow effect
+          ctx.fillStyle = '#FFD700';
+          ctx.font = 'bold 14px Cinzel, serif';
+          ctx.textAlign = 'center';
           ctx.shadowColor = '#FFD700';
-          ctx.shadowBlur = 20;
-          ctx.strokeRect(pos.x - crateSize/2 - 8, pos.y - crateSize/2 - 8, 
-                        crateSize + 16, crateSize + 16);
-          ctx.setLineDash([]);
+          ctx.shadowBlur = 10;
+          ctx.fillText(`Press E for ${ingredient}`, pos.x, pos.y + crateSize/2 + 40);
           ctx.shadowBlur = 0;
           
           // Divine particles effect
@@ -2368,16 +2404,20 @@
       ctx.lineWidth = 2;
       ctx.strokeRect(6, 6, canvas.width - 12, 108);
       
-      // Ancient score display (top-right)
+      // Trial progress display (top-right)
       ctx.fillStyle = '#DAA520'; // Dark goldenrod
       ctx.font = 'bold 22px Cinzel, serif';
       ctx.textAlign = 'right';
       ctx.strokeStyle = '#654321';
       ctx.lineWidth = 2;
-      ctx.strokeText(`Souls Served: ${game.score}/${CONFIG.WIN_SCORE}`, canvas.width - 20, 35);
-      ctx.fillText(`Souls Served: ${game.score}/${CONFIG.WIN_SCORE}`, canvas.width - 20, 35);
-      ctx.strokeText(`Trial Level: ${game.level}`, canvas.width - 20, 60);
-      ctx.fillText(`Trial Level: ${game.level}`, canvas.width - 20, 60);
+      ctx.strokeText(`Trial ${game.trial}: ${game.trialPoints}/10`, canvas.width - 20, 35);
+      ctx.fillText(`Trial ${game.trial}: ${game.trialPoints}/10`, canvas.width - 20, 35);
+      
+      // Show trial type
+      const trialName = game.trial === 1 ? "Creatures" : "Gods";
+      ctx.font = 'bold 16px Cinzel, serif';
+      ctx.strokeText(trialName, canvas.width - 20, 60);
+      ctx.fillText(trialName, canvas.width - 20, 60);
       
       // Enhanced timer with ancient hourglass styling
       if (game.currentRiddle) {
@@ -2436,28 +2476,28 @@
         }
       }
       
-      // Enhanced riddle display with parchment styling
+      // Enhanced riddle display with bigger text and parchment styling
       if (game.currentRiddle) {
-        const riddleY = 85;
-        const riddleWidth = Math.min(800, game.currentRiddle.text.length * 12);
+        const riddleY = 90;
+        const riddleWidth = Math.min(1000, game.currentRiddle.text.length * 18);
         
-        // Parchment background for riddle
+        // Larger parchment background for riddle
         ctx.fillStyle = 'rgba(245, 222, 179, 0.95)'; // Wheat with transparency
-        ctx.fillRect(canvas.width/2 - riddleWidth/2, riddleY - 15, riddleWidth, 25);
+        ctx.fillRect(canvas.width/2 - riddleWidth/2, riddleY - 25, riddleWidth, 40);
         
         // Parchment border
         ctx.strokeStyle = '#D2691E';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(canvas.width/2 - riddleWidth/2, riddleY - 15, riddleWidth, 25);
+        ctx.lineWidth = 3;
+        ctx.strokeRect(canvas.width/2 - riddleWidth/2, riddleY - 25, riddleWidth, 40);
         
-        // Riddle text with ancient styling
+        // Much bigger riddle text with ancient styling
         ctx.fillStyle = '#8B4513'; // Saddle brown
-        ctx.font = 'italic 18px Crimson Text, serif';
+        ctx.font = 'bold 24px Crimson Text, serif';
         ctx.textAlign = 'center';
         ctx.strokeStyle = '#654321';
-        ctx.lineWidth = 0.5;
-        ctx.strokeText(`"${game.currentRiddle.text}"`, canvas.width/2, riddleY);
-        ctx.fillText(`"${game.currentRiddle.text}"`, canvas.width/2, riddleY);
+        ctx.lineWidth = 1;
+        ctx.strokeText(`${game.currentRiddle.text}`, canvas.width/2, riddleY);
+        ctx.fillText(`${game.currentRiddle.text}`, canvas.width/2, riddleY);
       }
       
       // Customer and message - Phase 2
