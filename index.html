@@ -97,7 +97,7 @@
       },
       POSITIONS: {
         COUNTER: { x: Math.max(640, window.innerWidth * 0.5), y: 200 },     // Centered delivery counter (responsive)
-        TABLE: { x: Math.max(640, window.innerWidth * 0.5), y: Math.max(360, window.innerHeight * 0.4) },       // Central plate assembly (responsive)
+        TABLE: { x: Math.max(640, window.innerWidth * 0.5), y: Math.max(420, window.innerHeight * 0.45) },       // Central plate assembly (responsive, moved down)
         TRASH: { x: window.innerWidth - 150, y: window.innerHeight - 150 }, // Trash bin - bottom right corner (responsive)
         OVEN: { x: 450, y: 280 },         // Divine cooking oven (left side)
         CUTTING_BOARD: { x: window.innerWidth - 250, y: 380 }, // Ancient cutting board (right side, responsive)
@@ -826,7 +826,7 @@
           this.keys[key] = true;
           
           // Prevent defaults for game keys
-          if (['w','a','s','d','e','q','x','v','enter','escape'].includes(key)) {
+          if (['w','a','s','d','e','q','x','v','enter','escape','f9'].includes(key)) {
             e.preventDefault();
           }
           
@@ -1088,15 +1088,33 @@
       // Level 2: Activate special powers when heroes arrive
       if (game.currentLevel === 2) {
         const heroId = game.currentCustomer?.id;
+        console.log(`🦸 Level 2 Hero arrived: ${heroId}`);
+        
         if (heroId === 'hercules') {
-          // Hercules causes vision blur immediately
-          setTimeout(() => activateSpecialPower('blur', 3000), 1000); // 3 second blur after 1 second
+          // Hercules causes vision blur immediately with warning
+          showToast("🦸‍♂️ HERCULES approaches! Prepare for his mighty strength!");
+          setTimeout(() => {
+            activateSpecialPower('blur', 4000); // Extended to 4 seconds
+            console.log("💪 HERCULES' POWER: Vision blur activated!");
+          }, 1500); // Delayed for warning
         } else if (heroId === 'achilles') {
-          // Achilles disrupts controls
-          setTimeout(() => activateSpecialPower('disrupt', 4000), 1500); // 4 second disruption
+          // Achilles disrupts controls with warning
+          showToast("⚔️ ACHILLES arrives! His fury will disrupt your controls!");
+          setTimeout(() => {
+            activateSpecialPower('disrupt', 5000); // Extended to 5 seconds
+            console.log("🏛️ ACHILLES' POWER: Controls disrupted!");
+          }, 1500); // Delayed for warning
         } else if (heroId === 'cyclops') {
-          // Cyclops darkens vision
-          setTimeout(() => activateSpecialPower('darken', 3500), 1000); // 3.5 second darkness
+          // Cyclops darkens vision with warning
+          showToast("👁️ CYCLOPS enters! His single eye will darken your world!");
+          setTimeout(() => {
+            activateSpecialPower('darken', 4000); // Extended to 4 seconds
+            console.log("🌑 CYCLOPS' POWER: Vision darkened!");
+          }, 1500); // Delayed for warning
+        } else {
+          // Other heroes don't have powers but still announce
+          showToast(`🦸 ${game.currentCustomer.name} arrives with heroic presence!`);
+          console.log(`🦸 Regular hero: ${heroId} (no special power)`);
         }
       }
       
@@ -1248,24 +1266,24 @@
           // Hercules' strength shakes the screen
           game.blurred = true;
           game.blurTimer = duration;
-          showToast("💪 HERCULES' MIGHT! Vision blurred!");
-          console.log("👁️ Vision blurred for", duration, "ms");
+          showToast("💪 HERCULES' MIGHT! Your vision blurs from his overwhelming strength!");
+          console.log("👁️ HERCULES POWER ACTIVATED: Vision blurred for", duration, "ms");
           break;
           
         case 'disrupt':
           // Achilles' warrior fury reverses controls
           game.disrupted = true;
           game.disruptTimer = duration;
-          showToast("⚔️ ACHILLES' FURY! Controls reversed!");
-          console.log("🔄 Controls disrupted for", duration, "ms");
+          showToast("⚔️ ACHILLES' FURY! Your controls are reversed by his rage!");
+          console.log("🔄 ACHILLES POWER ACTIVATED: Controls disrupted for", duration, "ms");
           break;
           
         case 'darken':
           // Cyclops' single eye limits vision
           game.darkened = true;
           game.darkTimer = duration;
-          showToast("👁️ CYCLOPS' CURSE! Vision darkened!");
-          console.log("🌑 Vision darkened for", duration, "ms");
+          showToast("👁️ CYCLOPS' GAZE! His single eye darkens your world!");
+          console.log("🌑 CYCLOPS POWER ACTIVATED: Vision darkened for", duration, "ms");
           break;
       }
     }
@@ -1817,11 +1835,15 @@
       
       showToast("⚔️ LEVEL 2: Heroes with special powers!");
       console.log("⚔️ Advanced to Level 2: Heroes with Powers");
+      console.log("🏛️ Level 2 Features: Athens background, 5 heroes with special powers");
+      console.log("🦸‍♂️ Heroes: Hercules (blur), Achilles (disrupt), Cyclops (darken), Pegasus, Satyr");
       
       // Re-shuffle customers for new level (heroes)
       game.shuffledCustomers = shuffleCustomers();
       game.customerIndex = 0;
       game.processingNextRiddle = false;
+      
+      console.log("🦸 Shuffled heroes for Level 2:", game.shuffledCustomers.map(h => h.name));
       
       // Show transition story
       game.storyPanel = {
@@ -1958,12 +1980,16 @@
       let backgroundImg;
       if (game.currentLevel === 1) {
         backgroundImg = ASSETS.kitchen?.feastHall; // Tartarus Feast Hall
+        if (game.debugMode) console.log("🏛️ Background: Feast Hall (Level 1)");
       } else if (game.currentLevel === 2) {
         backgroundImg = ASSETS.kitchen?.acropolisAthens; // Acropolis for heroes
+        if (game.debugMode) console.log("🏛️ Background: Acropolis Athens (Level 2)");
       } else if (game.currentLevel === 3 || game.currentLevel === 4) {
         backgroundImg = ASSETS.kitchen?.mountOlympus; // Mount Olympus for gods and Fates
+        if (game.debugMode) console.log("🏛️ Background: Mount Olympus (Level 3/4)");
       } else {
         backgroundImg = ASSETS.kitchen?.feastHall; // Fallback
+        if (game.debugMode) console.log("🏛️ Background: Feast Hall (Fallback)");
       }
       
       if (backgroundImg && ASSETS.loaded) {
@@ -2145,17 +2171,7 @@
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 0;
       
-      // Golden divine border
-      ctx.strokeStyle = '#FFD700';
-      ctx.lineWidth = 6;
-      ctx.strokeRect(table.x - tableWidth/2, table.y - tableHeight/2, tableWidth, tableHeight);
-      
-      // Inner ornate border
-      ctx.strokeStyle = '#B8860B';
-      ctx.lineWidth = 3;
-      ctx.strokeRect(table.x - tableWidth/2 + 8, table.y - tableHeight/2 + 8, tableWidth - 16, tableHeight - 16);
-      
-      // Wood grain texture
+      // Simple wood grain texture
       ctx.strokeStyle = 'rgba(101, 67, 33, 0.3)';
       ctx.lineWidth = 1;
       for (let i = 0; i < 8; i++) {
@@ -2169,22 +2185,6 @@
         );
         ctx.stroke();
       }
-      
-      // Corner ornaments (golden Greek symbols)
-      ctx.fillStyle = '#FFD700';
-      ctx.font = 'bold 20px Cinzel, serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('⚡', table.x - tableWidth/2 + 20, table.y - tableHeight/2 + 25);
-      ctx.fillText('🏛️', table.x + tableWidth/2 - 20, table.y - tableHeight/2 + 25);
-      ctx.fillText('⚱️', table.x - tableWidth/2 + 20, table.y + tableHeight/2 - 10);
-      ctx.fillText('🔱', table.x + tableWidth/2 - 20, table.y + tableHeight/2 - 10);
-      
-      // Center decoration - divine circle
-      ctx.strokeStyle = 'rgba(255, 215, 0, 0.3)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(table.x, table.y, 50, 0, Math.PI * 2);
-      ctx.stroke();
       
       // Interactive glow when player is near
       if (game.player.currentZone === 'table') {
@@ -2202,10 +2202,10 @@
         ctx.fillText('Press E to place ingredient', table.x, table.y + tableHeight/2 + 30);
       }
       
-      // Enhanced ingredient slots on table - larger and more visible
+      // Enhanced ingredient slots on table - positioned within table bounds
       for (let i = 0; i < 5; i++) {
         const angle = (i * Math.PI * 2) / 5 - Math.PI/2; // Start at top, go clockwise
-        const radius = 70; // Increased distance from center
+        const radius = 60; // Distance from center (fits within table bounds)
         const slotX = table.x + Math.cos(angle) * radius;
         const slotY = table.y + Math.sin(angle) * radius;
         
@@ -3111,6 +3111,39 @@
       ctx.fillText('WASD: Move | E: Pickup/Place | Q: Undo | X: Trash | Enter: Deliver | ~: Debug',
                    canvas.width/2, canvas.height - 10);
       
+      // Developer button (bottom left)
+      const devBtnX = 20;
+      const devBtnY = canvas.height - 50;
+      const devBtnWidth = 120;
+      const devBtnHeight = 30;
+      
+      // Button background
+      ctx.fillStyle = 'rgba(255, 165, 0, 0.8)';
+      ctx.fillRect(devBtnX, devBtnY, devBtnWidth, devBtnHeight);
+      ctx.strokeStyle = '#FF8C00';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(devBtnX, devBtnY, devBtnWidth, devBtnHeight);
+      
+      // Button text
+      ctx.fillStyle = '#000';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('SKIP LEVEL (F9)', devBtnX + devBtnWidth/2, devBtnY + devBtnHeight/2 + 4);
+      
+      // Developer button functionality
+      if (input.wasPressed('f9')) {
+        // Fast-forward to next level
+        if (game.currentLevel < 4) {
+          const targetScore = getNextLevelScore();
+          game.score = targetScore;
+          showToast(`🚀 DEV: Jumped to Level ${game.currentLevel + 1}!`);
+        } else {
+          game.score = CONFIG.WIN_SCORE;
+          game.state = 'won';
+          showToast(`🚀 DEV: Game completed!`);
+        }
+      }
+      
       // FPS counter (debug)
       if (game.debugMode) {
         ctx.fillStyle = '#0F0';
@@ -3367,39 +3400,79 @@
       }
       
       if (game.blurred) {
-        // Blur effect - wavy distortion
+        // HERCULES' POWER - Enhanced blur effect with strength indicators
         ctx.save();
-        ctx.filter = 'blur(3px)';
-        ctx.globalAlpha = 0.2;
-        ctx.drawImage(canvas, 
-          Math.sin(Date.now() / 200) * 5, 
-          Math.cos(Date.now() / 200) * 5);
+        ctx.filter = 'blur(4px)';
+        ctx.globalAlpha = 0.3;
+        
+        // Wavy distortion effect
+        const offsetX = Math.sin(Date.now() / 150) * 8;
+        const offsetY = Math.cos(Date.now() / 200) * 6;
+        ctx.drawImage(canvas, offsetX, offsetY);
         ctx.restore();
+        
+        // Show HERCULES power indicator
+        ctx.fillStyle = 'rgba(255, 165, 0, 0.9)';
+        ctx.font = 'bold 28px Cinzel, serif';
+        ctx.textAlign = 'center';
+        ctx.strokeStyle = 'rgba(139, 69, 19, 0.8)';
+        ctx.lineWidth = 3;
+        ctx.strokeText('💪 HERCULES\' STRENGTH OVERWHELMS YOU!', canvas.width / 2, 80);
+        ctx.fillText('💪 HERCULES\' STRENGTH OVERWHELMS YOU!', canvas.width / 2, 80);
       }
       
       if (game.darkened) {
-        // Darkness effect - spotlight on player
+        // CYCLOPS' POWER - Enhanced darkness effect with single eye
         const gradient = ctx.createRadialGradient(
-          game.player.x, game.player.y, 100,
-          game.player.x, game.player.y, 300
+          game.player.x, game.player.y, 80,
+          game.player.x, game.player.y, 250
         );
         gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.8)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.9)');
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Show CYCLOPS eye watching
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
+        ctx.font = 'bold 24px Cinzel, serif';
+        ctx.textAlign = 'center';
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 2;
+        ctx.strokeText('👁️ THE CYCLOPS WATCHES...', canvas.width / 2, canvas.height - 50);
+        ctx.fillText('👁️ THE CYCLOPS WATCHES...', canvas.width / 2, canvas.height - 50);
       }
       
       if (game.disrupted) {
-        // Disrupted controls indicator
+        // ACHILLES' POWER - Enhanced disruption with warrior fury
         ctx.save();
-        ctx.fillStyle = 'rgba(255, 0, 0, 0.1)';
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.15)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Show reversed arrow indicators
-        ctx.font = 'bold 24px Arial';
-        ctx.fillStyle = 'rgba(255, 100, 100, 0.8)';
+        // Pulsing red border effect
+        const pulse = Math.sin(Date.now() / 100) * 0.3 + 0.7;
+        ctx.strokeStyle = `rgba(255, 0, 0, ${pulse})`;
+        ctx.lineWidth = 8;
+        ctx.strokeRect(0, 0, canvas.width, canvas.height);
+        
+        // Show ACHILLES fury indicator
+        ctx.font = 'bold 26px Cinzel, serif';
+        ctx.fillStyle = 'rgba(255, 50, 50, 0.9)';
         ctx.textAlign = 'center';
-        ctx.fillText('⚠️ CONTROLS REVERSED! ⚠️', canvas.width / 2, 100);
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 3;
+        ctx.strokeText('⚔️ ACHILLES\' FURY! CONTROLS REVERSED! ⚔️', canvas.width / 2, 100);
+        ctx.fillText('⚔️ ACHILLES\' FURY! CONTROLS REVERSED! ⚔️', canvas.width / 2, 100);
+        
+        // Floating arrows showing reversed controls
+        const time = Date.now() / 1000;
+        for (let i = 0; i < 4; i++) {
+          const x = 150 + i * 200;
+          const y = 150 + Math.sin(time + i) * 20;
+          ctx.font = 'bold 32px Arial';
+          ctx.fillStyle = 'rgba(255, 100, 100, 0.8)';
+          ctx.fillText(['←', '↓', '↑', '→'][i], x, y);
+        }
+        
         ctx.restore();
       }
     }
@@ -3673,7 +3746,7 @@
       KITCHEN.POSITIONS.TRASH.y = window.innerHeight - 150;
       KITCHEN.POSITIONS.COUNTER.x = Math.max(640, window.innerWidth * 0.5);
       KITCHEN.POSITIONS.TABLE.x = Math.max(640, window.innerWidth * 0.5);
-      KITCHEN.POSITIONS.TABLE.y = Math.max(360, window.innerHeight * 0.4);
+      KITCHEN.POSITIONS.TABLE.y = Math.max(420, window.innerHeight * 0.45);
       KITCHEN.POSITIONS.BINS.cheese.x = window.innerWidth - 160;
       KITCHEN.POSITIONS.BINS.meat.x = window.innerWidth - 160;
       KITCHEN.POSITIONS.BINS.egg.x = Math.max(530, window.innerWidth * 0.4);
