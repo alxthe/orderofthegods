@@ -113,7 +113,7 @@
         }
       },
       ZONES: {
-        TABLE_RADIUS: 90,        // Distance to interact with table
+        TABLE_RADIUS: 120,       // Distance to interact with table (increased)
         BIN_RADIUS: 60,          // Distance to interact with bins
         TRASH_RADIUS: 50,        // Distance to interact with trash
         OVEN_RADIUS: 70,         // Distance to interact with oven
@@ -132,14 +132,16 @@
       MAX_CARRY: 1,              // Can only carry one ingredient
       
       // Timing
-      LEVEL_1_TIME: 22,          // Seconds per riddle (level 1)
-      LEVEL_2_TIME: 18,          // Seconds per riddle (level 2)
-      LEVEL_3_TIME: 15,          // Seconds per riddle (level 3)
+      LEVEL_1_TIME: 26,          // Level 1: Gracious time
+      LEVEL_2_TIME: 20,          // Level 2: Special powers level
+      LEVEL_3_TIME: 15,          // Level 3: Gods only, very hard
+      LEVEL_4_TIME: 12,          // Level 4: Fates boss battle
       
       // Progression
       LEVEL_2_SCORE: 10,         // Score needed for level 2
       LEVEL_3_SCORE: 20,         // Score needed for level 3
-      WIN_SCORE: 30,             // Score needed to win
+      LEVEL_4_SCORE: 30,         // Score needed for level 4 (Fates)
+      WIN_SCORE: 40,             // Score needed to win (after Fates)
       
       // Visual
       COLORS: {
@@ -510,49 +512,49 @@
         sandwich: ["bread", "cheese", "bread"]},
       { id: "l1_7", text: "SANDWICH: bread + tomato + bread", type: "SANDWICH", level: 1,
         sandwich: ["bread", "tomato", "bread"]},
-      { id: "l1_8", text: "Trinity of lunar discs", type: "COUNT", level: 1,
+      { id: "l1_8", text: "3 cheese", type: "COUNT", level: 1,
         counts: { cheese: 3 }},
       
       // LEVEL 2 - Divine EXCLUDE riddles (18 seconds)
-      { id: "l2_1", text: "Blood and beast unite, but Zeus's egg brings doom", type: "EXCLUDE", level: 2,
+      { id: "l2_1", text: "1 tomato + 1 meat (NO egg)", type: "EXCLUDE", level: 2,
         counts: { tomato: 1, meat: 1 }, exclude: ["egg"]},
-      { id: "l2_2", text: "Double hunter's bounty, but moon's gift is forbidden", type: "EXCLUDE", level: 2,
+      { id: "l2_2", text: "2 meat (NO cheese)", type: "EXCLUDE", level: 2,
         counts: { meat: 2 }, exclude: ["cheese"]},
-      { id: "l2_3", text: "Fire and moon collide, but crimson blood is cursed", type: "EXCLUDE", level: 2,
+      { id: "l2_3", text: "1 cheese + 1 pepper (NO tomato)", type: "EXCLUDE", level: 2,
         counts: { cheese: 1, pepper: 1 }, exclude: ["tomato"]},
-      { id: "l2_4", text: "Twin lunar gifts blessing single crimson orb", type: "COUNT", level: 2,
+      { id: "l2_4", text: "2 cheese + 1 tomato", type: "COUNT", level: 2,
         counts: { cheese: 2, tomato: 1 }},
-      { id: "l2_5", text: "Warrior's meal: grain shields the hunter's prize", type: "SANDWICH", level: 2,
+      { id: "l2_5", text: "SANDWICH: bread + meat + bread", type: "SANDWICH", level: 2,
         sandwich: ["bread", "meat", "bread"]},
-      { id: "l2_6", text: "Trio of vine's sacred blood", type: "COUNT", level: 2,
+      { id: "l2_6", text: "3 tomato", type: "COUNT", level: 2,
         counts: { tomato: 3 }},
       
       // LEVEL 3 - Legendary challenges (15 seconds)
-      { id: "l3_1", text: "Trinity of power: grain, beast, crimson blood", type: "COUNT", level: 3,
+      { id: "l3_1", text: "1 bread + 1 meat + 1 tomato", type: "COUNT", level: 3,
         counts: { bread: 1, meat: 1, tomato: 1 }},
-      { id: "l3_2", text: "Sacred triad: hunter's prize, moon's gift, flame's kiss", type: "COUNT", level: 3,
+      { id: "l3_2", text: "1 meat + 1 cheese + 1 pepper", type: "COUNT", level: 3,
         counts: { meat: 1, cheese: 1, pepper: 1 }},
-      { id: "l3_3", text: "Twin moons reign supreme, but fire is banished", type: "EXCLUDE", level: 3,
+      { id: "l3_3", text: "2 cheese (NO pepper)", type: "EXCLUDE", level: 3,
         counts: { cheese: 2 }, exclude: ["pepper"]},
       { id: "l3_4", text: "Inferno trapped in golden walls", type: "SANDWICH", level: 3,
         sandwich: ["bread", "pepper", "bread"]},
       { id: "l3_5", text: "Double beast blessing single flame", type: "COUNT", level: 3,
         counts: { meat: 2, pepper: 1 }},
-      { id: "l3_6", text: "Hermes' perfect harmony: grain, blood, moon, beast", type: "COUNT", level: 3,
+      { id: "l3_6", text: "1 bread + 1 tomato + 1 cheese + 1 meat", type: "COUNT", level: 3,
         counts: { bread: 1, tomato: 1, cheese: 1, meat: 1 }},
-      { id: "l3_7", text: "Fill the divine plate completely with five sacred offerings", type: "TOTALCOUNT", level: 3,
+      { id: "l3_7", text: "EXACTLY 5 items total", type: "TOTALCOUNT", level: 3,
         totalCount: 5},
-      { id: "l3_8", text: "Medusa's challenge: All different, nothing repeated", type: "UNIQUE", level: 3,
+      { id: "l3_8", text: "4 DIFFERENT items (no repeats)", type: "UNIQUE", level: 3,
         totalCount: 4, uniqueOnly: true},
       
       // ADDITIONAL LEVEL 1 RIDDLES - More variety for beginners
-      { id: "l1_9", text: "The baker's foundation and Zeus's sacred creation", type: "COUNT", level: 1,
+      { id: "l1_9", text: "1 bread + 1 egg", type: "COUNT", level: 1,
         counts: { bread: 1, egg: 1 }},
-      { id: "l1_10", text: "Fire's kiss meets the earth's spice", type: "COUNT", level: 1,
+      { id: "l1_10", text: "2 pepper", type: "COUNT", level: 1,
         counts: { pepper: 2 }},
       { id: "l1_11", text: "Three gifts from Demeter's golden fields", type: "COUNT", level: 1,
         counts: { bread: 3 }},
-      { id: "l1_12", text: "The vine's blood with fire's burn", type: "COUNT", level: 1,
+      { id: "l1_12", text: "1 tomato + 1 pepper", type: "COUNT", level: 1,
         counts: { tomato: 1, pepper: 1 }},
       
       // ADDITIONAL LEVEL 2 RIDDLES - More complex combinations
@@ -560,17 +562,17 @@
         totalCount: 4, excludes: ["meat"]},
       { id: "l2_10", text: "Sacred offerings abound, yet avoid Zeus's creation", type: "EXCLUDE", level: 2,
         totalCount: 3, excludes: ["egg"]},
-      { id: "l2_11", text: "The forest's bread wrapped around earth's fire", type: "SANDWICH", level: 2,
+      { id: "l2_11", text: "SANDWICH: bread + pepper + bread", type: "SANDWICH", level: 2,
         bread: true, filling: ["pepper"]},
-      { id: "l2_12", text: "Golden grain embraces the hunter's prize with sacred gift", type: "SANDWICH", level: 2,
+      { id: "l2_12", text: "SANDWICH: bread + meat + cheese + bread", type: "SANDWICH", level: 2,
         bread: true, filling: ["meat", "cheese"]},
-      { id: "l2_13", text: "Fill the sacred vessel, but let no vine's blood flow", type: "EXCLUDE", level: 2,
+      { id: "l2_13", text: "5 items total (NO tomato)", type: "EXCLUDE", level: 2,
         totalCount: 5, excludes: ["tomato"]},
       
       // ADDITIONAL LEVEL 3 RIDDLES - Ultimate challenges
-      { id: "l3_9", text: "The trinity of the earth: bread, meat, and sacred gift only", type: "COUNT", level: 3,
+      { id: "l3_9", text: "ONLY 1 bread + 1 meat + 1 cheese", type: "COUNT", level: 3,
         counts: { bread: 1, meat: 1, cheese: 1 }},
-      { id: "l3_10", text: "Five different souls, each unique in the divine vessel", type: "UNIQUE", level: 3,
+      { id: "l3_10", text: "5 DIFFERENT items (all unique)", type: "UNIQUE", level: 3,
         totalCount: 5, uniqueOnly: true},
       { id: "l3_11", text: "Hermes' perfect symmetry: two of grain, two of earth's fire", type: "COUNT", level: 3,
         counts: { bread: 2, pepper: 2 }},
@@ -657,11 +659,34 @@
         timeout: ["Death waits for none.", "The underworld calls.", "Time itself dies here."]}
     ];
 
-    // Get current customer pool based on trial
+    // Get current customer pool based on level
     function getCurrentCustomers() {
-      if (game.trial === 1) return CREATURES;
-      if (game.trial === 2) return HEROES;
-      if (game.trial === 3) return GODS;
+      if (game.currentLevel === 1) {
+        // Level 1: Mix of creatures and some gods (gracious)
+        return [...CREATURES, GODS[0], GODS[1]]; // Add Hermes and Poseidon
+      } else if (game.currentLevel === 2) {
+        // Level 2: Heroes with special powers
+        return HEROES;
+      } else if (game.currentLevel === 3) {
+        // Level 3: Only gods (very hard)
+        return GODS;
+      } else if (game.currentLevel === 4) {
+        // Level 4: The Fates (boss battle)
+        return [
+          { id: "clotho", name: "Clotho the Spinner",
+            success: ["The thread is spun correctly.", "Fate accepts your offering.", "The loom approves."],
+            failure: ["The thread tangles!", "Fate rejects this!", "The pattern breaks!"],
+            timeout: ["Time unravels!", "The thread is cut!", "Destiny waits for none!"]},
+          { id: "lachesis", name: "Lachesis the Allotter",
+            success: ["The measure is perfect.", "Your portion is granted.", "The length is accepted."],
+            failure: ["The measure is wrong!", "Your portion denied!", "The length insufficient!"],
+            timeout: ["Time's measure expires!", "The portion is lost!", "No second chances!"]},
+          { id: "atropos", name: "Atropos the Inevitable",
+            success: ["The shears are stayed.", "Death is postponed.", "The end is delayed."],
+            failure: ["The shears approach!", "Your thread weakens!", "The end draws near!"],
+            timeout: ["SNIP! Too late!", "The thread is CUT!", "Your fate is SEALED!"]}
+        ];
+      }
       return CREATURES; // Fallback
     }
     
@@ -726,14 +751,25 @@
       toastMessage: '',           // Current toast message
       toastTimer: 0,              // How long to show toast
       
-      // Progressive Trial System
-      trial: 1,                   // Current trial (1=creatures, 2=gods)
-      trialPoints: 0,             // Points in current trial
-      totalPoints: 0,             // Total points across all trials for story progression
+      // Level System
+      currentLevel: 1,            // Current level (1-4)
+      levelScore: 0,              // Score within current level
+      totalPoints: 0,             // Total points across all levels for story progression
       storyUnlocked: [],          // Array of unlocked story fragment IDs
       collarCracks: 0,            // Visual collar progression (0-5 cracks)
       showingStory: false,        // Whether story panel is currently displayed
       storyPanel: null,           // Current story panel content
+      
+      // Special Power Effects
+      frozen: false,              // Player frozen by Medusa
+      freezeTimer: 0,             // Time remaining frozen (ms)
+      blurred: false,             // Vision blurred by Hercules
+      blurTimer: 0,               // Time remaining blurred (ms)
+      disrupted: false,           // Controls disrupted by Achilles
+      disruptTimer: 0,            // Time remaining disrupted (ms)
+      darkened: false,            // Vision darkened by Cyclops
+      darkTimer: 0,               // Time remaining darkened (ms)
+      specialPowerActive: false,  // Is a special power currently active
       
       // God Relationship System - Character Arcs
       godRelationships: {
@@ -1049,6 +1085,21 @@
       game.customerPosition.y = KITCHEN.CUSTOMER_AREA.ENTRANCE_Y;
       game.customerAnimation = 0;
       
+      // Level 2: Activate special powers when heroes arrive
+      if (game.currentLevel === 2) {
+        const heroId = game.currentCustomer?.id;
+        if (heroId === 'hercules') {
+          // Hercules causes vision blur immediately
+          setTimeout(() => activateSpecialPower('blur', 3000), 1000); // 3 second blur after 1 second
+        } else if (heroId === 'achilles') {
+          // Achilles disrupts controls
+          setTimeout(() => activateSpecialPower('disrupt', 4000), 1500); // 4 second disruption
+        } else if (heroId === 'cyclops') {
+          // Cyclops darkens vision
+          setTimeout(() => activateSpecialPower('darken', 3500), 1000); // 3.5 second darkness
+        }
+      }
+      
       // Clear plate
       game.plate = [];
       
@@ -1175,6 +1226,99 @@
     }
     
     // =============================================================================
+    // SPECIAL POWERS SYSTEM
+    // =============================================================================
+    
+    // Activate a special power
+    function activateSpecialPower(powerType, duration) {
+      if (game.specialPowerActive) return; // Don't stack powers
+      
+      game.specialPowerActive = true;
+      
+      switch(powerType) {
+        case 'freeze':
+          // Medusa's freeze power
+          game.frozen = true;
+          game.freezeTimer = duration;
+          showToast("🐍 MEDUSA'S GAZE! You're frozen!");
+          console.log("❄️ Player frozen for", duration, "ms");
+          break;
+          
+        case 'blur':
+          // Hercules' strength shakes the screen
+          game.blurred = true;
+          game.blurTimer = duration;
+          showToast("💪 HERCULES' MIGHT! Vision blurred!");
+          console.log("👁️ Vision blurred for", duration, "ms");
+          break;
+          
+        case 'disrupt':
+          // Achilles' warrior fury reverses controls
+          game.disrupted = true;
+          game.disruptTimer = duration;
+          showToast("⚔️ ACHILLES' FURY! Controls reversed!");
+          console.log("🔄 Controls disrupted for", duration, "ms");
+          break;
+          
+        case 'darken':
+          // Cyclops' single eye limits vision
+          game.darkened = true;
+          game.darkTimer = duration;
+          showToast("👁️ CYCLOPS' CURSE! Vision darkened!");
+          console.log("🌑 Vision darkened for", duration, "ms");
+          break;
+      }
+    }
+    
+    // Update special power timers
+    function updateSpecialPowers(deltaTime) {
+      // Update freeze timer
+      if (game.frozen && game.freezeTimer > 0) {
+        game.freezeTimer -= deltaTime;
+        if (game.freezeTimer <= 0) {
+          game.frozen = false;
+          game.freezeTimer = 0;
+          showToast("You can move again!");
+        }
+      }
+      
+      // Update blur timer
+      if (game.blurred && game.blurTimer > 0) {
+        game.blurTimer -= deltaTime;
+        if (game.blurTimer <= 0) {
+          game.blurred = false;
+          game.blurTimer = 0;
+          showToast("Vision cleared!");
+        }
+      }
+      
+      // Update disrupt timer
+      if (game.disrupted && game.disruptTimer > 0) {
+        game.disruptTimer -= deltaTime;
+        if (game.disruptTimer <= 0) {
+          game.disrupted = false;
+          game.disruptTimer = 0;
+          showToast("Controls restored!");
+        }
+      }
+      
+      // Update darken timer
+      if (game.darkened && game.darkTimer > 0) {
+        game.darkTimer -= deltaTime;
+        if (game.darkTimer <= 0) {
+          game.darkened = false;
+          game.darkTimer = 0;
+          showToast("Light returns!");
+        }
+      }
+      
+      // Clear special power flag when all effects are done
+      if (!game.frozen && !game.blurred && !game.disrupted && !game.darkened) {
+        game.specialPowerActive = false;
+      }
+    }
+    
+    // =============================================================================
     // PLAYER MECHANICS
     // =============================================================================
     
@@ -1182,8 +1326,22 @@
     function updatePlayer(deltaTime) {
       if (game.state !== 'playing') return;
       
-      const movement = input.getMovementVector();
+      // Check if player is frozen (Medusa power)
+      if (game.frozen) {
+        // Player can't move when frozen, just update zone
+        updatePlayerZone();
+        return;
+      }
+      
+      let movement = input.getMovementVector();
       const player = game.player;
+      
+      // Check if controls are disrupted (Achilles power)
+      if (game.disrupted) {
+        // Reverse controls!
+        movement.x = -movement.x;
+        movement.y = -movement.y;
+      }
       
       // Calculate new position
       const newX = player.x + (movement.x * player.speed);
@@ -1382,12 +1540,12 @@
       if (result.success) {
         // Success!
         game.score++;
-        game.trialPoints++;
+        game.levelScore++;
         game.totalPoints++; // Track total points for story progression
         game.customerMessage = randomChoice(game.currentCustomer.success);
         game.messageTimer = 2000;
         showToast("Correct! +1 point");
-        console.log(`SUCCESS! Trial ${game.trial} - Score: ${game.trialPoints}/10`);
+        console.log(`SUCCESS! Level ${game.currentLevel} - Score: ${game.score}`);
         AUDIO.playSuccess(); // Phase 3 - Audio feedback
         
         // Update god relationship (positive)
@@ -1399,41 +1557,47 @@
         // Check for level up
         updateLevel();
         
-        // Check for trial completion (10 points per trial)
-        if (game.trialPoints >= 10) {
-          if (game.trial === 1) {
-            // Advance to Trial 2: Heroes
-            advanceToTrial2();
-            return;
-          } else if (game.trial === 2) {
-            // Advance to Trial 3: Gods
-            advanceToTrial3();
-            return;
-          } else {
-            // Won the game after completing Trial 3
-            game.state = 'won';
-            console.log("GAME WON! Completed all three trials!");
-            return;
-          }
+        // Check for level advancement
+        if (game.score >= CONFIG.LEVEL_4_SCORE && game.currentLevel < 4) {
+          // Advance to Level 4: The Fates
+          advanceToLevel4();
+          return;
+        } else if (game.score >= CONFIG.LEVEL_3_SCORE && game.currentLevel < 3) {
+          // Advance to Level 3: Gods Only
+          advanceToLevel3();
+          return;
+        } else if (game.score >= CONFIG.LEVEL_2_SCORE && game.currentLevel < 2) {
+          // Advance to Level 2: Heroes with Powers
+          advanceToLevel2();
+          return;
+        } else if (game.score >= CONFIG.WIN_SCORE) {
+          // Won the game after defeating the Fates!
+          game.state = 'won';
+          console.log("GAME WON! You've defeated the Fates!");
+          return;
+        }
+        
+        // Activate special power for Level 1 Medusa
+        if (game.currentLevel === 1 && game.currentCustomer?.id === 'medusa') {
+          activateSpecialPower('freeze', 2000); // 2 second freeze
         }
         
         // Customer walks out, then next riddle
         game.customerState = 'walking_out';
         setTimeout(() => nextRiddle(), 2500); // Give time for walking animation
       } else {
-        // Failure
+        // Failure - restart the level!
         game.customerMessage = randomChoice(game.currentCustomer.failure);
         game.messageTimer = 2000;
-        showToast(`Wrong! ${result.reason}`);
-        console.log(`FAILED: ${result.reason}`);
+        showToast(`Wrong! ${result.reason} - Restarting level...`);
+        console.log(`FAILED: ${result.reason} - Restarting Level ${game.currentLevel}`);
         AUDIO.playFailure(); // Phase 3 - Audio feedback
         
         // Update god relationship (negative)
         updateGodRelationship(game.currentCustomer.id, false);
         
-        // Customer walks out after feedback, then next riddle
-        game.customerState = 'walking_out';
-        setTimeout(() => nextRiddle(), 2500); // Give time for walking animation
+        // Restart the level after a delay
+        setTimeout(() => restartLevel(), 3000);
       }
       
       // Clear plate and set debounce
@@ -1644,62 +1808,144 @@
       }
     }
     
-    // Advance to Trial 2: Heroes and Demigods
-    function advanceToTrial2() {
-      game.trial = 2;
-      game.trialPoints = 0; // Reset trial score
-      game.score = 0; // Reset display score
-      game.level = 1; // Reset level for new trial
+    // Advance to Level 2: Heroes with Special Powers
+    function advanceToLevel2() {
+      game.currentLevel = 2;
+      game.levelScore = 0;
+      game.level = 2; // Update riddle difficulty
+      game.timePerRiddle = CONFIG.LEVEL_2_TIME;
       
-      showToast("⚔️ TRIAL 2: Now you serve Heroes and Demigods!");
-      console.log("⚔️ Advanced to Trial 2: Heroes and Demigods");
+      showToast("⚔️ LEVEL 2: Heroes with special powers!");
+      console.log("⚔️ Advanced to Level 2: Heroes with Powers");
       
-      // Re-shuffle customers for new trial (now heroes)
+      // Re-shuffle customers for new level (heroes)
       game.shuffledCustomers = shuffleCustomers();
       game.customerIndex = 0;
-      game.processingNextRiddle = false; // Reset anti-scrambling flag
+      game.processingNextRiddle = false;
       
       // Show transition story
       game.storyPanel = {
-        title: "Trial 2: The Heroic Tests",
-        text: "The creatures retreat as legendary heroes stride forth. Hercules flexes mighty arms, Achilles sharpens his spear, and Pegasus unfurls divine wings. These champions of myth demand dishes worthy of their legendary deeds."
+        title: "Level 2: The Heroic Tests",
+        text: "The heroes arrive with their legendary powers! Hercules' strength blurs your vision, Achilles' fury disrupts your controls, and Cyclops darkens the world. Can you serve them despite their chaos?"
       };
       game.showingStory = true;
       
-      // Start next riddle with heroes
       setTimeout(() => nextRiddle(), 3000);
     }
     
-    // Advance to Trial 3: Greek Gods
-    function advanceToTrial3() {
-      game.trial = 3;
-      game.trialPoints = 0; // Reset trial score
-      game.score = 0; // Reset display score
-      game.level = 1; // Reset level for new trial
+    // Advance to Level 3: Gods Only (Very Hard)
+    function advanceToLevel3() {
+      game.currentLevel = 3;
+      game.levelScore = 0;
+      game.level = 3; // Update riddle difficulty
+      game.timePerRiddle = CONFIG.LEVEL_3_TIME;
       
-      showToast("⚡ TRIAL 3: Now you serve the Greek Gods!");
-      console.log("⚡ Advanced to Trial 3: Greek Gods");
+      showToast("⚡ LEVEL 3: The Gods demand perfection!");
+      console.log("⚡ Advanced to Level 3: Gods Only");
       
-      // Re-shuffle customers for new trial (now gods)
+      // Re-shuffle customers for new level (gods only)
       game.shuffledCustomers = shuffleCustomers();
       game.customerIndex = 0;
-      game.processingNextRiddle = false; // Reset anti-scrambling flag
+      game.processingNextRiddle = false;
       
       // Show transition story
       game.storyPanel = {
-        title: "Trial 3: The Gods of Olympus",
-        text: "Thunder shakes the heavens as the heroes bow before true divinity. Zeus descends with his divine court—Hermes, Poseidon, Hera, and Hades himself. Your final trial begins. Serve the gods perfectly, or face eternal servitude."
+        title: "Level 3: Divine Trials",
+        text: "The gods themselves descend! Time is scarce, patience thin. Zeus demands perfection, Poseidon tests your worth, and Hades watches from the shadows. One mistake could mean eternal servitude."
       };
       game.showingStory = true;
       
-      // Start next riddle with gods
+      setTimeout(() => nextRiddle(), 3000);
+    }
+    
+    // Advance to Level 4: The Fates (Boss Battle)
+    function advanceToLevel4() {
+      game.currentLevel = 4;
+      game.levelScore = 0;
+      game.level = 3; // Keep max riddle difficulty
+      game.timePerRiddle = CONFIG.LEVEL_4_TIME;
+      
+      showToast("🌀 LEVEL 4: THE FATES ARRIVE!");
+      console.log("🌀 Advanced to Level 4: The Fates Boss Battle");
+      
+      // Special customers for Level 4
+      game.shuffledCustomers = shuffleCustomers();
+      game.customerIndex = 0;
+      game.processingNextRiddle = false;
+      
+      // Epic transition story
+      game.storyPanel = {
+        title: "Level 4: The Symposium of Fate",
+        text: "The Fates themselves appear! Clotho spins impossible threads, Lachesis measures your worth, and Atropos holds the shears. This is your final test—serve them perfectly or face your destiny!"
+      };
+      game.showingStory = true;
+      
+      setTimeout(() => nextRiddle(), 3000);
+    }
+    
+    // Get the score needed for next level
+    function getNextLevelScore() {
+      if (game.currentLevel === 1) return CONFIG.LEVEL_2_SCORE;
+      if (game.currentLevel === 2) return CONFIG.LEVEL_3_SCORE;
+      if (game.currentLevel === 3) return CONFIG.LEVEL_4_SCORE;
+      if (game.currentLevel === 4) return CONFIG.WIN_SCORE;
+      return CONFIG.WIN_SCORE;
+    }
+    
+    // Restart current level (no progress kept)
+    function restartLevel() {
+      const currentLevelNum = game.currentLevel;
+      
+      // Reset score based on level
+      if (currentLevelNum === 1) {
+        game.score = 0;
+      } else if (currentLevelNum === 2) {
+        game.score = CONFIG.LEVEL_2_SCORE - 1; // Just below Level 2 threshold
+      } else if (currentLevelNum === 3) {
+        game.score = CONFIG.LEVEL_3_SCORE - 1; // Just below Level 3 threshold
+      } else if (currentLevelNum === 4) {
+        game.score = CONFIG.LEVEL_4_SCORE - 1; // Just below Level 4 threshold
+      }
+      
+      game.levelScore = 0;
+      game.timer = game.timePerRiddle;
+      game.plate = [];
+      game.player.carrying = null;
+      
+      // Clear all special power effects
+      game.frozen = false;
+      game.freezeTimer = 0;
+      game.blurred = false;
+      game.blurTimer = 0;
+      game.disrupted = false;
+      game.disruptTimer = 0;
+      game.darkened = false;
+      game.darkTimer = 0;
+      game.specialPowerActive = false;
+      
+      // Re-shuffle customers
+      game.shuffledCustomers = shuffleCustomers();
+      game.customerIndex = 0;
+      game.processingNextRiddle = false;
+      
+      showToast(`⚠️ Restarting Level ${currentLevelNum}...`);
+      console.log(`🔄 Restarting Level ${currentLevelNum}`);
+      
+      // Show restart message
+      game.storyPanel = {
+        title: `Level ${currentLevelNum} - Try Again`,
+        text: "The collar tightens. You must prove yourself once more. Focus, and do not fail again."
+      };
+      game.showingStory = true;
+      
+      // Start next riddle after delay
       setTimeout(() => nextRiddle(), 3000);
     }
     
     // Advance to next night (keeping old function for compatibility)
     function advanceNight() {
-      game.trial++;
-      showToast(`🌙 Trial ${game.trial} begins...`);
+      game.currentLevel++;
+      showToast(`🌙 Level ${game.currentLevel} begins...`);
     }
     
     // =============================================================================
@@ -1708,14 +1954,14 @@
     
     // Render kitchen layout
     function renderKitchen() {
-      // Background - different for each trial
+      // Background - different for each level
       let backgroundImg;
-      if (game.trial === 1) {
+      if (game.currentLevel === 1) {
         backgroundImg = ASSETS.kitchen?.feastHall; // Tartarus Feast Hall
-      } else if (game.trial === 2) {
-        backgroundImg = ASSETS.kitchen?.mountOlympus; // Mount Olympus for heroes
-      } else if (game.trial === 3) {
-        backgroundImg = ASSETS.kitchen?.mountOlympus; // Mount Olympus for gods too
+      } else if (game.currentLevel === 2) {
+        backgroundImg = ASSETS.kitchen?.acropolisAthens; // Acropolis for heroes
+      } else if (game.currentLevel === 3 || game.currentLevel === 4) {
+        backgroundImg = ASSETS.kitchen?.mountOlympus; // Mount Olympus for gods and Fates
       } else {
         backgroundImg = ASSETS.kitchen?.feastHall; // Fallback
       }
@@ -1864,41 +2110,135 @@
       // Ancient Work Table (simplified - no plate)
       const table = KITCHEN.POSITIONS.TABLE;
       
-      // Table surface - simple rectangular stone table
-      const tableGrad = ctx.createLinearGradient(table.x - 120, table.y - 80, table.x - 120, table.y + 80);
-      tableGrad.addColorStop(0, '#A0522D'); // Sienna
-      tableGrad.addColorStop(0.5, '#8B4513'); // Saddle brown
-      tableGrad.addColorStop(1, '#654321'); // Dark brown
+      // Table title label
+      ctx.fillStyle = '#FFD700';
+      ctx.font = 'bold 18px Cinzel, serif';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+      ctx.shadowBlur = 4;
+      ctx.fillText('DIVINE PREPARATION TABLE', table.x, table.y - 120);
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      
+      // Larger, more impressive mythological table
+      const tableWidth = 320;
+      const tableHeight = 200;
+      
+      // Shadow for depth
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      ctx.shadowBlur = 15;
+      ctx.shadowOffsetX = 5;
+      ctx.shadowOffsetY = 5;
+      
+      // Main table surface - ancient wood with gold inlay
+      const tableGrad = ctx.createRadialGradient(table.x, table.y, 0, table.x, table.y, 200);
+      tableGrad.addColorStop(0, '#8B4513'); // Saddle brown center
+      tableGrad.addColorStop(0.3, '#A0522D'); // Sienna
+      tableGrad.addColorStop(0.6, '#654321'); // Dark brown
+      tableGrad.addColorStop(1, '#4A2C1A'); // Very dark brown edge
       ctx.fillStyle = tableGrad;
-      ctx.fillRect(table.x - 120, table.y - 80, 240, 160);
+      ctx.fillRect(table.x - tableWidth/2, table.y - tableHeight/2, tableWidth, tableHeight);
       
-      // Stone table border
-      ctx.strokeStyle = '#654321';
-      ctx.lineWidth = 4;
-      ctx.strokeRect(table.x - 120, table.y - 80, 240, 160);
+      // Reset shadow
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
       
-      // Inner carved border for stone effect
-      ctx.strokeStyle = '#D2691E';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(table.x - 116, table.y - 76, 232, 152);
+      // Golden divine border
+      ctx.strokeStyle = '#FFD700';
+      ctx.lineWidth = 6;
+      ctx.strokeRect(table.x - tableWidth/2, table.y - tableHeight/2, tableWidth, tableHeight);
       
-      // Simple stone texture lines
-      ctx.strokeStyle = '#965A32';
+      // Inner ornate border
+      ctx.strokeStyle = '#B8860B';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(table.x - tableWidth/2 + 8, table.y - tableHeight/2 + 8, tableWidth - 16, tableHeight - 16);
+      
+      // Wood grain texture
+      ctx.strokeStyle = 'rgba(101, 67, 33, 0.3)';
       ctx.lineWidth = 1;
-      for (let i = 0; i < 3; i++) {
-        const lineY = table.y - 40 + (i * 40);
+      for (let i = 0; i < 8; i++) {
+        const lineY = table.y - tableHeight/2 + 20 + i * 20;
+        const offset = Math.sin(i * 0.5) * 10;
         ctx.beginPath();
-        ctx.moveTo(table.x - 100, lineY);
-        ctx.lineTo(table.x + 100, lineY);
+        ctx.moveTo(table.x - tableWidth/2 + 20, lineY);
+        ctx.quadraticCurveTo(
+          table.x + offset, lineY + 10,
+          table.x + tableWidth/2 - 20, lineY
+        );
         ctx.stroke();
       }
       
-      // Ingredient slots on plate (Phase 3 - Show PNG ingredients)
+      // Corner ornaments (golden Greek symbols)
+      ctx.fillStyle = '#FFD700';
+      ctx.font = 'bold 20px Cinzel, serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('⚡', table.x - tableWidth/2 + 20, table.y - tableHeight/2 + 25);
+      ctx.fillText('🏛️', table.x + tableWidth/2 - 20, table.y - tableHeight/2 + 25);
+      ctx.fillText('⚱️', table.x - tableWidth/2 + 20, table.y + tableHeight/2 - 10);
+      ctx.fillText('🔱', table.x + tableWidth/2 - 20, table.y + tableHeight/2 - 10);
+      
+      // Center decoration - divine circle
+      ctx.strokeStyle = 'rgba(255, 215, 0, 0.3)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(table.x, table.y, 50, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      // Interactive glow when player is near
+      if (game.player.currentZone === 'table') {
+        const glowGrad = ctx.createRadialGradient(table.x, table.y, 80, table.x, table.y, 150);
+        glowGrad.addColorStop(0, 'rgba(255, 215, 0, 0.3)');
+        glowGrad.addColorStop(0.5, 'rgba(255, 215, 0, 0.15)');
+        glowGrad.addColorStop(1, 'rgba(255, 215, 0, 0)');
+        ctx.fillStyle = glowGrad;
+        ctx.fillRect(table.x - tableWidth/2 - 20, table.y - tableHeight/2 - 20, tableWidth + 40, tableHeight + 40);
+        
+        // Show interaction hint
+        ctx.fillStyle = '#FFD700';
+        ctx.font = 'bold 16px Cinzel, serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Press E to place ingredient', table.x, table.y + tableHeight/2 + 30);
+      }
+      
+      // Enhanced ingredient slots on table - larger and more visible
       for (let i = 0; i < 5; i++) {
         const angle = (i * Math.PI * 2) / 5 - Math.PI/2; // Start at top, go clockwise
-        const radius = 35; // Distance from center
+        const radius = 70; // Increased distance from center
         const slotX = table.x + Math.cos(angle) * radius;
         const slotY = table.y + Math.sin(angle) * radius;
+        
+        // Slot background with golden glow
+        const slotGrad = ctx.createRadialGradient(slotX, slotY, 0, slotX, slotY, 35);
+        if (game.plate[i]) {
+          // Highlight active slots
+          slotGrad.addColorStop(0, 'rgba(255, 215, 0, 0.4)');
+          slotGrad.addColorStop(0.7, 'rgba(255, 215, 0, 0.2)');
+          slotGrad.addColorStop(1, 'rgba(255, 215, 0, 0.1)');
+        } else {
+          // Empty slots
+          slotGrad.addColorStop(0, 'rgba(255, 215, 0, 0.15)');
+          slotGrad.addColorStop(0.7, 'rgba(255, 215, 0, 0.08)');
+          slotGrad.addColorStop(1, 'rgba(255, 215, 0, 0)');
+        }
+        ctx.fillStyle = slotGrad;
+        ctx.beginPath();
+        ctx.arc(slotX, slotY, 40, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Slot border
+        ctx.strokeStyle = game.plate[i] ? '#FFD700' : 'rgba(255, 215, 0, 0.3)';
+        ctx.lineWidth = game.plate[i] ? 3 : 2;
+        ctx.beginPath();
+        ctx.arc(slotX, slotY, 35, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Slot number
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.5)';
+        ctx.font = 'bold 12px Cinzel, serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${i + 1}`, slotX, slotY - 45);
         
         // Draw ingredient on plate if present
         if (game.plate[i]) {
@@ -1920,18 +2260,32 @@
           }
           
           if (ingredientImg && ASSETS.loaded) {
-            const imgSize = 64; // Increased size for better quality
+            const maxSize = 64; // Maximum dimension
             
             // Ensure high quality rendering
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
             
+            // Preserve aspect ratio - no more smushing!
+            const imgAspectRatio = ingredientImg.width / ingredientImg.height;
+            let imgWidth, imgHeight;
+            
+            if (imgAspectRatio > 1) {
+              // Wider than tall
+              imgWidth = maxSize;
+              imgHeight = maxSize / imgAspectRatio;
+            } else {
+              // Taller than wide or square
+              imgHeight = maxSize;
+              imgWidth = maxSize * imgAspectRatio;
+            }
+            
             ctx.drawImage(
               ingredientImg,
-              slotX - imgSize/2,
-              slotY - imgSize/2,
-              imgSize,
-              imgSize
+              slotX - imgWidth/2,
+              slotY - imgHeight/2,
+              imgWidth,
+              imgHeight
             );
           } else {
             // Enhanced fallback with text labels for cut/cooked items
@@ -2208,19 +2562,33 @@
       }
       
       if (characterImg && ASSETS.loaded) {
-        const spriteSize = 100; // Increased size for better quality
+        const maxSize = 100; // Maximum dimension
         
         // Ensure high quality player rendering
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
         
-        // Draw character sprite with perfect positioning
+        // Preserve aspect ratio for player character - no more smushing!
+        const imgAspectRatio = characterImg.width / characterImg.height;
+        let spriteWidth, spriteHeight;
+        
+        if (imgAspectRatio > 1) {
+          // Wider than tall
+          spriteWidth = maxSize;
+          spriteHeight = maxSize / imgAspectRatio;
+        } else {
+          // Taller than wide or square
+          spriteHeight = maxSize;
+          spriteWidth = maxSize * imgAspectRatio;
+        }
+        
+        // Draw character sprite with proper aspect ratio
         ctx.drawImage(
           characterImg,
-          player.x - spriteSize/2,
-          player.y - spriteSize/2,
-          spriteSize,
-          spriteSize
+          player.x - spriteWidth/2,
+          player.y - spriteHeight/2,
+          spriteWidth,
+          spriteHeight
         );
         
         // Add subtle glow around player for visibility
@@ -2228,10 +2596,10 @@
         ctx.shadowBlur = 10;
         ctx.drawImage(
           characterImg,
-          player.x - spriteSize/2,
-          player.y - spriteSize/2,
-          spriteSize,
-          spriteSize
+          player.x - spriteWidth/2,
+          player.y - spriteHeight/2,
+          spriteWidth,
+          spriteHeight
         );
         ctx.shadowBlur = 0;
         
@@ -2286,29 +2654,44 @@
         }
         
         if (carriedImg && ASSETS.loaded) {
-          // Increased size for better quality
-          const imgSize = 96; // Larger for better quality
+          // Increased size for better quality with aspect ratio preservation
+          const maxSize = 96; // Maximum dimension
           
           // Ensure high quality rendering
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = 'high';
           
-          // Add background circle for contrast
+          // Preserve aspect ratio - no more smushing!
+          const imgAspectRatio = carriedImg.width / carriedImg.height;
+          let imgWidth, imgHeight;
+          
+          if (imgAspectRatio > 1) {
+            // Wider than tall
+            imgWidth = maxSize;
+            imgHeight = maxSize / imgAspectRatio;
+          } else {
+            // Taller than wide or square
+            imgHeight = maxSize;
+            imgWidth = maxSize * imgAspectRatio;
+          }
+          
+          // Background circle for contrast (use larger dimension for circle)
+          const circleRadius = Math.max(imgWidth, imgHeight) / 2 + 8;
           ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
           ctx.beginPath();
-          ctx.arc(player.x, player.y - 50 - imgSize/2, imgSize/2 + 8, 0, Math.PI * 2);
+          ctx.arc(player.x, player.y - 50 - imgHeight/2, circleRadius, 0, Math.PI * 2);
           ctx.fill();
           ctx.strokeStyle = '#DAA520'; // Dark goldenrod
           ctx.lineWidth = 3;
           ctx.stroke();
           
-          // Draw the ingredient image with perfect positioning
+          // Draw the ingredient image with proper aspect ratio
           ctx.drawImage(
             carriedImg,
-            player.x - imgSize/2,
-            player.y - 50 - imgSize,
-            imgSize,
-            imgSize
+            player.x - imgWidth/2,
+            player.y - 50 - imgHeight,
+            imgWidth,
+            imgHeight
           );
           
           // Add enhanced golden glow effect
@@ -2316,10 +2699,10 @@
           ctx.shadowBlur = 12;
           ctx.drawImage(
             carriedImg,
-            player.x - imgSize/2,
-            player.y - 50 - imgSize,
-            imgSize,
-            imgSize
+            player.x - imgWidth/2,
+            player.y - 50 - imgHeight,
+            imgWidth,
+            imgHeight
           );
           ctx.shadowBlur = 0;
         } else {
@@ -2579,18 +2962,19 @@
       ctx.textAlign = 'right';
       ctx.strokeStyle = '#654321';
       ctx.lineWidth = 2;
-      ctx.strokeText(`Trial ${game.trial}: ${game.trialPoints}/10`, canvas.width - 20, 35);
-      ctx.fillText(`Trial ${game.trial}: ${game.trialPoints}/10`, canvas.width - 20, 35);
+      ctx.strokeText(`Level ${game.currentLevel}: ${game.score}/${getNextLevelScore()}`, canvas.width - 20, 35);
+      ctx.fillText(`Level ${game.currentLevel}: ${game.score}/${getNextLevelScore()}`, canvas.width - 20, 35);
       
-      // Show trial type
-      let trialName;
-      if (game.trial === 1) trialName = "Creatures";
-      else if (game.trial === 2) trialName = "Heroes";
-      else if (game.trial === 3) trialName = "Gods";
-      else trialName = "Unknown";
+      // Show level type
+      let levelName;
+      if (game.currentLevel === 1) levelName = "Gracious Time";
+      else if (game.currentLevel === 2) levelName = "Heroes' Powers";
+      else if (game.currentLevel === 3) levelName = "Divine Trials";
+      else if (game.currentLevel === 4) levelName = "THE FATES";
+      else levelName = "Unknown";
       ctx.font = 'bold 16px Cinzel, serif';
-      ctx.strokeText(trialName, canvas.width - 20, 60);
-      ctx.fillText(trialName, canvas.width - 20, 60);
+      ctx.strokeText(levelName, canvas.width - 20, 60);
+      ctx.fillText(levelName, canvas.width - 20, 60);
       
       // Enhanced timer with ancient hourglass styling
       if (game.currentRiddle) {
@@ -2951,9 +3335,72 @@
         renderWinScreen();
       }
       
+      // Render special power effects on top
+      renderSpecialPowerEffects();
+      
       // Debug info
       if (game.debugMode) {
         renderDebug();
+      }
+    }
+    
+    // Render special power visual effects
+    function renderSpecialPowerEffects() {
+      if (game.frozen) {
+        // Frozen effect - blue tint and ice crystals
+        ctx.fillStyle = 'rgba(100, 150, 255, 0.3)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw ice crystals around edges
+        ctx.strokeStyle = 'rgba(200, 220, 255, 0.8)';
+        ctx.lineWidth = 3;
+        for (let i = 0; i < 10; i++) {
+          const x = Math.random() * canvas.width;
+          const y = Math.random() * 100;
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x - 10, y + 20);
+          ctx.lineTo(x + 10, y + 20);
+          ctx.closePath();
+          ctx.stroke();
+        }
+      }
+      
+      if (game.blurred) {
+        // Blur effect - wavy distortion
+        ctx.save();
+        ctx.filter = 'blur(3px)';
+        ctx.globalAlpha = 0.2;
+        ctx.drawImage(canvas, 
+          Math.sin(Date.now() / 200) * 5, 
+          Math.cos(Date.now() / 200) * 5);
+        ctx.restore();
+      }
+      
+      if (game.darkened) {
+        // Darkness effect - spotlight on player
+        const gradient = ctx.createRadialGradient(
+          game.player.x, game.player.y, 100,
+          game.player.x, game.player.y, 300
+        );
+        gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.8)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      
+      if (game.disrupted) {
+        // Disrupted controls indicator
+        ctx.save();
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Show reversed arrow indicators
+        ctx.font = 'bold 24px Arial';
+        ctx.fillStyle = 'rgba(255, 100, 100, 0.8)';
+        ctx.textAlign = 'center';
+        ctx.fillText('⚠️ CONTROLS REVERSED! ⚠️', canvas.width / 2, 100);
+        ctx.restore();
       }
     }
     
@@ -2964,6 +3411,9 @@
     // Main update function
     function update(deltaTime) {
       if (game.state !== 'playing') return;
+      
+      // Update special power timers
+      updateSpecialPowers(deltaTime);
       
       // Update timer (Phase 2)
       if (game.currentRiddle) {
@@ -3074,6 +3524,8 @@
     function startGame() {
       game.state = 'playing';
       game.score = 0;
+      game.currentLevel = 1;
+      game.levelScore = 0;
       game.level = 1;
       game.timePerRiddle = CONFIG.LEVEL_1_TIME;
       game.plate = [];
@@ -3083,10 +3535,21 @@
       game.player.carrying = null;
       game.processingNextRiddle = false; // Reset anti-scrambling flag
       
+      // Clear all special power effects
+      game.frozen = false;
+      game.freezeTimer = 0;
+      game.blurred = false;
+      game.blurTimer = 0;
+      game.disrupted = false;
+      game.disruptTimer = 0;
+      game.darkened = false;
+      game.darkTimer = 0;
+      game.specialPowerActive = false;
+      
       // Get first riddle
       nextRiddle();
       
-      console.log('🏛️ Order of the Gods - Dungeon of Mount Olympus trial begins!');
+      console.log('🏛️ Order of the Gods - Level 1 begins! Gracious time to learn...');
       showToast("The iron collar tightens... Your trial in the Feast Hall begins!");
     }
     
