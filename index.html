@@ -99,19 +99,25 @@
         COUNTER: { x: Math.max(640, window.innerWidth * 0.5), y: 200 },     // Centered delivery counter (responsive)
         TABLE: { x: Math.max(640, window.innerWidth * 0.5), y: Math.max(360, window.innerHeight * 0.4) },       // Central plate assembly (responsive)
         TRASH: { x: window.innerWidth - 150, y: window.innerHeight - 150 }, // Trash bin - bottom right corner (responsive)
+        OVEN: { x: 450, y: 280 },         // Divine cooking oven (left side)
+        KNIFE_BLOCK: { x: window.innerWidth - 250, y: 280 }, // Ancient knife block (right side, responsive)
         BINS: {
           bread: { x: 360, y: 260 },     // Left side bins
           tomato: { x: 360, y: 460 },    
           cheese: { x: window.innerWidth - 160, y: 260 },   // Right side bins (responsive)
           meat: { x: window.innerWidth - 160, y: 460 },     
           egg: { x: Math.max(530, window.innerWidth * 0.4), y: window.innerHeight - 180 },       // Bottom bins (responsive)
-          pepper: { x: Math.max(850, window.innerWidth * 0.6), y: window.innerHeight - 180 }     
+          pepper: { x: Math.max(750, window.innerWidth * 0.5), y: window.innerHeight - 180 },
+          bacon: { x: Math.max(850, window.innerWidth * 0.55), y: window.innerHeight - 180 },    // New ingredients!
+          avocado: { x: Math.max(950, window.innerWidth * 0.6), y: window.innerHeight - 180 }
         }
       },
       ZONES: {
         TABLE_RADIUS: 90,        // Distance to interact with table
         BIN_RADIUS: 60,          // Distance to interact with bins
         TRASH_RADIUS: 50,        // Distance to interact with trash
+        OVEN_RADIUS: 70,         // Distance to interact with oven
+        KNIFE_RADIUS: 70,        // Distance to interact with knife block
         COUNTER_WIDTH: 360,      // Width of delivery zone
         COUNTER_HEIGHT: 40,      // Height of delivery zone
         INTERACTION_BUFFER: 8    // Extra pixels for generous collision
@@ -173,9 +179,11 @@
         bread: 'assets/bread.png',
         tomato: 'assets/tomato.png', 
         cheese: 'assets/cheese.png',
-        meat: 'assets/meat.png',  // Updated to use meat.png
-        egg: 'assets/egg.png',     // New egg asset!
-        pepper: 'assets/pepper.png'
+        meat: 'assets/meat.png',
+        egg: 'assets/egg.png',
+        pepper: 'assets/pepper.png',
+        bacon: 'assets/bacon.png',     // New ingredient for complex recipes!
+        avocado: 'assets/avocado.png'  // New ingredient for complex recipes!
       },
       customers: {
         medusa: 'assets/medusa.png',
@@ -183,15 +191,21 @@
         hermes: 'assets/hermes.png',
         sphinx: 'assets/sphinx.png',
         pegasus: 'assets/pegasus.png',
-        poseidon: 'assets/poseidon.png',  // God of the sea
-        ghost: 'assets/restless-spirit.png'  // New restless spirit asset!
+        poseidon: 'assets/poseidon.png',
+        ghost: 'assets/restless-spirit.png',
+        zeus: 'assets/zeus.png',       // Lord of Olympus!
+        hera: 'assets/hera.png',       // Queen of the gods!
+        hydra: 'assets/hydra.png'      // Legendary beast!
       },
       ui: {
         plate: 'assets/plate.png',
         crate: 'assets/crate.png'
       },
+      kitchen: {
+        oven: 'assets/oven.png'        // Divine cooking station!
+      },
       player: {
-        character: 'assets/main-character.png'  // Fixed filename with hyphen!
+        character: 'assets/main-character.png'
       }
     };
     
@@ -223,6 +237,7 @@
       Object.values(ASSET_FILES.ingredients).forEach(src => src && ASSETS.totalAssets++);
       Object.values(ASSET_FILES.customers).forEach(src => src && ASSETS.totalAssets++);
       Object.values(ASSET_FILES.ui).forEach(src => src && ASSETS.totalAssets++);
+      Object.values(ASSET_FILES.kitchen).forEach(src => src && ASSETS.totalAssets++); // Add kitchen cooking stations
       Object.values(ASSET_FILES.player).forEach(src => src && ASSETS.totalAssets++); // Add player assets to count
       
       // Load ingredient assets
@@ -262,6 +277,23 @@
               ASSETS.ui[ui] = img;
             }).catch(() => {
               ASSETS.ui[ui] = null;
+            })
+          );
+        }
+      }
+      
+      // Load kitchen assets (oven, etc.)
+      for (let [kitchen, src] of Object.entries(ASSET_FILES.kitchen)) {
+        if (src) {
+          loadPromises.push(
+            loadImage(src).then(img => {
+              if (!ASSETS.kitchen) ASSETS.kitchen = {};
+              ASSETS.kitchen[kitchen] = img;
+              console.log(`✅ Kitchen asset loaded: ${kitchen}`);
+            }).catch(() => {
+              if (!ASSETS.kitchen) ASSETS.kitchen = {};
+              ASSETS.kitchen[kitchen] = null;
+              console.log(`❌ Kitchen asset failed: ${kitchen}`);
             })
           );
         }
@@ -583,6 +615,31 @@
       toastMessage: '',           // Current toast message
       toastTimer: 0,              // How long to show toast
       
+      // Progressive Story System
+      night: 1,                   // Current night of eternal servitude
+      totalPoints: 0,             // Total points across all nights for story progression
+      storyUnlocked: [],          // Array of unlocked story fragment IDs
+      collarCracks: 0,            // Visual collar progression (0-5 cracks)
+      showingStory: false,        // Whether story panel is currently displayed
+      storyPanel: null,           // Current story panel content
+      
+      // God Relationship System - Character Arcs
+      godRelationships: {
+        medusa: { favor: 0, interactions: 0, arc: 'hostile' },     // Starts hostile, becomes protective
+        minotaur: { favor: 0, interactions: 0, arc: 'neutral' },   // Respects skill, offers teaching  
+        poseidon: { favor: 0, interactions: 0, arc: 'testing' },   // Tests worth with impossible orders
+        hermes: { favor: 0, interactions: 0, arc: 'neutral' },     // Quick to judge, quick to forgive
+        sphinx: { favor: 0, interactions: 0, arc: 'mysterious' },  // Riddles within riddles
+        zeus: { favor: 0, interactions: 0, arc: 'demanding' },     // Expects perfection
+        hera: { favor: 0, interactions: 0, arc: 'judgmental' },    // Watches for weakness
+        hydra: { favor: 0, interactions: 0, arc: 'chaotic' },      // Unpredictable beast
+        ghost: { favor: 0, interactions: 0, arc: 'sorrowful' }     // Seeks understanding
+      },
+      
+      // New Cooking Mechanics
+      hasKnife: false,            // Whether player has picked up knife for cutting
+      cookingItem: null,          // Item currently being cooked in oven
+      
       // Debug
       debugMode: false,
       showHitboxes: false,
@@ -608,7 +665,7 @@
           this.keys[key] = true;
           
           // Prevent defaults for game keys
-          if (['w','a','s','d','e','q','x','enter','escape'].includes(key)) {
+          if (['w','a','s','d','e','q','x','c','v','enter','escape'].includes(key)) {
             e.preventDefault();
           }
           
@@ -802,6 +859,21 @@
         return { success: true };
       }
       
+      // COOKING validation - requires specific cooked/cut preparations
+      if (riddle.type === "COOKING") {
+        if (plate.length !== riddle.required.length) {
+          return { success: false, reason: `Need exactly ${riddle.required.length} items` };
+        }
+        
+        for (let i = 0; i < riddle.required.length; i++) {
+          if (plate[i] !== riddle.required[i]) {
+            return { success: false, reason: `Wrong preparation: need ${riddle.required[i]}` };
+          }
+        }
+        
+        return { success: true };
+      }
+      
       return { success: false, reason: "Unknown riddle type" };
     }
     
@@ -900,6 +972,24 @@
                                 KITCHEN.POSITIONS.TRASH.y);
       if (trashDist < KITCHEN.ZONES.TRASH_RADIUS) {
         player.currentZone = 'trash';
+        return;
+      }
+      
+      // Check oven zone (circular)
+      const ovenDist = distance(player.x, player.y, 
+                               KITCHEN.POSITIONS.OVEN.x, 
+                               KITCHEN.POSITIONS.OVEN.y);
+      if (ovenDist < KITCHEN.ZONES.OVEN_RADIUS) {
+        player.currentZone = 'oven';
+        return;
+      }
+      
+      // Check knife block zone (circular)
+      const knifeDist = distance(player.x, player.y, 
+                                KITCHEN.POSITIONS.KNIFE_BLOCK.x, 
+                                KITCHEN.POSITIONS.KNIFE_BLOCK.y);
+      if (knifeDist < KITCHEN.ZONES.KNIFE_RADIUS) {
+        player.currentZone = 'knife_block';
         return;
       }
       
@@ -1012,6 +1102,33 @@
           showToast("Pick up an ingredient first");
         }
       }
+      
+      // At knife block
+      else if (zone === 'knife_block') {
+        if (!game.hasKnife) {
+          game.hasKnife = true;
+          showToast("Ancient blade acquired! (C to cut)");
+          console.log("Player now has knife");
+          AUDIO.playPickup();
+        } else {
+          showToast("Already have knife");
+        }
+      }
+      
+      // At oven
+      else if (zone === 'oven') {
+        if (player.carrying) {
+          game.cookingItem = player.carrying;
+          player.carrying = null;
+          showToast(`${game.cookingItem} cooking... (V to retrieve)`);
+          console.log(`Started cooking: ${game.cookingItem}`);
+          AUDIO.playPlace();
+        } else if (game.cookingItem) {
+          showToast("Something is already cooking!");
+        } else {
+          showToast("Place ingredient to cook");
+        }
+      }
     }
     
     // Undo function (Q key at table)
@@ -1051,6 +1168,56 @@
       AUDIO.playTrash(); // Phase 3 - Audio feedback
     }
     
+    // Cutting function (C key with knife)
+    function handleCutting() {
+      if (!game.hasKnife) {
+        showToast("Need knife from knife block first!");
+        return;
+      }
+      
+      if (!game.player.carrying) {
+        showToast("Need ingredient to cut!");
+        return;
+      }
+      
+      const ingredient = game.player.carrying;
+      
+      // Only certain ingredients can be cut
+      if (['tomato', 'cheese', 'meat', 'avocado', 'bacon'].includes(ingredient)) {
+        game.player.carrying = `cut_${ingredient}`;
+        showToast(`Sliced ${ingredient} with ancient blade!`);
+        console.log(`Cut ${ingredient} into cut_${ingredient}`);
+        AUDIO.playPlace(); // Cutting sound
+      } else {
+        showToast(`Cannot cut ${ingredient}`);
+      }
+    }
+    
+    // Oven retrieval function (V key at oven)
+    function handleOvenRetrieve() {
+      if (game.player.currentZone !== 'oven') {
+        showToast("Go to oven to retrieve cooked items");
+        return;
+      }
+      
+      if (!game.cookingItem) {
+        showToast("Nothing cooking in oven");
+        return;
+      }
+      
+      if (game.player.carrying) {
+        showToast("Hands full! Can't retrieve from oven");
+        return;
+      }
+      
+      const cookedItem = `cooked_${game.cookingItem}`;
+      game.player.carrying = cookedItem;
+      showToast(`Retrieved ${cookedItem} from divine flames!`);
+      console.log(`Retrieved: ${cookedItem}`);
+      game.cookingItem = null;
+      AUDIO.playPickup();
+    }
+    
     // Delivery function (Phase 2 - Real validation)
     function handleDelivery() {
       if (game.player.currentZone !== 'counter') {
@@ -1071,11 +1238,18 @@
       if (result.success) {
         // Success!
         game.score++;
+        game.totalPoints++; // Track total points for story progression
         game.customerMessage = randomChoice(game.currentCustomer.success);
         game.messageTimer = 2000;
         showToast("Correct! +1 point");
         console.log(`SUCCESS! Score: ${game.score}`);
         AUDIO.playSuccess(); // Phase 3 - Audio feedback
+        
+        // Update god relationship (positive)
+        updateGodRelationship(game.currentCustomer.id, true);
+        
+        // Check for story progression
+        checkStoryProgression();
         
         // Check for level up
         updateLevel();
@@ -1098,6 +1272,9 @@
         console.log(`FAILED: ${result.reason}`);
         AUDIO.playFailure(); // Phase 3 - Audio feedback
         
+        // Update god relationship (negative)
+        updateGodRelationship(game.currentCustomer.id, false);
+        
         // Customer walks out after feedback, then next riddle
         game.customerState = 'walking_out';
         setTimeout(() => nextRiddle(), 2500); // Give time for walking animation
@@ -1106,6 +1283,210 @@
       // Clear plate and set debounce
       game.plate = [];
       game.deliveryDebounce = 300;
+    }
+    
+    // =============================================================================
+    // ADVANCED COOKING RIDDLES (WITH CUTTING & COOKING)
+    // =============================================================================
+    
+    // Add complex riddles that use the new cooking mechanics
+    const ADVANCED_RIDDLES = [
+      // Level 2 - Cutting required
+      {
+        id: 'cut_tomato_basic',
+        text: "Slice the crimson fruit of the earth with ancient steel",
+        level: 2,
+        type: "COOKING",
+        required: ["cut_tomato"]
+      },
+      {
+        id: 'cut_cheese_meat',
+        text: "Divine blade must prepare both golden wheel and beast's flesh",
+        level: 2,
+        type: "COOKING",
+        required: ["cut_cheese", "cut_meat"]
+      },
+      
+      // Level 3 - Cooking required
+      {
+        id: 'cooked_meat_bread',
+        text: "Beast's flesh touched by divine flames, paired with Demeter's grain",
+        level: 3,
+        type: "COOKING",
+        required: ["cooked_meat", "bread"]
+      },
+      {
+        id: 'complex_preparation',
+        text: "Cut the green fruit, cook the beast, serve with grain - chef's feat",
+        level: 3,
+        type: "COOKING",
+        required: ["cut_avocado", "cooked_meat", "bread"]
+      },
+      {
+        id: 'zeus_ultimate',
+        text: "For Zeus: Cut cheese, cooked bacon, sliced tomato, divine bread, flame-touched egg",
+        level: 3,
+        type: "COOKING",
+        required: ["cut_cheese", "cooked_bacon", "cut_tomato", "bread", "cooked_egg"]
+      },
+      
+      // Advanced mixed challenges
+      {
+        id: 'medusa_complex',
+        text: "Medusa demands: Blade-prepared avocado, fire-blessed meat, untouched pepper",
+        level: 3,
+        type: "COOKING",
+        required: ["cut_avocado", "cooked_meat", "pepper"]
+      }
+    ];
+    
+    // Merge advanced riddles with existing ones
+    RIDDLES.push(...ADVANCED_RIDDLES);
+    console.log(`✅ ${ADVANCED_RIDDLES.length} advanced cooking riddles added!`);
+    
+    // =============================================================================
+    // PROGRESSIVE STORY & GOD RELATIONSHIP SYSTEM
+    // =============================================================================
+    
+    // Update god relationships based on interaction outcome
+    function updateGodRelationship(godId, success) {
+      if (!game.godRelationships[godId]) return;
+      
+      const god = game.godRelationships[godId];
+      god.interactions++;
+      
+      if (success) {
+        god.favor += 1;
+        console.log(`🟢 ${godId} favor increased: ${god.favor}`);
+      } else {
+        god.favor -= 1;
+        console.log(`🔴 ${godId} favor decreased: ${god.favor}`);
+      }
+      
+      // Update character arc based on favor and interactions
+      updateCharacterArc(godId, god);
+    }
+    
+    // Update character arcs based on relationship progression
+    function updateCharacterArc(godId, god) {
+      const { favor, interactions, arc } = god;
+      
+      switch (godId) {
+        case 'medusa':
+          if (favor >= 3 && arc === 'hostile') {
+            god.arc = 'protective';
+            showToast("Medusa's eyes soften... she grows protective");
+          }
+          break;
+          
+        case 'minotaur':
+          if (favor >= 2 && interactions >= 3 && arc === 'neutral') {
+            god.arc = 'teaching';
+            showToast("The Minotaur nods with respect - a teacher emerges");
+          }
+          break;
+          
+        case 'poseidon':
+          if (favor <= -2 && arc === 'testing') {
+            god.arc = 'challenging';
+            showToast("Poseidon's tests grow impossible... beware his wrath");
+          } else if (favor >= 4 && arc === 'testing') {
+            god.arc = 'approving';
+            showToast("The Sea Lord approves of your resilience");
+          }
+          break;
+          
+        case 'zeus':
+          if (favor >= 5 && interactions >= 5) {
+            god.arc = 'impressed';
+            showToast("Zeus himself takes notice... is freedom near?");
+          } else if (favor <= -3) {
+            god.arc = 'wrathful';
+            showToast("Thunder rumbles... Zeus grows impatient");
+          }
+          break;
+      }
+    }
+    
+    // Check for story progression milestones
+    function checkStoryProgression() {
+      const points = game.totalPoints;
+      
+      // Every 10 points, unlock story fragments
+      if (points % 10 === 0 && points > 0) {
+        const fragmentId = `fragment_${points}`;
+        if (!game.storyUnlocked.includes(fragmentId)) {
+          game.storyUnlocked.push(fragmentId);
+          showStoryFragment(points);
+          
+          // Collar progression
+          if (points % 20 === 0) {
+            game.collarCracks = Math.min(5, game.collarCracks + 1);
+            showToast(`*CRACK* Your collar loosens... (${game.collarCracks}/5)`);
+          }
+        }
+      }
+      
+      // Night progression
+      if (points >= game.night * 30) {
+        advanceNight();
+      }
+    }
+    
+    // Show story fragment based on progress
+    function showStoryFragment(points) {
+      const fragments = {
+        10: {
+          title: "Night 1 - First Crack",
+          text: "The iron collar is cold against your neck, but something shifts. The first crack appears - hairline thin, but hope nonetheless."
+        },
+        20: {
+          title: "Hermes' Notice",
+          text: "The messenger god pauses mid-flight. 'Interesting,' he mutters, watching you work. 'Perhaps not all mortals are worthless.'"
+        },
+        30: {
+          title: "Night 2 - Growing Whispers",
+          text: "The gods murmur among themselves. Some speak of your skill with grudging respect. Others plot greater challenges."
+        },
+        40: {
+          title: "Medusa's Protection",
+          text: "A younger god moves to strike you for a minor mistake. Medusa's serpents hiss, and he backs away. 'This one is under my watch,' she declares."
+        },
+        50: {
+          title: "Night 3 - The Minotaur's Teaching",
+          text: "Between riddles, the Minotaur shows you ancient cooking techniques. 'Strength comes not just from muscle,' he rumbles, 'but from skill.'"
+        }
+      };
+      
+      const fragment = fragments[points];
+      if (fragment) {
+        game.storyPanel = fragment;
+        game.showingStory = true;
+        console.log(`📜 Story fragment unlocked: ${fragment.title}`);
+      }
+    }
+    
+    // Advance to next night
+    function advanceNight() {
+      game.night++;
+      game.score = 0; // Reset score for new night
+      showToast(`🌙 Night ${game.night} of eternal servitude begins...`);
+      
+      // Show night transition story
+      const nightStories = {
+        2: "Dawn never came. The collar dragged you back to the kitchen as the gods demand more.",
+        3: "Your skill grows, but so does their hunger. The trials intensify.",
+        4: "Whispers speak of ancient laws... perhaps a way to earn freedom through excellence.",
+        5: "The collar grows lighter with each crack. Freedom feels close, yet so distant."
+      };
+      
+      if (nightStories[game.night]) {
+        game.storyPanel = {
+          title: `Night ${game.night}`,
+          text: nightStories[game.night]
+        };
+        game.showingStory = true;
+      }
     }
     
     // =============================================================================
@@ -1407,6 +1788,69 @@
                       trashSize + 10, trashSize + 10);
       }
       
+      // Divine Oven (cooking station)
+      const oven = KITCHEN.POSITIONS.OVEN;
+      const ovenImg = ASSETS.kitchen?.oven;
+      const ovenSize = 80;
+      
+      if (ovenImg && ASSETS.loaded) {
+        // Draw oven sprite
+        ctx.drawImage(
+          ovenImg,
+          oven.x - ovenSize/2,
+          oven.y - ovenSize/2,
+          ovenSize,
+          ovenSize
+        );
+      } else {
+        // Fallback oven appearance - stone furnace
+        const ovenGradient = ctx.createRadialGradient(oven.x, oven.y, 20, oven.x, oven.y, 40);
+        ovenGradient.addColorStop(0, '#FF4500'); // Orange red (fire)
+        ovenGradient.addColorStop(0.7, '#8B4513'); // Saddle brown (stone)
+        ovenGradient.addColorStop(1, '#2F4F4F'); // Dark slate gray
+        ctx.fillStyle = ovenGradient;
+        ctx.fillRect(oven.x - ovenSize/2, oven.y - ovenSize/2, ovenSize, ovenSize);
+        
+        // Fire glow if something is cooking
+        if (game.cookingItem) {
+          ctx.fillStyle = 'rgba(255, 100, 0, 0.3)';
+          ctx.beginPath();
+          ctx.arc(oven.x, oven.y, ovenSize/2 + 10, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      
+      // Ancient Knife Block
+      const knife = KITCHEN.POSITIONS.KNIFE_BLOCK;
+      const knifeSize = 60;
+      
+      // Draw knife block as stone pedestal with blades
+      const knifeGradient = ctx.createLinearGradient(knife.x - knifeSize/2, knife.y - knifeSize/2, 
+                                                    knife.x + knifeSize/2, knife.y + knifeSize/2);
+      knifeGradient.addColorStop(0, '#696969'); // Dim gray (stone)
+      knifeGradient.addColorStop(0.5, '#2F4F4F'); // Dark slate gray
+      knifeGradient.addColorStop(1, '#000000'); // Black
+      ctx.fillStyle = knifeGradient;
+      ctx.fillRect(knife.x - knifeSize/2, knife.y - knifeSize/2, knifeSize, knifeSize);
+      
+      // Draw knife handles sticking out
+      for (let i = 0; i < 3; i++) {
+        const handleX = knife.x - 15 + (i * 15);
+        const handleY = knife.y - 20;
+        
+        // Handle
+        ctx.fillStyle = '#8B4513'; // Saddle brown
+        ctx.fillRect(handleX - 2, handleY, 4, 15);
+        
+        // Blade glint
+        ctx.strokeStyle = game.hasKnife ? '#C0C0C0' : '#E6E6FA'; // Silver or lavender
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(handleX, handleY - 5);
+        ctx.lineTo(handleX, handleY - 15);
+        ctx.stroke();
+      }
+      
       // Labels
       ctx.fillStyle = '#FFF';
       ctx.font = 'bold 14px Arial';
@@ -1414,6 +1858,25 @@
       ctx.fillText('TABLE', table.x, table.y - 75);
       ctx.fillText('DIVINE ALTAR', counter.x, counter.y - 35);
       ctx.fillText('TRASH', trash.x, trash.y + 40);
+      
+      // Cooking station labels
+      ctx.fillStyle = '#FFD700'; // Gold for divine stations
+      ctx.font = 'bold 12px Cinzel, serif';
+      ctx.fillText('DIVINE OVEN', oven.x, oven.y + 55);
+      if (game.cookingItem) {
+        ctx.fillStyle = '#FF6347'; // Tomato red for cooking status
+        ctx.font = '10px Cinzel, serif';
+        ctx.fillText(`Cooking ${game.cookingItem}...`, oven.x, oven.y + 70);
+      }
+      
+      ctx.fillStyle = game.hasKnife ? '#32CD32' : '#FFD700'; // Green if acquired, gold if not
+      ctx.font = 'bold 12px Cinzel, serif';
+      ctx.fillText('BLADE PEDESTAL', knife.x, knife.y + 45);
+      if (game.hasKnife) {
+        ctx.fillStyle = '#90EE90'; // Light green
+        ctx.font = '10px Cinzel, serif';
+        ctx.fillText('Ancient Blade Acquired', knife.x, knife.y + 60);
+      }
     }
     
     // Render player (Enhanced with character sprite)
@@ -2208,6 +2671,14 @@
       
       if (input.wasPressed('enter')) {
         handleDelivery();
+      }
+      
+      if (input.wasPressed('c')) {
+        handleCutting();
+      }
+      
+      if (input.wasPressed('v')) {
+        handleOvenRetrieve();
       }
       
       // Update timers
