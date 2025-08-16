@@ -29,3 +29,39 @@ List of priorities
 - people messing up your orders
 - multiple customers
 - obstacles while you are trying to cook
+
+STORY INTRO SCENES
+
+LEVEL 1
+- powers for one person
+
+LEVEL 2
+- powers for 3 people
+
+LEVEL 3
+- powers for all people
+
+LEVEL 4
+- BOSS FIGHT WITH THE FATES TO TURN INTO A GOD
+
+
+ADD SONGS!!!
+
+
+make sure level 1 only uses level 1 creatures: chimera, hydra, medusa, minotaur, sphinx
+
+and make sure the medusa has her superpower (right as she comes on not after you serve her)
+
+make sure level 2 only uses its creatures
+
+also make cutting take 3 seconds
+
+make sure the dev button works because right now, I have to click the button and then I have to serve another food for it to change. But once I hit the button, it should just change to the next level. it should just add 10 points to the value. so it should also work if i want to go to level 3 or 4
+
+And whenever I hit 10 points, make sure it has a little animation saying "You've completed the feast hall and now we're moving to the Acropolis from Athens. You will encounter a new food. People to serve or something like that." 
+
+Get rid of the word "table" on the divine preperation table
+
+and make sure the circles in the tbale are not too close to each other and are within the table. it looks good now but its on the edge so make it fit well
+
+AFTER YOU TIME OUT IT STILL GLITCHES please fix that. it scrambles through different riddles and people so please fix it

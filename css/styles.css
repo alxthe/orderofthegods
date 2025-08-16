@@ -1,0 +1,33 @@
+/* Order of the Gods - Game Styles */
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #000;
+  font-family: Arial, sans-serif;
+  overflow: hidden; /* Prevent scrollbars */
+  width: 100vw;
+  height: 100vh;
+}
+
+canvas {
+  display: block;
+  background: #1a1a1a;
+  cursor: none; /* Hide mouse cursor */
+  width: 100vw;
+  height: 100vh;
+}
+
+.mobile-warning {
+  display: none;
+  color: white;
+  text-align: center;
+  padding: 20px;
+  font-size: 24px;
+}
+
+/* Block mobile and small screens - updated for fullscreen */
+@media (max-width: 1200px), (max-height: 600px) {
+  canvas { display: none !important; }
+  .mobile-warning { display: block !important; }
+}
