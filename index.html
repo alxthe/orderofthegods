@@ -11,17 +11,17 @@
       margin: 0;
       padding: 0;
       background: #000;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
       font-family: Arial, sans-serif;
-      overflow: hidden;
+      overflow: hidden; /* Prevent scrollbars */
+      width: 100vw;
+      height: 100vh;
     }
     canvas {
-      border: 1px solid #333;
+      display: block;
       background: #1a1a1a;
       cursor: none; /* Hide mouse cursor */
+      width: 100vw;
+      height: 100vh;
     }
     .mobile-warning {
       display: none;
@@ -30,15 +30,15 @@
       padding: 20px;
       font-size: 24px;
     }
-    /* Block mobile and small screens */
-    @media (max-width: 900px) {
+    /* Block mobile and small screens - updated for fullscreen */
+    @media (max-width: 1200px), (max-height: 600px) {
       canvas { display: none !important; }
       .mobile-warning { display: block !important; }
     }
   </style>
 </head>
 <body>
-  <canvas id="gameCanvas" width="1280" height="720"></canvas>
+  <canvas id="gameCanvas"></canvas>
   <div class="mobile-warning">
     <h2>🖥️ Laptop + Keyboard Required</h2>
     <p>This game requires a laptop or desktop computer with keyboard controls.</p>
@@ -52,9 +52,13 @@
     
     console.log("🏛️ Order of the Gods - Starting Phase 1...");
     
-    // Get canvas and context
+    // Get canvas and context - FULLSCREEN SETUP
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
+    
+    // Set canvas to full screen dimensions
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
     
     // Verify canvas support
     if (!ctx) {
@@ -72,30 +76,30 @@
     const KITCHEN = {
       BOUNDS: {
         LEFT: 280,    // Kitchen area starts further right to make room for customers
-        RIGHT: 1200, 
+        RIGHT: window.innerWidth - 80, // Dynamic based on screen width 
         TOP: 80,
-        BOTTOM: 640
+        BOTTOM: window.innerHeight - 80 // Dynamic based on screen height
       },
       CUSTOMER_AREA: {
         LEFT: 50,     // Customer walking/waiting area
         RIGHT: 270,    
-        TOP: 80,
-        BOTTOM: 640,
+        TOP: 160,     // Below header (120px + sprite height buffer)
+        BOTTOM: window.innerHeight - 80, // Dynamic based on screen height
         QUEUE_X: 200, // Where customers line up
-        ENTRANCE_Y: 150, // Where customers enter from
-        EXIT_Y: 550   // Where customers exit to
+        ENTRANCE_Y: 220, // Where customers enter from (well below header)
+        EXIT_Y: window.innerHeight - 100   // Where customers exit to (near bottom)
       },
       POSITIONS: {
-        COUNTER: { x: 500, y: 180 },     // Moved counter lower to not block riddles
-        TABLE: { x: 640, y: 360 },       // Central plate assembly
-        TRASH: { x: 1050, y: 550 },      // Trash bin - bottom right corner
+        COUNTER: { x: Math.max(500, window.innerWidth * 0.4), y: 180 },     // Moved counter lower to not block riddles (responsive)
+        TABLE: { x: Math.max(640, window.innerWidth * 0.5), y: Math.max(360, window.innerHeight * 0.4) },       // Central plate assembly (responsive)
+        TRASH: { x: window.innerWidth - 150, y: window.innerHeight - 150 }, // Trash bin - bottom right corner (responsive)
         BINS: {
-          bread: { x: 360, y: 260 },     // Renamed and repositioned bins
+          bread: { x: 360, y: 260 },     // Left side bins
           tomato: { x: 360, y: 460 },    
-          cheese: { x: 1120, y: 260 },   
-          meat: { x: 1120, y: 460 },     
-          egg: { x: 530, y: 620 },       
-          pepper: { x: 850, y: 620 }     
+          cheese: { x: window.innerWidth - 160, y: 260 },   // Right side bins (responsive)
+          meat: { x: window.innerWidth - 160, y: 460 },     
+          egg: { x: Math.max(530, window.innerWidth * 0.4), y: window.innerHeight - 180 },       // Bottom bins (responsive)
+          pepper: { x: Math.max(850, window.innerWidth * 0.6), y: window.innerHeight - 180 }     
         }
       },
       ZONES: {
@@ -2072,11 +2076,11 @@
     async function init() {
       console.log('🏛️ Initializing Order of the Gods - Dungeon of Mount Olympus...');
       
-      // Check for mobile/small screen
-      if (window.innerWidth < 900) {
+      // Check for mobile/small screen (updated for fullscreen experience)
+      if (window.innerWidth < 1200 || window.innerHeight < 600) {
         document.querySelector('.mobile-warning').style.display = 'block';
         canvas.style.display = 'none';
-        console.log('❌ Mobile device detected - game blocked');
+        console.log('❌ Screen too small for fullscreen experience - game blocked');
         return;
       }
       
@@ -2170,8 +2174,34 @@
       console.log('⚱️ Ancient styling: Torchlight effects, Parchment riddles, Stone carvings!');
     }
     
+    // Handle window resize for fullscreen experience
+    function handleResize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      
+      // Update dynamic positions
+      KITCHEN.BOUNDS.RIGHT = window.innerWidth - 80;
+      KITCHEN.BOUNDS.BOTTOM = window.innerHeight - 80;
+      KITCHEN.CUSTOMER_AREA.BOTTOM = window.innerHeight - 80;
+      KITCHEN.CUSTOMER_AREA.EXIT_Y = window.innerHeight - 100;
+      KITCHEN.POSITIONS.TRASH.x = window.innerWidth - 150;
+      KITCHEN.POSITIONS.TRASH.y = window.innerHeight - 150;
+      KITCHEN.POSITIONS.COUNTER.x = Math.max(500, window.innerWidth * 0.4);
+      KITCHEN.POSITIONS.TABLE.x = Math.max(640, window.innerWidth * 0.5);
+      KITCHEN.POSITIONS.TABLE.y = Math.max(360, window.innerHeight * 0.4);
+      KITCHEN.POSITIONS.BINS.cheese.x = window.innerWidth - 160;
+      KITCHEN.POSITIONS.BINS.meat.x = window.innerWidth - 160;
+      KITCHEN.POSITIONS.BINS.egg.x = Math.max(530, window.innerWidth * 0.4);
+      KITCHEN.POSITIONS.BINS.egg.y = window.innerHeight - 180;
+      KITCHEN.POSITIONS.BINS.pepper.x = Math.max(850, window.innerWidth * 0.6);
+      KITCHEN.POSITIONS.BINS.pepper.y = window.innerHeight - 180;
+      
+      console.log(`🖥️ Canvas resized to: ${canvas.width}x${canvas.height}`);
+    }
+    
     // Start when page loads
     window.addEventListener('load', init);
+    window.addEventListener('resize', handleResize);
     
   </script>
 </body>
