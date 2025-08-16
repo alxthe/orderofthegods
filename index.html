@@ -100,7 +100,7 @@
         TABLE: { x: Math.max(640, window.innerWidth * 0.5), y: Math.max(360, window.innerHeight * 0.4) },       // Central plate assembly (responsive)
         TRASH: { x: window.innerWidth - 150, y: window.innerHeight - 150 }, // Trash bin - bottom right corner (responsive)
         OVEN: { x: 450, y: 280 },         // Divine cooking oven (left side)
-        CUTTING_BOARD: { x: window.innerWidth - 250, y: 320 }, // Ancient cutting board (right side, responsive)
+        CUTTING_BOARD: { x: window.innerWidth - 250, y: 380 }, // Ancient cutting board (right side, responsive)
         BINS: {
           bread: { x: 360, y: 260 },     // Left side bins
           tomato: { x: 360, y: 460 },    
@@ -211,9 +211,13 @@
       cutIngredients: {
         cut_tomato: 'assets/cut-tomato.png',
         cut_cheese: 'assets/cut-cheese.png',
-        cut_meat: 'assets/cut-meat.png',
         cut_avocado: 'assets/cut-avocado.png',
         cut_pepper: 'assets/cut-pepper.png'
+      },
+      cookedIngredients: {
+        cooked_meat: 'assets/cooked-meat.png',
+        cooked_egg: 'assets/cooked-egg.png',
+        cooked_bacon: 'assets/cooked-bacon.png'
       },
       player: {
         character: 'assets/main-character.png'
@@ -250,6 +254,7 @@
       Object.values(ASSET_FILES.ui).forEach(src => src && ASSETS.totalAssets++);
       Object.values(ASSET_FILES.kitchen).forEach(src => src && ASSETS.totalAssets++); // Add kitchen cooking stations
       Object.values(ASSET_FILES.cutIngredients).forEach(src => src && ASSETS.totalAssets++); // Add cut ingredient assets
+      Object.values(ASSET_FILES.cookedIngredients).forEach(src => src && ASSETS.totalAssets++); // Add cooked ingredient assets
       Object.values(ASSET_FILES.player).forEach(src => src && ASSETS.totalAssets++); // Add player assets to count
       
       // Load ingredient assets
@@ -323,6 +328,23 @@
               if (!ASSETS.cutIngredients) ASSETS.cutIngredients = {};
               ASSETS.cutIngredients[cutItem] = null;
               console.log(`❌ Cut ingredient asset failed: ${cutItem}`);
+            })
+          );
+        }
+      }
+      
+      // Load cooked ingredient assets
+      for (let [cookedItem, src] of Object.entries(ASSET_FILES.cookedIngredients)) {
+        if (src) {
+          loadPromises.push(
+            loadImage(src).then(img => {
+              if (!ASSETS.cookedIngredients) ASSETS.cookedIngredients = {};
+              ASSETS.cookedIngredients[cookedItem] = img;
+              console.log(`✅ Cooked ingredient asset loaded: ${cookedItem}`);
+            }).catch(() => {
+              if (!ASSETS.cookedIngredients) ASSETS.cookedIngredients = {};
+              ASSETS.cookedIngredients[cookedItem] = null;
+              console.log(`❌ Cooked ingredient asset failed: ${cookedItem}`);
             })
           );
         }
@@ -695,6 +717,9 @@
       cookingTimer: 0,            // Timer for cooking (3 seconds = 3000ms)
       cookingDuration: 3000,      // How long items take to cook
       
+      // Anti-scrambling protection
+      processingNextRiddle: false, // Prevent multiple nextRiddle() calls
+      
       // Debug
       debugMode: false,
       showHitboxes: false,
@@ -934,17 +959,23 @@
     
     // Get next riddle
     function nextRiddle() {
+      // ANTI-SCRAMBLING: Prevent multiple calls from overlapping
+      if (game.processingNextRiddle) {
+        console.log("🚫 Blocked duplicate nextRiddle() call - preventing scrambling!");
+        return;
+      }
+      game.processingNextRiddle = true;
+      
       // Get riddles for current level
       const levelRiddles = RIDDLES.filter(r => r.level === game.level);
       
       // Avoid repeats
-      const available = levelRiddles.filter(r => !game.usedRiddles.includes(r.id));
+      let available = levelRiddles.filter(r => !game.usedRiddles.includes(r.id));
       
       if (available.length === 0) {
-        // Reset if we've used all riddles
+        // Reset if we've used all riddles - NO RECURSIVE CALL!
         game.usedRiddles = [];
-        nextRiddle();
-        return;
+        available = levelRiddles; // Use all riddles again
       }
       
       // Pick random riddle
@@ -977,6 +1008,9 @@
       game.plate = [];
       
       console.log(`New riddle: ${game.currentRiddle.text} (${game.currentRiddle.type}) - ${game.timer}s`);
+      
+      // Reset anti-scrambling flag
+      game.processingNextRiddle = false;
     }
     
     // Update level based on score
@@ -1167,7 +1201,7 @@
         if (player.carrying) {
           // Cut the item directly at the cutting board - only certain items can be cut
           const ingredient = player.carrying;
-          const cuttableItems = ['tomato', 'cheese', 'meat', 'avocado', 'pepper'];
+          const cuttableItems = ['tomato', 'cheese', 'avocado', 'pepper'];
           
           if (cuttableItems.includes(ingredient)) {
             player.carrying = `cut_${ingredient}`;
@@ -1175,7 +1209,7 @@
             console.log(`Cut ${ingredient} into cut_${ingredient}`);
             AUDIO.playPlace(); // Cutting sound
           } else {
-            showToast(`${ingredient} cannot be cut! (Only: tomato, cheese, meat, avocado, pepper)`);
+            showToast(`${ingredient} cannot be cut! (Only: tomato, cheese, avocado, pepper)`);
           }
         } else {
           showToast("Bring ingredient to cutting board to slice");
@@ -1574,6 +1608,7 @@
       // Re-shuffle customers for new trial (now gods)
       game.shuffledCustomers = shuffleCustomers();
       game.customerIndex = 0;
+      game.processingNextRiddle = false; // Reset anti-scrambling flag
       
       // Show transition story
       game.storyPanel = {
@@ -1792,14 +1827,22 @@
           if (ingredient.startsWith('cut_')) {
             ingredientImg = ASSETS.cutIngredients?.[ingredient];
           }
+          // Check if it's a cooked ingredient
+          else if (ingredient.startsWith('cooked_')) {
+            ingredientImg = ASSETS.cookedIngredients?.[ingredient];
+          }
           
-          // If not cut or cut asset not found, use regular ingredient
+          // If not cut/cooked or asset not found, use regular ingredient
           if (!ingredientImg) {
             ingredientImg = ASSETS.ingredients[ingredient];
           }
           
           if (ingredientImg && ASSETS.loaded) {
-            const imgSize = 48; // Good size for clear table display with fixed positioning
+            const imgSize = 64; // Increased size for better quality
+            
+            // Ensure high quality rendering
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
             
             ctx.drawImage(
               ingredientImg,
@@ -1809,14 +1852,29 @@
               imgSize
             );
           } else {
-            // Fallback to colored circle
+            // Enhanced fallback with text labels for cut/cooked items
             ctx.fillStyle = CONFIG.COLORS[ingredient.replace('cut_', '').replace('cooked_', '').toUpperCase()];
             ctx.beginPath();
-            ctx.arc(slotX, slotY, 12, 0, Math.PI * 2);
+            ctx.arc(slotX, slotY, 18, 0, Math.PI * 2); // Bigger circle for better visibility
             ctx.fill();
             ctx.strokeStyle = '#000';
             ctx.lineWidth = 1;
             ctx.stroke();
+            
+            // Add text label for cut/cooked items
+            if (ingredient.startsWith('cut_') || ingredient.startsWith('cooked_')) {
+              ctx.fillStyle = ingredient.startsWith('cut_') ? '#FF6347' : '#FF4500'; // Red for cut, orange for cooked
+              ctx.font = 'bold 10px Arial';
+              ctx.textAlign = 'center';
+              const label = ingredient.startsWith('cut_') ? 'CUT' : 'COOKED';
+              ctx.fillText(label, slotX, slotY - 25);
+              
+              // Base ingredient name
+              ctx.fillStyle = '#000';
+              ctx.font = '8px Arial';
+              const baseName = ingredient.replace('cut_', '').replace('cooked_', '').toUpperCase();
+              ctx.fillText(baseName, slotX, slotY + 30);
+            }
           }
         } else {
           // Empty slot indicator
@@ -2068,7 +2126,11 @@
       }
       
       if (characterImg && ASSETS.loaded) {
-        const spriteSize = 80; // Good size for clear display with fixed positioning
+        const spriteSize = 100; // Increased size for better quality
+        
+        // Ensure high quality player rendering
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
         
         // Draw character sprite with perfect positioning
         ctx.drawImage(
@@ -2131,15 +2193,23 @@
         if (carriedItem.startsWith('cut_')) {
           carriedImg = ASSETS.cutIngredients?.[carriedItem];
         }
+        // Check if it's a cooked ingredient
+        else if (carriedItem.startsWith('cooked_')) {
+          carriedImg = ASSETS.cookedIngredients?.[carriedItem];
+        }
         
-        // If not cut or cut asset not found, use regular ingredient
+        // If not cut/cooked or asset not found, use regular ingredient
         if (!carriedImg) {
           carriedImg = ASSETS.ingredients[carriedItem];
         }
         
         if (carriedImg && ASSETS.loaded) {
-          // Good size for clear display with fixed positioning
-          const imgSize = 72; // Perfect size for clear visibility
+          // Increased size for better quality
+          const imgSize = 96; // Larger for better quality
+          
+          // Ensure high quality rendering
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
           
           // Add background circle for contrast
           ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
@@ -2224,10 +2294,14 @@
       ctx.setLineDash([]);
       
       const customerImg = ASSETS.customers[game.currentCustomer.id];
-      const spriteWidth = 112;   // Good size for clear display with fixed positioning
-      const spriteHeight = 144; // Good size for clear display with fixed positioning
+      const spriteWidth = 140;   // Increased size for better quality
+      const spriteHeight = 180; // Increased size for better quality
       
       if (customerImg && ASSETS.loaded) {
+        // Ensure high quality customer rendering
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        
         // Draw customer sprite at animated position with perfect clarity
         ctx.drawImage(
           customerImg,
@@ -2808,54 +2882,21 @@
         game.timer -= deltaTime / 1000;
         if (game.timer <= 0) {
           game.timer = 0;
-          // Clean timeout handling - simple transition, no scramble
+          // SIMPLE timeout handling - no scrambling!
           game.customerMessage = "TIMED OUT!!!";
           game.messageTimer = 2000;
           showToast("TIMED OUT!!!");
-          console.log("TIMEOUT! Simple transition to next customer...");
-          AUDIO.playTimeout(); // Audio feedback
-          game.plate = []; // Clear plate
+          console.log("⏰ TIMEOUT! Moving to next customer...");
+          AUDIO.playTimeout();
           
-          // Simple customer transition - NO SCRAMBLING
+          // Update god relationship (negative for timeout)
+          updateGodRelationship(game.currentCustomer.id, false);
+          
+          // Customer walks out, then immediate next riddle - NO complex logic
           game.customerState = 'walking_out';
           setTimeout(() => {
-            // Simple ordered progression - no re-shuffling on timeout
-            game.customerIndex++;
-            if (game.customerIndex >= game.shuffledCustomers.length) {
-              game.customerIndex = 0; // Loop back to start of shuffled list
-            }
-            game.currentCustomer = game.shuffledCustomers[game.customerIndex];
-            
-            // Get next riddle for this customer
-            const levelRiddles = RIDDLES.filter(r => r.level === game.level);
-            const available = levelRiddles.filter(r => !game.usedRiddles.includes(r.id));
-            
-            if (available.length === 0) {
-              game.usedRiddles = [];
-              game.currentRiddle = randomChoice(levelRiddles);
-            } else {
-              game.currentRiddle = randomChoice(available);
-            }
-            
-            game.usedRiddles.push(game.currentRiddle.id);
-            game.timer = game.timePerRiddle;
-            
-            // Apply time bonus for cooking riddles after timeout too
-            if (game.currentRiddle.timeBonus) {
-              game.timer += game.currentRiddle.timeBonus;
-              console.log(`⏰ Added ${game.currentRiddle.timeBonus}s bonus time for cooking/cutting riddle (timeout)`);
-            }
-            game.customerMessage = '';
-            game.messageTimer = 0;
-            
-            // Reset customer animation cleanly
-            game.customerState = 'walking_in';
-            game.customerPosition.x = KITCHEN.CUSTOMER_AREA.LEFT;
-            game.customerPosition.y = KITCHEN.CUSTOMER_AREA.ENTRANCE_Y;
-            game.customerAnimation = 0;
-            
-            console.log(`🎭 Next customer: ${game.currentCustomer.name} (index: ${game.customerIndex}) with riddle: ${game.currentRiddle.text.substring(0, 30)}...`);
-          }, 2500); // Give time for walking animation
+            nextRiddle(); // Use the single, consistent nextRiddle function
+          }, 2500);
         }
       }
       
@@ -2952,6 +2993,7 @@
       game.customerIndex = 0;
       game.shuffledCustomers = shuffleCustomers(); // Randomize customer order each game
       game.player.carrying = null;
+      game.processingNextRiddle = false; // Reset anti-scrambling flag
       
       // Get first riddle
       nextRiddle();
