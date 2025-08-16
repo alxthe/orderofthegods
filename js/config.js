@@ -166,6 +166,15 @@ const ASSET_FILES = {
   },
   player: {
     character: 'assets/backgrounds & tools/main-character.png'
+  },
+  boss: {
+    music: 'assets/level 4 (boss fight)/mythological magical.mp3',
+    fatesCalm: 'assets/level 4 (boss fight)/fatescalm.png',
+    fatesAngry: 'assets/level 4 (boss fight)/fatesangry.png',
+    clotho: 'assets/level 4 (boss fight)/clotho.png',
+    lachesis: 'assets/level 4 (boss fight)/lachesis.png',
+    atropos: 'assets/level 4 (boss fight)/atropos.png',
+    bensonboone: 'assets/level 4 (boss fight)/bensonboone.png'
   }
 };
 

@@ -129,6 +129,11 @@ function renderSpeechBubble(x, y, text) {
 
 // Render UI
 function renderUI() {
+  // Skip normal UI during boss fight
+  if (game.currentLevel === 4 && game.bossFight.active) {
+    return; // Boss UI is rendered in renderBossUI()
+  }
+  
   // Transparent header with stone dungeon styling
   const headerGrad = ctx.createLinearGradient(0, 0, canvas.width, 120);
   headerGrad.addColorStop(0, 'rgba(74, 55, 40, 0.8)'); // Stone brown with transparency
@@ -216,8 +221,13 @@ function renderUI() {
   }
 }
 
-// Render timer (simple and clean)
+// Render timer (simple and clean) - NO TIMER IN BOSS FIGHT
 function renderTimer() {
+  // Skip timer during Level 4 boss fight
+  if (game.currentLevel === 4 && game.bossFight.active) {
+    return;
+  }
+  
   ctx.textAlign = 'center';
   
   const timerX = canvas.width/2;
@@ -355,21 +365,28 @@ function renderDeveloperButton() {
       game.timer = CONFIG.LEVEL_3_TIME;
       showToast(`🚀 DEV: Advanced to Level 3!`);
     } else if (game.currentLevel === 3) {
-      // Add points to reach Level 4 (Fates)
+      // Add points to reach Level 4 (Fates Boss Fight)
       game.score = CONFIG.LEVEL_4_SCORE;
       game.levelScore = CONFIG.LEVEL_4_SCORE;
       game.currentLevel = 4;
-      game.timer = CONFIG.LEVEL_4_TIME;
-      showToast(`🚀 DEV: Advanced to Level 4 (Fates)!`);
+      game.timer = 0; // No timer in boss fight
+      game.currentRiddle = null; // No riddles in boss fight
+      showToast(`🚀 DEV: Advanced to Level 4 (Boss Fight)!`);
+      // Initialize boss fight immediately
+      initializeBossFight();
     } else if (game.currentLevel === 4) {
-      // Complete the game
-      game.score = CONFIG.WIN_SCORE;
-      game.state = 'won';
-      showToast(`🚀 DEV: Game completed!`);
+      // Complete the game (boss fight won)
+      if (game.bossFight.active) {
+        bossFightWon();
+      } else {
+        game.score = CONFIG.WIN_SCORE;
+        game.state = 'won';
+        showToast(`🚀 DEV: Game completed!`);
+      }
     }
     
-    // Trigger new customer for the new level
-    if (game.currentLevel !== oldLevel && game.state === 'playing') {
+    // Trigger new customer for the new level (except Level 4 boss fight)
+    if (game.currentLevel !== oldLevel && game.state === 'playing' && game.currentLevel !== 4) {
       game.shuffledCustomers = shuffleCustomers();
       game.customerIndex = 0;
       nextRiddle();

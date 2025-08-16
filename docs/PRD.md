@@ -1,16 +1,17 @@
 # PRD — Order of the Gods  
-*(Laptop-Only • Web • WASD • Kitchen Table Core)*
+*(Laptop-Only • Web • WASD • 4-Level Mythological Kitchen Adventure)*
 
 ---
 
 ## 1. Player Experience (Summary)
 - Single-screen, top-down kitchen you cannot leave.  
-- WASD movement across a large table to reach distant ingredient bins.  
-- A mythic customer appears at the counter with a speech bubble: *"For the riddle: …"*  
-- Player collects ingredients one at a time, plates them, and delivers.  
-- No chopping, no cooking—just plating.  
-- Clock speeds up as score rises.  
-- Win condition: **30 points**.
+- WASD movement across expanded kitchen with multiple cooking stations.  
+- Mythic customers appear at the counter with speech bubbles: *"For the riddle: …"*  
+- Player collects ingredients, cooks, cuts, processes, plates, and delivers.  
+- **Full cooking system**: Oven (cooking), cutting board (cutting), saucepan (Level 3+ dairy processing).  
+- **4-Level progression** with distinct themes, customer types, and special powers.  
+- **Boss Fight Finale**: Level 4 transforms into real-time action battle with The Fates.  
+- Win condition: **Defeat all 3 Fates** in epic boss battle.
 
 **Target Experience**: Fast-paced, puzzle-solving arcade game that feels like "Overcooked meets word puzzles" - players should feel the pressure of time while solving increasingly complex ingredient logic.
 
@@ -107,14 +108,18 @@ The narrative is designed so repetition is diegetic:
 
 ## 2. Core Constraints
 - **Platform**: Web browser (desktop/laptop).  
-- **Controls**: Keyboard only (WASD, E, Q, Enter, Esc).  
+- **Controls**: Keyboard only (WASD, E, Q, Enter, Esc, V, C, X).  
 - **Input scope**: No mouse, touch, or mobile support.  
-- **Riddle Vocabulary**: bread, tomato, cheese, meat, egg, pepper.  
+- **Expanded Vocabulary**: bread, tomato, cheese, meat, egg, pepper, bacon, avocado, olive oil, olives, milk, yogurt.  
 - **Riddle Logic Types**:  
   - **COUNT** (ingredient counts)  
   - **EXCLUDE** ("no X")  
   - **SANDWICH(3)** (bread–X–bread)  
-- **Kitchen bounds**: Hard walls, no leaving play area.
+  - **TOTALCOUNT** (exact total items)  
+  - **UNIQUE** (all different ingredients)  
+  - **COOKING** (requiring cut/cooked preparations)  
+- **Kitchen bounds**: Hard walls, no leaving play area.  
+- **Level 4 Exception**: Boss fight mode - WASD movement only, no cooking mechanics.
 
 **Technical Constraints**:
 - Target 60 FPS on mid-range laptops (2018+)
@@ -177,13 +182,14 @@ SPAWN → ACTIVE → DELIVERING → FEEDBACK → TRANSITION → SPAWN
 ---
 
 ## 5. Scoring, Speed, and Win
-- **Points**: +1 for correct dish. HUD: *Points N/30*.  
-- **Win**: At 30 → overlay with total time, avg per riddle, misses, total wins, Play Again.  
-- **Speed Ramp**:  
-  - L1 (0–9): 22s per riddle  
-  - L2 (10–19): 18s per riddle  
-  - L3 (20–29): 15s per riddle  
-- Transitions at 10 and 20: flash *"Speed Up"*.
+- **Points**: +1 for correct dish. HUD: *Points N/40*.  
+- **4-Level Progression**:  
+  - **Level 1** (0–9): 26s per riddle, Creatures with freeze power  
+  - **Level 2** (10–19): 20s per riddle, Heroes with special powers  
+  - **Level 3** (20–29): 15s per riddle, Gods with unique powers  
+  - **Level 4** (30–39): Boss fight - NO TIMER, pure action survival  
+- **Win**: Defeat all 3 Fates in Level 4 boss battle → victory overlay with stats and replay.  
+- **Story Progression**: Iron collar cracks between levels, story panels explain progression.
 
 **Detailed Scoring System**:
 - **Base Points**: +1 for correct dish
@@ -210,7 +216,12 @@ SPAWN → ACTIVE → DELIVERING → FEEDBACK → TRANSITION → SPAWN
 - **E** — Interact (pick/place/deliver)  
 - **Q** — Undo top item (at plate)  
 - **Enter** — Deliver (at counter)  
+- **C** — Cut ingredient (at cutting board)  
+- **V** — Retrieve from oven or saucepan  
+- **X** — Trash ingredient  
 - **Esc** — Pause  
+
+**Level 4 Boss Fight**: Only WASD movement allowed during boss battle. All cooking controls disabled.
 
 Keyboard-only, no mouse/touch.
 
@@ -230,18 +241,36 @@ Keyboard-only, no mouse/touch.
 
 ---
 
-## 7. Ingredients
+## 7. Ingredients & Cooking System
+
+### **Base Ingredients (All Levels)**
 - **bread** — "BREAD", wheat-gold, loaf icon  
-- **tomato** — "TOMATO", red, slice icon  
-- **cheese** — "CHEESE", yellow, wedge icon  
-- **meat** — "MEAT", deep red, slab icon  
-- **bacon** — BACON, reddish orange, rectangle icon  
-- **pepper** — "PEPPER", bright red, long pepper icon  
+- **tomato** — "TOMATO", red, slice icon (cuttable)  
+- **cheese** — "CHEESE", yellow, wedge icon (cuttable)  
+- **meat** — "MEAT", deep red, slab icon (cuttable & cookable)  
+- **egg** — "EGG", white, oval icon (cookable)  
+- **pepper** — "PEPPER", bright red, long pepper icon (cuttable)  
+
+### **Level 2+ Ingredients**
+- **bacon** — "BACON", reddish orange, strip icon (cookable)  
+- **avocado** — "AVOCADO", green, oval icon (cuttable)  
+- **olive oil** — "OLIVE OIL", golden green, bottle icon  
+- **olives** — "OLIVES", dark green, small rounds icon  
+
+### **Level 3+ Ingredients**
+- **milk** — "MILK", creamy white, pitcher icon (processable → yogurt)  
+- **yogurt** — "YOGURT", pale yellow, container icon (processed milk)  
+
+### **Cooking Mechanics**
+- **Cuttable Items**: tomato, cheese, meat, avocado, pepper (3s at cutting board)  
+- **Cookable Items**: meat, egg, bacon (3s in oven)  
+- **Saucepan Processing**: milk → yogurt (3s in saucepan, Level 3+ only)  
 
 **Rules**:  
 - One at a time.  
 - Place fills next slot.  
 - Undo removes top only.  
+- Processing creates new item types (cut_tomato, cooked_meat, yogurt).  
 
 **Detailed Ingredient Specifications**:
 - **Visual Style**: 32x32 pixel sprites, pixel art aesthetic
@@ -267,17 +296,36 @@ Keyboard-only, no mouse/touch.
 
 ---
 
-## 8. Customers
-**Flavor only, no rule effect.**  
-- Minotaur — brash  
-- Ghost — whispery  
-- Medusa — cutting  
-- Hermes — cheeky  
-- Hades — dry  
-- Sphinx — proud  
+## 8. Customers & 4-Level Progression
 
-Rotation: one customer per riddle, rotated for freshness.  
-Each has Success/Fail/Timeout lines.
+### **Level 1: Tartarus Creatures (0-9 points)**
+- **Medusa** — cutting, freeze power (2s)  
+- **Minotaur** — brash, no power  
+- **Sphinx** — proud, no power  
+- **Hydra** — chaotic, no power  
+- **Chimera** — volatile three-headed, no power  
+
+### **Level 2: Heroes & Demigods (10-19 points)**
+- **Hercules** — heroic, blur power (4s)  
+- **Achilles** — warrior, control reversal (4s)  
+- **Cyclops** — craftsman, darkness power (4s)  
+- **Pegasus** — noble, no power  
+- **Satyr** — wild, no power  
+
+### **Level 3: Greek Gods (20-29 points)**
+- **Hermes** — speed, timer 2.5x faster (4s)  
+- **Poseidon** — oceanic, wave push (5s)  
+- **Zeus** — thunderous, lightning teleport (4s)  
+- **Hera** — judgmental, ingredient lock (6s)  
+- **Hades** — ominous, ghost souls block vision (5s)  
+
+### **Level 4: The Fates (30+ points) - BOSS FIGHT**
+- **Clotho, Lachesis, Atropos** — The three Fates as bosses  
+- Real-time action battle, no riddles, no timer  
+- Each Fate has unique attack patterns and health  
+
+**Special Powers**: Only certain customers have disruptive abilities that affect gameplay.  
+Each has Success/Fail/Timeout lines matching their personality.
 
 **Detailed Customer Specifications**:
 - **Visual Style**: 64x64 pixel sprites, mythological creatures
@@ -293,24 +341,56 @@ Each has Success/Fail/Timeout lines.
 - **Font**: 18px serif, readable in 2-3 seconds
 
 **Customer Rotation Logic**:
-- **Pool**: 6 customers total
-- **Selection**: Weighted random (recent customers get lower weight)
-- **Guarantee**: Each customer appears at least 3 times in 30 riddles
-- **Variety**: No more than 2 consecutive appearances
+- **Pool**: Level-dependent customer pools (5 each for Levels 1-3)
+- **Selection**: Shuffled rotation within level, no repeats until pool exhausted
+- **Level Progression**: Automatic advancement at score thresholds
+- **Powers**: 1.5s warning before special power activation
+
+---
+
+## 8.5. Level 4 Boss Fight System
+
+### **Boss Fight Mechanics**
+- **Transformation**: Kitchen dissolves into mystical realm with floating purple orbs  
+- **No Timer**: Pure action survival, no riddle pressure  
+- **Three Fates**: Clotho, Lachesis, Atropos with individual health and AI  
+- **Attack Patterns**: Scissors (spinning projectiles), String traps (slowing areas), String shots (binding)  
+- **Player Health**: 100 HP with 1-second invulnerability frames  
+- **Victory**: Defeat all 3 Fates to win the entire game  
+
+### **Boss Fight UI**
+- **Mystical Interface**: Purple orbs replace ingredient crates  
+- **Threads of Fate**: Central mystical circle replaces preparation table  
+- **Boss Health Bars**: Individual health displays for each Fate  
+- **Phase System**: Remaining bosses heal and strengthen as others fall  
+
+### **Background Music**
+- **Mythological Magical.mp3**: Loops during boss fight, stops on victory/defeat  
 
 ---
 
 ## 9. Riddle System
-- **Vocabulary**: [bread, tomato, cheese, meat, egg, pepper]  
-- **One Rule per Riddle**: COUNT / EXCLUDE / SANDWICH(3).  
-- **Grammar**: ≤8 words, simple connectors (and, with, no, between, again).  
+- **Expanded Vocabulary**: [bread, tomato, cheese, meat, egg, pepper, bacon, avocado, oliveoil, olives, milk, yogurt]  
+- **Riddle Types**: COUNT / EXCLUDE / SANDWICH(3) / TOTALCOUNT / UNIQUE / COOKING.  
+- **Grammar**: ≤8 words, simple connectors (and, with, no, between, again, slice, cook).  
 
 **Judging Rules**:  
-- COUNT → exact match.  
-- EXCLUDE → excluded = 0.  
-- SANDWICH(3) → bread–X–bread, exactly 3 items.  
+- **COUNT** → exact match  
+- **EXCLUDE** → excluded = 0  
+- **SANDWICH(3)** → bread–X–bread, exactly 3 items  
+- **TOTALCOUNT** → exact total item count  
+- **UNIQUE** → all different ingredients  
+- **COOKING** → requires cut/cooked preparations  
 
-Fail reasons: wrong set, exclusion violated, not sandwich, timeout, empty plate.
+**Level Restrictions**:  
+- **Level 1**: Basic riddles only (6 base ingredients)  
+- **Level 2**: Add bacon, avocado, olive oil, olives, 6-slot plates  
+- **Level 3**: Add milk/yogurt, saucepan processing, complex cooking combinations  
+- **Level 4**: No riddles (boss fight mode)  
+
+**Cooking Riddles**: "SLICE: 1 tomato", "COOK: 1 meat", "PROCESS: milk → yogurt"  
+
+Fail reasons: wrong set, exclusion violated, not sandwich, timeout, empty plate, equipment needed.
 
 **Detailed Riddle Specifications**:
 - **Text Length**: Maximum 8 words, minimum 3 words
@@ -531,21 +611,53 @@ Fail reasons: wrong set, exclusion violated, not sandwich, timeout, empty plate.
 
 ---
 
-## 16. Full Feature List (Hackathon Version)
-- Laptop-only, keyboard-only  
-- Kitchen-bounded WASD movement  
-- Plate with 5 slots, undo top  
-- Six ingredient bins, labeled  
-- One carried item at a time  
-- Basic customer + riddle text  
-- Simple riddles: COUNT only (no EXCLUDE/SANDWICH yet)  
-- Score to 30; basic win screen  
-- Speed ramp at 10, 20 points  
-- 15-20 simple riddles  
-- Basic HUD + simple feedback  
-- No audio (text only)  
-- Single screen: Game → Win → Restart  
-- No stats, no menu system  
+## 16. Full Feature List (Current Implementation)
+### **Core Systems**
+- Laptop-only, keyboard-only WASD movement  
+- Kitchen-bounded movement with multiple cooking stations  
+- 4-level progression system (Creatures → Heroes → Gods → Boss Fight)  
+- Plate system: 5 slots (Level 1), 6 slots (Level 2+), undo support  
+- 12 ingredients with level-based availability restrictions  
+- One carried item at a time with cooking preparation  
+
+### **Cooking System**
+- **Oven**: Cook meat, egg, bacon (3s timer, V to retrieve)  
+- **Cutting Board**: Cut tomato, cheese, meat, avocado, pepper (C key)  
+- **Saucepan**: Process milk → yogurt (Level 3+, V to retrieve)  
+- Visual progress bars and steam effects for all equipment  
+
+### **Riddle System**
+- 6 riddle types: COUNT, EXCLUDE, SANDWICH, TOTALCOUNT, UNIQUE, COOKING  
+- 50+ riddles across all levels with time bonuses for complexity  
+- Level-restricted ingredients and equipment requirements  
+
+### **Customer & Powers System**
+- 15 unique customers across 4 levels with distinct personalities  
+- Special powers: freeze, blur, control reversal, darkness, speed, waves, lightning, ingredient lock, ghost souls  
+- 1.5s warning system before power activation  
+
+### **Boss Fight System (Level 4)**
+- Real-time action battle with The Fates  
+- No timer, pure survival mechanics  
+- Player health system with invulnerability frames  
+- Mystical UI transformation and background music  
+
+### **Story & Progression**
+- Iron collar progression with story panels between levels  
+- Level-themed backgrounds: Feast Hall, Acropolis, Mount Olympus, Loom of Moirai  
+- Character relationship tracking and dynamic dialogue  
+
+### **Audio & Visual**
+- High-quality sprite assets for all ingredients and characters  
+- Background music and sound effects  
+- Special effect overlays for powers  
+- Responsive fullscreen design  
+
+### **Quality of Life**
+- Comprehensive debug tools and developer buttons  
+- Story panel dismissal with mouse/keyboard  
+- Anti-scrambling protection and smooth state transitions  
+- Accessibility features and visual feedback systems  
 
 **Feature Priority Matrix (Hackathon Reality)**:
 - **P0 (Must Have)**: WASD movement, ingredient pickup/place, basic riddle solving, score counter

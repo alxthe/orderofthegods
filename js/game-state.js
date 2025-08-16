@@ -120,6 +120,30 @@ const game = {
   // Anti-scrambling protection
   processingNextRiddle: false, // Prevent multiple nextRiddle() calls
   
+  // Boss Fight System (Level 4)
+  bossFight: {
+    active: false,
+    playerHealth: 100,
+    maxHealth: 100,
+    fates: [
+      { name: 'Clotho', x: 200, y: 200, health: 100, maxHealth: 100, angry: false, attackCooldown: 0 },
+      { name: 'Lachesis', x: 400, y: 300, health: 100, maxHealth: 100, angry: false, attackCooldown: 0 },
+      { name: 'Atropos', x: 600, y: 250, health: 100, maxHealth: 100, angry: false, attackCooldown: 0 }
+    ],
+    attacks: [], // Active attacks (scissors, strings)
+    bossMusic: null,
+    phase: 1, // Boss fight phase (1-3)
+    stringTraps: [], // Active string traps
+    invulnerable: false, // Player invulnerability frames
+    invulnerabilityTimer: 0,
+    weapons: [], // Available weapon pickups
+    healthBoxes: [], // Available health pickups
+    playerWeapon: null, // Currently held weapon
+    weaponCooldown: 0, // Cooldown between weapon throws
+    weaponSpawnTimer: 0, // Timer for spawning new weapons
+    healthSpawnTimer: 0 // Timer for spawning health boxes
+  },
+  
   // Debug
   debugMode: false,
   showHitboxes: false,

@@ -20,35 +20,64 @@ Customers show up, say the riddle, react, and leave. They add flavor only. They 
 
 ---
 
-## 3. Who Appears (Names Stay)
+## 3. 4-Level Customer Progression System
 
-### **Customer Roster**
-- **Minotaur** (brash)
-- **Ghost** (gentle)
-- **Medusa** (cold)
-- **Hermes** (fast)
-- **Hades** (dry)
-- **Sphinx** (formal)
+### **Level 1: Tartarus Creatures (0-9 points)**
+- **Medusa** (cutting, freeze power - 2s movement lock)
+- **Minotaur** (brash, no power)
+- **Sphinx** (proud, no power)
+- **Hydra** (chaotic, no power)
+- **Chimera** (volatile three-headed, no power)
 
-### **Display**
-- Names appear small in the top-left (e.g., "Minotaur")
-- One customer per riddle
-- Simple visual representation (basic sprites or icons)
+### **Level 2: Heroes & Demigods (10-19 points)**
+- **Hercules** (heroic, blur power - 4s vision distortion)
+- **Achilles** (warrior, control reversal - 4s reversed WASD)
+- **Cyclops** (craftsman, darkness - 4s spotlight vision)
+- **Pegasus** (noble, no power)
+- **Satyr** (wild, no power)
+
+### **Level 3: Greek Gods (20-29 points)**
+- **Hermes** (speed, timer 2.5x faster - 4s)
+- **Poseidon** (oceanic, wave push - 5s continuous force)
+- **Zeus** (thunderous, lightning teleport - 4s random repositioning)
+- **Hera** (judgmental, ingredient lock - 6s forbidden ingredients)
+- **Hades** (ominous, ghost souls - 5s vision blocked by floating spirits)
+
+### **Level 4: The Fates - BOSS FIGHT (30+ points)**
+- **Clotho, Lachesis, Atropos** (The three Fates as bosses)
+- Real-time action battle, no riddles, no timer
+- Each Fate has unique attack patterns and health bars
+
+### **Display & Powers**
+- Names appear in top-left with level indicator
+- Special powers have 1.5s warning before activation
+- Power effects overlay the entire screen with thematic visuals
+- One customer per riddle (Levels 1-3), multiple bosses simultaneously (Level 4)
 
 ---
 
-## 4. Simple Round Flow
+## 4. Level-Dependent Round Flow
 
-### **Flow Steps**
-1. **Spawn**: A customer fades in at the counter
-2. **Speak**: Bubble shows "For the riddle: …"; the timer starts; you play
-3. **Resolve**: When you deliver (or time runs out), a short result line appears
-4. **Depart**: Customer fades out; the next one appears almost immediately
+### **Standard Flow (Levels 1-3)**
+1. **Spawn**: A customer fades in at the counter with level-appropriate background
+2. **Power Warning**: If customer has a special power, 1.5s warning appears
+3. **Speak**: Bubble shows "For the riddle: …"; the timer starts; you play
+4. **Power Activation**: Special power may activate during riddle (varies by customer)
+5. **Resolve**: When you deliver (or time runs out), result line appears
+6. **Depart**: Customer fades out; the next one appears almost immediately
+
+### **Boss Fight Flow (Level 4)**
+1. **Transformation**: Kitchen dissolves into mystical realm
+2. **Boss Spawn**: All 3 Fates appear simultaneously 
+3. **Real-Time Combat**: No riddles, pure action survival with attack patterns
+4. **Phase Progression**: As Fates are defeated, remaining ones strengthen
+5. **Victory/Defeat**: Game ends when all Fates defeated or player health reaches 0
 
 ### **Target Feel**
-- No waiting; the next riddle arrives quickly so the pace stays high
-- Smooth transitions between customers
-- Clear feedback on success/failure
+- **Levels 1-3**: Escalating difficulty with special powers adding chaos
+- **Level 4**: Complete genre shift to action battle
+- Smooth transitions between levels with story panels
+- Clear feedback on power activations and boss fight mechanics
 
 ---
 
@@ -88,16 +117,47 @@ Keep every line 3–7 words, myth-flavored, never explaining mechanics.
 
 ---
 
-## 6. Rotation (Keep It Obvious)
+## 6. Level-Based Customer Pools & Rotation
 
-### **Simple Pattern**
-Cycle in this order and repeat:
-**Minotaur → Ghost → Medusa → Hermes → Hades → Sphinx**
+### **Level-Dependent Pools**
+- **Level 1 (0-9 points)**: Only Tartarus Creatures appear
+- **Level 2 (10-19 points)**: Only Heroes & Demigods appear  
+- **Level 3 (20-29 points)**: Only Greek Gods appear
+- **Level 4 (30+ points)**: The Fates boss fight (no rotation)
 
-### **Rules**
-- If one is disabled for any reason, just skip them and keep the order
-- No complex selection algorithms
-- Predictable rotation for consistent feel
+### **Pool Rotation Rules**
+- **Shuffled Selection**: Each level starts with shuffled customer pool
+- **No Repeats**: Customer pool exhausted before reshuffling
+- **Clean Transitions**: Level advancement triggers immediate pool switch
+- **Background Changes**: Customer pools tied to level-appropriate backgrounds
+
+### **Level Progression**
+- **Automatic**: Advancement happens at score thresholds
+- **Story Panels**: Brief narrative between levels explaining progression
+- **Power Escalation**: Each level introduces new types of special powers
+
+### **Special Power System**
+
+**Level 1 Powers (Basic)**:
+- **Medusa Freeze**: Player cannot move for 2 seconds
+
+**Level 2 Powers (Disruptive)**:
+- **Hercules Blur**: Vision distorted with wavy effects for 4 seconds
+- **Achilles Disruption**: WASD controls reversed for 4 seconds  
+- **Cyclops Darkness**: Vision reduced to small spotlight for 4 seconds
+
+**Level 3 Powers (Advanced)**:
+- **Hermes Speed**: Timer counts down 2.5x faster for 4 seconds
+- **Poseidon Waves**: Player pushed by continuous force for 5 seconds
+- **Zeus Lightning**: Player randomly teleported every 800ms for 4 seconds
+- **Hera Judgment**: 3 random ingredients forbidden for 6 seconds
+- **Hades Souls**: Floating ghost souls block vision for 5 seconds
+
+**Power Mechanics**:
+- **Warning System**: 1.5s toast warning before activation
+- **Visual Effects**: Full-screen overlays matching the power theme
+- **No Stacking**: Only one power active at a time
+- **Level 4 Exception**: No special powers during boss fight
 
 ---
 

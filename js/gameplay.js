@@ -762,15 +762,18 @@ function advanceToLevel4() {
   showToast("🌀 LEVEL 4: THE FATES ARRIVE!");
   console.log("🌀 Advanced to Level 4: The Fates Boss Battle");
   
-  // Special customers for Level 4
-  game.shuffledCustomers = shuffleCustomers();
-  game.customerIndex = 0;
-  game.processingNextRiddle = false;
+  // NO MORE COOKING! This is pure boss fight
+  game.currentRiddle = null;
+  game.currentCustomer = null; // Clear any lingering customer from Level 3
+  game.customerState = 'gone'; // Mark as gone
+  game.timer = 0;
+  game.plate = [];
+  game.player.carrying = null;
   
   // Show transition story
   game.storyPanel = {
-    title: "Level 4: The Final Judgment",
-    text: "The Fates themselves appear! Clotho spins impossible threads, Lachesis measures your worth, and Atropos holds the shears. This is your final test—serve them perfectly or face your destiny!"
+    title: "Level 4: The Final Battle",
+    text: "The Fates emerge from the loom of destiny! No more cooking - this is a fight for your very existence! Dodge their scissors and escape their binding strings. Survive to claim your freedom!"
   };
   game.showingStory = true;
   
@@ -782,7 +785,8 @@ function advanceToLevel4() {
   // Set new timeout and store the ID
   game.storyTimeout = setTimeout(() => {
     game.storyTimeout = null;
-    nextRiddle();
+    // Initialize boss fight instead of riddle!
+    initializeBossFight();
   }, 3000);
 }
 
@@ -849,7 +853,12 @@ function restartLevel() {
   // Set new timeout and store the ID
   game.storyTimeout = setTimeout(() => {
     game.storyTimeout = null;
-    nextRiddle();
+    // Level 4 boss fight restart, not riddle!
+    if (currentLevelNum === 4) {
+      initializeBossFight();
+    } else {
+      nextRiddle();
+    }
   }, 3000);
   
   console.log(`🔄 Level ${currentLevelNum} restarted - Score reset to ${game.score}`);
@@ -983,6 +992,678 @@ function startGame() {
   nextRiddle();
   
   console.log('🏛️ Order of the Gods - Level 1 begins! Gracious time to learn...');
+}
+
+// =====================================================
+// BOSS FIGHT SYSTEM (LEVEL 4)
+// =====================================================
+
+// Initialize boss fight
+function initializeBossFight() {
+  game.bossFight.active = true;
+  game.bossFight.playerHealth = 100;
+  game.bossFight.phase = 1;
+  game.bossFight.attacks = [];
+  game.bossFight.stringTraps = [];
+  game.bossFight.invulnerable = false;
+  game.bossFight.invulnerabilityTimer = 0;
+  game.bossFight.weapons = [];
+  game.bossFight.healthBoxes = [];
+  game.bossFight.playerWeapon = null;
+  game.bossFight.weaponCooldown = 0;
+  game.bossFight.weaponSpawnTimer = 0;
+  game.bossFight.healthSpawnTimer = 0;
+  
+  // NO TIMER OR RIDDLES IN BOSS FIGHT!
+  game.currentRiddle = null;
+  game.currentCustomer = null; // Ensure no customers in boss fight
+  game.customerState = 'gone';
+  game.timer = 0;
+  game.timePerRiddle = 0;
+  
+  // Reset Fates positions and health (with individual sprites and powers)
+  game.bossFight.fates = [
+    { 
+      name: 'Clotho', 
+      sprite: 'clotho', 
+      x: 200, 
+      y: 200, 
+      health: 150, 
+      maxHealth: 150, 
+      angry: false, 
+      attackCooldown: 0,
+      power: 'web', // Creates web traps that slow player
+      powerCooldown: 0
+    },
+    { 
+      name: 'Lachesis', 
+      sprite: 'lachesis', 
+      x: 400, 
+      y: 300, 
+      health: 150, 
+      maxHealth: 150, 
+      angry: false, 
+      attackCooldown: 0,
+      power: 'teleport', // Teleports behind player
+      powerCooldown: 0
+    },
+    { 
+      name: 'Atropos', 
+      sprite: 'atropos', 
+      x: 600, 
+      y: 250, 
+      health: 150, 
+      maxHealth: 150, 
+      angry: false, 
+      attackCooldown: 0,
+      power: 'triple', // Fires triple scissors
+      powerCooldown: 0
+    }
+  ];
+  
+  // Spawn initial weapons
+  spawnWeapons(3);
+  
+  // Start boss music
+  startBossMusic();
+  
+  console.log('💀 Boss Fight: THE FATES AWAKEN!');
+}
+
+// Start boss music
+function startBossMusic() {
+  try {
+    if (game.bossFight.bossMusic) {
+      game.bossFight.bossMusic.pause();
+    }
+    
+    game.bossFight.bossMusic = new Audio('assets/level 4 (boss fight)/mythological magical.mp3');
+    game.bossFight.bossMusic.loop = true;
+    game.bossFight.bossMusic.volume = 0.7;
+    game.bossFight.bossMusic.play().catch(e => {
+      console.log('Boss music failed to play:', e);
+    });
+    
+    console.log('🎵 Boss music started!');
+  } catch (error) {
+    console.log('Failed to load boss music:', error);
+  }
+}
+
+// Update boss fight mechanics
+function updateBossFight(deltaTime) {
+  if (!game.bossFight.active) return;
+  
+  // Update invulnerability
+  if (game.bossFight.invulnerable) {
+    game.bossFight.invulnerabilityTimer -= deltaTime;
+    if (game.bossFight.invulnerabilityTimer <= 0) {
+      game.bossFight.invulnerable = false;
+    }
+  }
+  
+  // Update weapon cooldown
+  if (game.bossFight.weaponCooldown > 0) {
+    game.bossFight.weaponCooldown -= deltaTime;
+  }
+  
+  // Update spawn timers
+  game.bossFight.weaponSpawnTimer -= deltaTime;
+  if (game.bossFight.weaponSpawnTimer <= 0) {
+    spawnWeapons(1);
+    game.bossFight.weaponSpawnTimer = 5000; // Spawn weapon every 5 seconds
+  }
+  
+  game.bossFight.healthSpawnTimer -= deltaTime;
+  if (game.bossFight.healthSpawnTimer <= 0 && game.bossFight.playerHealth < 75) {
+    spawnHealthBox();
+    game.bossFight.healthSpawnTimer = 10000; // Spawn health every 10 seconds if needed
+  }
+  
+  // Update Fates AI
+  updateFatesAI(deltaTime);
+  
+  // Update attacks
+  updateBossAttacks(deltaTime);
+  
+  // Update string traps
+  updateStringTraps(deltaTime);
+  
+  // Check for player damage
+  checkPlayerDamage();
+  
+  // Check pickups
+  checkWeaponPickup();
+  checkHealthPickup();
+  
+  // Check for boss defeat
+  checkBossDefeat();
+}
+
+// Update Fates AI and movement
+function updateFatesAI(deltaTime) {
+  game.bossFight.fates.forEach((fate, index) => {
+    if (fate.health <= 0) return;
+    
+    // Update attack cooldown
+    if (fate.attackCooldown > 0) {
+      fate.attackCooldown -= deltaTime;
+    }
+    
+    // Move towards player (FASTER based on phase)
+    const playerX = game.player.x;
+    const playerY = game.player.y;
+    const dx = playerX - fate.x;
+    const dy = playerY - fate.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    if (distance > 100) {
+      // Move towards player - speed increases with phase
+      const baseSpeed = 80; // Increased base speed
+      const phaseBonus = (game.bossFight.phase - 1) * 20; // Extra speed per phase
+      const speed = baseSpeed + phaseBonus; // 80 -> 100 -> 120 pixels per second
+      
+      fate.x += (dx / distance) * speed * (deltaTime / 1000);
+      fate.y += (dy / distance) * speed * (deltaTime / 1000);
+    }
+    
+    // Update power cooldown
+    if (fate.powerCooldown > 0) {
+      fate.powerCooldown -= deltaTime;
+    }
+    
+    // Attack patterns based on distance and cooldown
+    if (fate.attackCooldown <= 0 && distance < 400) {
+      // Use individual power 30% of the time
+      if (fate.powerCooldown <= 0 && Math.random() < 0.3) {
+        // Use unique power
+        useFatePower(fate, index);
+        fate.powerCooldown = 4000; // 4 second cooldown on powers
+      } else {
+        // Regular attack
+        const attackType = Math.random();
+        
+        if (attackType < 0.4) {
+          // Scissors attack
+          launchScissorsAttack(fate);
+        } else if (attackType < 0.7) {
+          // String trap
+          createStringTrap(fate);
+        } else {
+          // String shot
+          launchStringShot(fate);
+        }
+      }
+      
+      // Faster attack rate in higher phases
+      const baseDelay = game.bossFight.phase === 1 ? 2000 : (game.bossFight.phase === 2 ? 1500 : 1000);
+      fate.attackCooldown = baseDelay + Math.random() * 500; // Faster attacks as phases progress
+      fate.angry = true;
+      
+      // Calm down after a bit
+      setTimeout(() => {
+        fate.angry = false;
+      }, 1000);
+    }
+  });
+}
+
+// Launch scissors attack
+function launchScissorsAttack(fate) {
+  const playerX = game.player.x;
+  const playerY = game.player.y;
+  const dx = playerX - fate.x;
+  const dy = playerY - fate.y;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+  
+  const speed = 200; // pixels per second
+  const scissors = {
+    type: 'scissors',
+    x: fate.x,
+    y: fate.y,
+    vx: (dx / distance) * speed,
+    vy: (dy / distance) * speed,
+    rotation: 0,
+    damage: 25,
+    lifetime: 3000
+  };
+  
+  game.bossFight.attacks.push(scissors);
+  showToast(`${fate.name} throws deadly scissors!`);
+}
+
+// Create string trap
+function createStringTrap(fate) {
+  const trap = {
+    x: game.player.x + (Math.random() - 0.5) * 100,
+    y: game.player.y + (Math.random() - 0.5) * 100,
+    radius: 80,
+    damage: 15,
+    lifetime: 5000,
+    slowEffect: true
+  };
+  
+  game.bossFight.stringTraps.push(trap);
+  showToast(`${fate.name} weaves a string trap!`);
+}
+
+// Launch string shot
+function launchStringShot(fate) {
+  const playerX = game.player.x;
+  const playerY = game.player.y;
+  const dx = playerX - fate.x;
+  const dy = playerY - fate.y;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+  
+  const speed = 150;
+  const stringShot = {
+    type: 'string_shot',
+    x: fate.x,
+    y: fate.y,
+    startX: fate.x,
+    startY: fate.y,
+    vx: (dx / distance) * speed,
+    vy: (dy / distance) * speed,
+    damage: 20,
+    lifetime: 2000
+  };
+  
+  game.bossFight.attacks.push(stringShot);
+  showToast(`${fate.name} fires binding strings!`);
+}
+
+// Update boss attacks
+function updateBossAttacks(deltaTime) {
+  for (let i = game.bossFight.attacks.length - 1; i >= 0; i--) {
+    const attack = game.bossFight.attacks[i];
+    
+    // Move attack
+    attack.x += attack.vx * (deltaTime / 1000);
+    attack.y += attack.vy * (deltaTime / 1000);
+    
+    // Rotate scissors
+    if (attack.type === 'scissors') {
+      attack.rotation += 0.2;
+    }
+    
+    // Update lifetime
+    attack.lifetime -= deltaTime;
+    
+    // Remove expired attacks
+    if (attack.lifetime <= 0 || 
+        attack.x < 0 || attack.x > canvas.width || 
+        attack.y < 0 || attack.y > canvas.height) {
+      game.bossFight.attacks.splice(i, 1);
+    }
+  }
+}
+
+// Update string traps
+function updateStringTraps(deltaTime) {
+  for (let i = game.bossFight.stringTraps.length - 1; i >= 0; i--) {
+    const trap = game.bossFight.stringTraps[i];
+    
+    trap.lifetime -= deltaTime;
+    
+    if (trap.lifetime <= 0) {
+      game.bossFight.stringTraps.splice(i, 1);
+    }
+  }
+}
+
+// Check for player damage
+function checkPlayerDamage() {
+  if (game.bossFight.invulnerable) return;
+  
+  const playerX = game.player.x;
+  const playerY = game.player.y;
+  const playerRadius = CONFIG.PLAYER_SIZE / 2;
+  
+  // Check attacks
+  game.bossFight.attacks.forEach((attack, index) => {
+    const dx = attack.x - playerX;
+    const dy = attack.y - playerY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    if (distance < playerRadius + 20) {
+      // Player hit!
+      takeDamage(attack.damage);
+      game.bossFight.attacks.splice(index, 1);
+    }
+  });
+  
+  // Check string traps
+  game.bossFight.stringTraps.forEach(trap => {
+    const dx = trap.x - playerX;
+    const dy = trap.y - playerY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    if (distance < trap.radius) {
+      takeDamage(trap.damage);
+      // Slow effect - reduce player speed temporarily
+      if (trap.slowEffect) {
+        game.player.speed = Math.max(1, game.player.speed * 0.5);
+        setTimeout(() => {
+          game.player.speed = CONFIG.PLAYER_SPEED;
+        }, 2000);
+      }
+    }
+  });
+}
+
+// Player takes damage
+function takeDamage(damage) {
+  game.bossFight.playerHealth -= damage;
+  game.bossFight.invulnerable = true;
+  game.bossFight.invulnerabilityTimer = 1000; // 1 second invulnerability
+  
+  showToast(`-${damage} HP!`);
+  
+  if (game.bossFight.playerHealth <= 0) {
+    playerDefeated();
+  }
+}
+
+// Player defeated
+function playerDefeated() {
+  game.bossFight.active = false;
+  
+  // Stop boss music
+  if (game.bossFight.bossMusic) {
+    game.bossFight.bossMusic.pause();
+    game.bossFight.bossMusic = null;
+  }
+  
+  // Show defeat message
+  showToast("The Fates have sealed your destiny...");
+  
+  // Restart the level after a delay
+  setTimeout(() => {
+    restartLevel();
+  }, 3000);
+  
+  console.log('💀 Player defeated by The Fates');
+}
+
+// Check for boss defeat
+function checkBossDefeat() {
+  const aliveFates = game.bossFight.fates.filter(fate => fate.health > 0);
+  
+  if (aliveFates.length === 0) {
+    // All Fates defeated!
+    bossFightWon();
+  } else if (aliveFates.length <= 1 && game.bossFight.phase < 3) {
+    // Advance to next phase
+    game.bossFight.phase++;
+    showToast(`Phase ${game.bossFight.phase}: The remaining Fates grow stronger!`);
+    
+    // Make remaining fates more aggressive
+    aliveFates.forEach(fate => {
+      fate.health = fate.maxHealth; // Heal remaining fates
+      fate.angry = true;
+    });
+  }
+}
+
+// Boss fight won
+function bossFightWon() {
+  game.bossFight.active = false;
+  
+  // Stop boss music
+  if (game.bossFight.bossMusic) {
+    game.bossFight.bossMusic.pause();
+    game.bossFight.bossMusic = null;
+  }
+  
+  // Victory!
+  game.state = 'won';
+  showToast("The Fates have been defeated! You are FREE!");
+  
+  console.log('🏆 Boss fight WON! Player victorious!');
+}
+
+// =====================================================
+// WEAPON AND HEALTH SYSTEMS
+// =====================================================
+
+// Spawn weapons on the battlefield
+function spawnWeapons(count) {
+  for (let i = 0; i < count; i++) {
+    const weapon = {
+      x: 100 + Math.random() * (canvas.width - 200),
+      y: 150 + Math.random() * (canvas.height - 300),
+      type: ['sword', 'spear', 'dagger'][Math.floor(Math.random() * 3)],
+      damage: 25 + Math.floor(Math.random() * 15), // 25-40 damage
+      collected: false
+    };
+    game.bossFight.weapons.push(weapon);
+  }
+}
+
+// Spawn health box
+function spawnHealthBox() {
+  const healthBox = {
+    x: 100 + Math.random() * (canvas.width - 200),
+    y: 150 + Math.random() * (canvas.height - 300),
+    healing: 30 + Math.floor(Math.random() * 20), // 30-50 healing
+    collected: false
+  };
+  game.bossFight.healthBoxes.push(healthBox);
+  showToast("✨ Health box appeared!");
+}
+
+// Check if player picks up weapon
+function checkWeaponPickup() {
+  if (game.bossFight.playerWeapon) return; // Already has weapon
+  
+  const playerX = game.player.x;
+  const playerY = game.player.y;
+  
+  game.bossFight.weapons.forEach((weapon, index) => {
+    if (weapon.collected) return;
+    
+    const dx = weapon.x - playerX;
+    const dy = weapon.y - playerY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    if (distance < 40 && input.isKeyPressed('E')) {
+      // Pick up weapon
+      game.bossFight.playerWeapon = weapon;
+      weapon.collected = true;
+      game.bossFight.weapons.splice(index, 1);
+      showToast(`⚔️ Picked up ${weapon.type}! Press SPACE to throw!`);
+    }
+  });
+}
+
+// Check if player picks up health
+function checkHealthPickup() {
+  const playerX = game.player.x;
+  const playerY = game.player.y;
+  
+  for (let i = game.bossFight.healthBoxes.length - 1; i >= 0; i--) {
+    const healthBox = game.bossFight.healthBoxes[i];
+    if (healthBox.collected) continue;
+    
+    const dx = healthBox.x - playerX;
+    const dy = healthBox.y - playerY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    if (distance < 40) {
+      // Heal player
+      const oldHealth = game.bossFight.playerHealth;
+      game.bossFight.playerHealth = Math.min(100, game.bossFight.playerHealth + healthBox.healing);
+      const healed = game.bossFight.playerHealth - oldHealth;
+      
+      healthBox.collected = true;
+      game.bossFight.healthBoxes.splice(i, 1);
+      showToast(`💚 Healed ${Math.floor(healed)} HP!`);
+    }
+  }
+}
+
+// Throw weapon at nearest Fate
+function throwWeapon() {
+  if (!game.bossFight.playerWeapon || game.bossFight.weaponCooldown > 0) return;
+  
+  const playerX = game.player.x;
+  const playerY = game.player.y;
+  
+  // Find nearest living Fate
+  let nearestFate = null;
+  let nearestDistance = Infinity;
+  
+  game.bossFight.fates.forEach(fate => {
+    if (fate.health <= 0) return;
+    
+    const dx = fate.x - playerX;
+    const dy = fate.y - playerY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    if (distance < nearestDistance) {
+      nearestDistance = distance;
+      nearestFate = fate;
+    }
+  });
+  
+  if (nearestFate) {
+    // Launch weapon at target
+    const dx = nearestFate.x - playerX;
+    const dy = nearestFate.y - playerY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    const weaponAttack = {
+      type: 'weapon',
+      weaponType: game.bossFight.playerWeapon.type,
+      x: playerX,
+      y: playerY,
+      targetX: nearestFate.x,
+      targetY: nearestFate.y,
+      vx: (dx / distance) * 400,
+      vy: (dy / distance) * 400,
+      damage: game.bossFight.playerWeapon.damage,
+      target: nearestFate,
+      lifetime: 2000
+    };
+    
+    game.bossFight.attacks.push(weaponAttack);
+    game.bossFight.playerWeapon = null;
+    game.bossFight.weaponCooldown = 1000; // 1 second cooldown
+    
+    showToast(`⚔️ Threw ${weaponAttack.weaponType} at ${nearestFate.name}!`);
+  }
+}
+
+// Check weapon hits on Fates
+function checkWeaponHits() {
+  game.bossFight.attacks.forEach((attack, attackIndex) => {
+    if (attack.type !== 'weapon') return;
+    
+    // Check if weapon hit its target
+    if (attack.target && attack.target.health > 0) {
+      const dx = attack.x - attack.target.x;
+      const dy = attack.y - attack.target.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      if (distance < 50) {
+        // Hit!
+        attack.target.health -= attack.damage;
+        attack.target.angry = true;
+        
+        showToast(`💥 ${attack.target.name} takes ${attack.damage} damage!`);
+        
+        // Remove weapon
+        game.bossFight.attacks.splice(attackIndex, 1);
+        
+        // Check if Fate was defeated
+        if (attack.target.health <= 0) {
+          showToast(`☠️ ${attack.target.name} has been defeated!`);
+          attack.target.x = -1000; // Move off screen
+        }
+        
+        setTimeout(() => {
+          if (attack.target) attack.target.angry = false;
+        }, 500);
+      }
+    }
+  });
+}
+
+// Use individual Fate powers
+function useFatePower(fate, index) {
+  switch (fate.power) {
+    case 'web':
+      // Clotho - Creates multiple web traps
+      for (let i = 0; i < 3; i++) {
+        const angle = (Math.PI * 2 / 3) * i;
+        const trap = {
+          x: fate.x + Math.cos(angle) * 100,
+          y: fate.y + Math.sin(angle) * 100,
+          radius: 60,
+          damage: 0.5, // Low damage per tick
+          lifetime: 5000,
+          slowEffect: true,
+          color: 'rgba(200, 200, 255, 0.3)'
+        };
+        game.bossFight.stringTraps.push(trap);
+      }
+      showToast(`🕸️ ${fate.name} weaves a web of fate!`);
+      break;
+      
+    case 'teleport':
+      // Lachesis - Teleports behind player
+      const playerX = game.player.x;
+      const playerY = game.player.y;
+      const angle = Math.atan2(playerY - fate.y, playerX - fate.x);
+      
+      // Teleport behind player
+      fate.x = playerX - Math.cos(angle) * 150;
+      fate.y = playerY - Math.sin(angle) * 150;
+      
+      // Keep in bounds
+      fate.x = Math.max(50, Math.min(canvas.width - 50, fate.x));
+      fate.y = Math.max(150, Math.min(canvas.height - 50, fate.y));
+      
+      // Immediate attack after teleport
+      launchScissorsAttack(fate);
+      showToast(`⚡ ${fate.name} warps through destiny!`);
+      break;
+      
+    case 'triple':
+      // Atropos - Fires triple scissors in spread pattern
+      const px = game.player.x;
+      const py = game.player.y;
+      
+      for (let i = -1; i <= 1; i++) {
+        const spreadAngle = i * 0.3; // 30 degree spread
+        const dx = px - fate.x;
+        const dy = py - fate.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        // Rotate velocity vector
+        const vx = (dx / dist) * 300;
+        const vy = (dy / dist) * 300;
+        const rotatedVx = vx * Math.cos(spreadAngle) - vy * Math.sin(spreadAngle);
+        const rotatedVy = vx * Math.sin(spreadAngle) + vy * Math.cos(spreadAngle);
+        
+        const attack = {
+          type: 'scissors',
+          x: fate.x,
+          y: fate.y,
+          vx: rotatedVx,
+          vy: rotatedVy,
+          damage: 30,
+          rotation: 0,
+          lifetime: 3000
+        };
+        game.bossFight.attacks.push(attack);
+      }
+      showToast(`✂️✂️✂️ ${fate.name} unleashes triple cut!`);
+      break;
+  }
+  
+  fate.angry = true;
+  setTimeout(() => { fate.angry = false; }, 1500);
 }
 
 console.log("✅ Gameplay system loaded");

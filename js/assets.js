@@ -11,6 +11,7 @@ const ASSETS = {
   cutIngredients: {},
   cookedIngredients: {},
   player: {},
+  boss: {},
   loaded: false,
   totalAssets: 0,
   loadedAssets: 0
@@ -48,6 +49,7 @@ async function loadAssets() {
   Object.values(ASSET_FILES.cutIngredients).forEach(src => src && ASSETS.totalAssets++);
   Object.values(ASSET_FILES.cookedIngredients).forEach(src => src && ASSETS.totalAssets++);
   Object.values(ASSET_FILES.player).forEach(src => src && ASSETS.totalAssets++);
+  Object.values(ASSET_FILES.boss).forEach(src => src && ASSETS.totalAssets++);
   
   // Load ingredient assets
   for (let [ingredient, src] of Object.entries(ASSET_FILES.ingredients)) {
@@ -146,6 +148,21 @@ async function loadAssets() {
         }).catch(() => {
           ASSETS.player[player] = null;
           console.log(`❌ Player asset failed: ${player}`);
+        })
+      );
+    }
+  }
+  
+  // Load boss assets
+  for (let [boss, src] of Object.entries(ASSET_FILES.boss)) {
+    if (src) {
+      loadPromises.push(
+        loadImage(src).then(img => {
+          ASSETS.boss[boss] = img;
+          console.log(`✅ Boss asset loaded: ${boss}`);
+        }).catch(() => {
+          ASSETS.boss[boss] = null;
+          console.log(`❌ Boss asset failed: ${boss}`);
         })
       );
     }

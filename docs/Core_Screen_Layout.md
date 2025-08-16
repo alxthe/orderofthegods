@@ -52,32 +52,81 @@ All stations are large, labelled, and non-overlapping. The player can pass throu
 
 **Table top**: Centered at (640, 360); collision radius ≈ 140 px
 
-**Plate UI**: Five vertical slot markers above the table edge (clearly outlined)
+**Plate UI**: 
+- **Level 1**: Five vertical slot markers above the table edge
+- **Level 2+**: Six vertical slot markers (expanded capacity)
+- **Level 4**: "Threads of Fate" mystical circular pattern
 
-**Table Zone (interact radius)**: ≈ 180 px from table center; ring highlights when in range
+**Table Zone (interact radius)**: ≈ 120 px from table center; ring highlights when in range
 
-### **C) Ingredient Bins (FAR APART to Force Long Runs)**
+### **C) Ingredient Bins (EXPANDED LAYOUT for 4-Level System)**
 **Labels**: Uppercase words matching riddle nouns exactly
 
 **Hit area per bin**: At least 180 × 120 px; easy to hit at speed
 
-**Positions at base 1280×720** (anchor these as percentages for scaling):
+**Positions** (responsive scaling, level-dependent visibility):
 
-**Left wall**:
-- BREAD at (160, 260)
-- TOMATO at (160, 460)
+**Left wall** (All Levels):
+- BREAD at (360, 260)
+- TOMATO at (360, 460)
 
-**Right wall**:
-- CHEESE at (1120, 260)
-- MEAT at (1120, 460)
+**Right wall** (All Levels):
+- CHEESE at (window.innerWidth - 160, 260)
+- MEAT at (window.innerWidth - 160, 460)
 
-**Bottom wall**:
-- EGG at (430, 620)
-- PEPPER at (850, 620)
+**Bottom wall** (Level-dependent):
+- EGG at (40% width, bottom - 180) — All Levels
+- PEPPER at (50% width, bottom - 180) — All Levels  
+- BACON at (55% width, bottom - 180) — **Level 2+ only**
+- AVOCADO at (60% width, bottom - 180) — **Level 2+ only**
+- OLIVE OIL at (65% width, bottom - 180) — **Level 2+ only**
+- OLIVES at (70% width, bottom - 180) — **Level 2+ only**
 
-**Bin Zones (interact radii)**: ≈ 120 px; bins highlight when in range
+**Level 3+ Special**:
+- MILK at (300, 180) — **Level 3+ only** (top-left area)
 
-**Copy locks on labels**: BREAD, TOMATO, CHEESE, MEAT, EGG, PEPPER (exact spelling/case)
+**Bin Zones (interact radii)**: ≈ 60 px; bins highlight when in range
+
+**Level Restrictions**: Ingredients hidden based on current level
+**Copy locks on labels**: All ingredient names exact spelling/case
+
+### **D) Cooking Equipment (NEW - Levels 1-3 only)**
+
+**Divine Oven** at (450, 280):
+- Cook meat, egg, bacon (3s timer)
+- V key to retrieve when ready
+- Visual steam and progress bar
+
+**Ancient Cutting Board** at (window.innerWidth - 250, 380):
+- Cut tomato, cheese, meat, avocado, pepper
+- C key to cut (instant)
+- Visual cutting animation
+
+**Divine Saucepan** at (60% width, 300) — **Level 3+ only**:
+- Process milk → yogurt (3s timer)
+- V key to retrieve when ready  
+- Visual steam and progress bar
+
+**Equipment Zones**: ≈ 70 px interaction radius each
+
+### **E) Level 4 Boss Fight Transformation**
+
+**Mystical UI Replacement**:
+- **Ingredient Bins → Floating Purple Orbs**: Show ingredient names, same pickup mechanics
+- **Table → Threads of Fate**: Mystical circular preparation area with thread pattern
+- **Equipment Hidden**: All cooking equipment disappears (oven, cutting board, saucepan)
+- **Background**: Loom of Moirai (loom-morai.png) replaces kitchen background
+
+**Boss Fight Specific Elements**:
+- **Boss Health Bars**: Individual health displays for each Fate
+- **Player Health Bar**: 100 HP display with damage feedback
+- **Phase Indicators**: Show current boss fight phase (1-3)
+- **Mystical Color Scheme**: Purple and lavender throughout
+
+**Interaction Changes**:
+- Pickup/place still work but with mystical orb visuals
+- Delivery altar remains for completing orders
+- No cooking interactions (C/V keys disabled)
 
 ---
 
@@ -113,17 +162,30 @@ QA stopwatch from table center to each bin and to the counter must match target 
 
 ---
 
-## 6. UI Overlay (Never Obscures Riddle/Timer)
+## 6. UI Overlay (Level-Dependent Display)
 
-### **Layout**
+### **Standard Layout (Levels 1-3)**
 - **Top-center**: Riddle line (largest text) + Timer (number + shrinking bar)
-- **Top-right**: Points: N/30 + Speed badge (L1/L2/L3)
+- **Top-right**: Points: N/40 + Level badge (L1/L2/L3/L4)
 - **Top-left**: Current Customer name (small)
-- **Bottom-center**: Toasts (Correct, Wrong, Time up, Plate is full, Hands full, Speed Up)
-- **Speech bubble**: Appears above the customer at the counter and duplicates the riddle line. Bubble never covers HUD riddle
+- **Bottom-center**: Toasts (Correct, Wrong, Time up, Equipment feedback, Special powers)
+- **Speech bubble**: Appears above the customer at the counter and duplicates the riddle line
+- **Equipment Status**: Shows cooking/cutting progress with visual bars
+
+### **Boss Fight Layout (Level 4)**
+- **Top-center**: No riddle/timer (replaced with boss instructions)
+- **Top-right**: No points counter (boss fight mode)
+- **New Elements**: Boss health bars, player health bar, phase indicators
+- **Hidden Elements**: Timer, riddle text, customer speech bubbles
+
+### **Level-Dependent Backgrounds**
+- **Level 1**: Feast Hall (feast-hall.png) - dark dungeon atmosphere
+- **Level 2**: Acropolis Athens (acropolis-athens.png) - heroic Greek setting  
+- **Level 3**: Mount Olympus (mount-olympus.png) - divine realm
+- **Level 4**: Loom of Moirai (loom-morai.png) - mystical fate realm
 
 ### **Acceptance**
-From any corner of the room, riddle and timer are readable and never hidden.
+From any corner of the room, active UI elements are readable and never hidden by game elements.
 
 ---
 

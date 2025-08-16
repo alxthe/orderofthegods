@@ -17,8 +17,18 @@ function update(deltaTime) {
   // Update special power timers
   updateSpecialPowers(deltaTime);
   
-  // Update timer (faster with Hermes' power)
-  if (game.currentRiddle) {
+  // Update boss fight (Level 4)
+  if (game.currentLevel === 4) {
+    updateBossFight(deltaTime);
+    
+    // Check weapon hits on Fates
+    if (game.bossFight.active) {
+      checkWeaponHits();
+    }
+  }
+  
+  // Update timer (faster with Hermes' power) - NO TIMER IN LEVEL 4 BOSS FIGHT
+  if (game.currentRiddle && game.currentLevel !== 4) {
     let timerSpeed = 1;
     if (game.speedup) {
       timerSpeed = 2; // Timer counts down 2x faster with Hermes
@@ -50,26 +60,36 @@ function update(deltaTime) {
   // Update customer animation
   updateCustomerAnimation(deltaTime);
   
-  // Handle input
-  if (input.wasPressed('e')) {
-    handleInteraction();
+  // Handle input (disable cooking controls during boss fight)
+  if (game.currentLevel !== 4 || !game.bossFight.active) {
+    // Normal cooking game controls
+    if (input.wasPressed('e')) {
+      handleInteraction();
+    }
+    
+    if (input.wasPressed('q')) {
+      handleUndo();
+    }
+    
+    if (input.wasPressed('x')) {
+      handleTrash();
+    }
+    
+    if (input.wasPressed('enter')) {
+      handleDelivery();
+    }
+    
+    if (input.wasPressed('v')) {
+      handleOvenRetrieve();
+    }
+  } else if (game.currentLevel === 4 && game.bossFight.active) {
+    // Boss fight controls
+    if (input.wasPressed(' ')) {
+      throwWeapon();
+    }
+    // E key for weapon pickup is handled in checkWeaponPickup()
   }
-  
-  if (input.wasPressed('q')) {
-    handleUndo();
-  }
-  
-  if (input.wasPressed('x')) {
-    handleTrash();
-  }
-  
-  if (input.wasPressed('enter')) {
-    handleDelivery();
-  }
-  
-  if (input.wasPressed('v')) {
-    handleOvenRetrieve();
-  }
+  // During boss fight, only movement (WASD) and E/SPACE are allowed
   
   // ESC key pause handling is done in input.js to avoid conflicts
   

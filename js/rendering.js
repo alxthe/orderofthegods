@@ -14,7 +14,10 @@ function render() {
     renderMenu();
   } else if (game.state === 'playing' || game.state === 'paused') {
     renderKitchen();
-    renderCustomers();
+    // Don't render customers during Level 4 boss fight!
+    if (game.currentLevel !== 4 || !game.bossFight.active) {
+      renderCustomers();
+    }
     renderPlayer();
     renderUI();
     renderSpecialPowerEffects(); // Special power visual effects
@@ -79,13 +82,14 @@ function renderKitchen() {
     }
     renderKitchenLabels();
   } else {
-    // Level 4: Minimal mystical elements for The Fates
-    renderFatesIngredientSources();
-    renderFatesPreparationArea();
+    // Level 4: Boss Fight Arena - No cooking elements!
+    renderBossFightArena();
   }
   
-  // Always render delivery altar (where orders are delivered)
-  renderDeliveryAltar();
+  // Render delivery altar (except in Level 4 boss fight)
+  if (game.currentLevel !== 4) {
+    renderDeliveryAltar();
+  }
 }
 
 // Fallback background when images don't load
@@ -1038,6 +1042,439 @@ function renderCarriedItem(player) {
       const label = ingredient.startsWith('cut_') ? 'CUT' : 'COOKED';
       ctx.fillText(label, player.x, player.y - 110);
     }
+  }
+}
+
+// =====================================================
+// BOSS FIGHT RENDERING (LEVEL 4)
+// =====================================================
+
+// Render the boss fight arena
+function renderBossFightArena() {
+  if (!game.bossFight.active) return;
+  
+  // Dark mystical arena background
+  ctx.fillStyle = 'rgba(20, 10, 30, 0.8)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Render weapon pickups
+  renderWeapons();
+  
+  // Render health boxes
+  renderHealthBoxes();
+  
+  // Render string traps
+  renderStringTraps();
+  
+  // Render The Fates
+  renderFatesBosses();
+  
+  // Render attacks (scissors, projectiles)
+  renderBossAttacks();
+  
+  // Render boss UI
+  renderBossUI();
+  
+  // Render Benson Boone in the corner!
+  renderBensonBoone();
+}
+
+// Render The Fates bosses
+function renderFatesBosses() {
+  game.bossFight.fates.forEach((fate, index) => {
+    if (fate.health <= 0) return; // Don't render dead fates
+    
+    // Use individual Fate sprites!
+    let fateImg = null;
+    if (fate.sprite && ASSETS.boss?.[fate.sprite]) {
+      // Use the specific Fate's PNG
+      fateImg = ASSETS.boss[fate.sprite];
+    } else {
+      // Fallback to generic angry/calm sprites
+      fateImg = fate.angry ? ASSETS.boss?.fatesAngry : ASSETS.boss?.fatesCalm;
+    }
+    
+    const size = 120;
+    
+    if (fateImg && ASSETS.loaded) {
+      // Flash red when taking damage
+      if (fate.takingDamage) {
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = '#FF0000';
+        ctx.fillRect(fate.x - size/2, fate.y - size/2, size, size);
+      }
+      
+      ctx.globalAlpha = 1;
+      ctx.drawImage(fateImg, fate.x - size/2, fate.y - size/2, size, size);
+    } else {
+      // Fallback fate rendering
+      ctx.fillStyle = fate.angry ? '#8B0000' : '#4B0082';
+      ctx.beginPath();
+      ctx.arc(fate.x, fate.y, 60, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Eyes
+      ctx.fillStyle = fate.angry ? '#FF0000' : '#FFD700';
+      ctx.beginPath();
+      ctx.arc(fate.x - 15, fate.y - 10, 5, 0, Math.PI * 2);
+      ctx.arc(fate.x + 15, fate.y - 10, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    // Health bar above fate
+    renderFateHealthBar(fate);
+    
+    // Name label
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 14px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(fate.name, fate.x, fate.y - 80);
+  });
+}
+
+// Render fate health bars
+function renderFateHealthBar(fate) {
+  const barWidth = 80;
+  const barHeight = 10;
+  const barX = fate.x - barWidth/2;
+  const barY = fate.y - 100;
+  
+  // Name label (PURPLE THEME for enemies)
+  ctx.fillStyle = '#9370DB';
+  ctx.font = 'bold 11px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(fate.name, fate.x, barY - 5);
+  
+  // Background (darker)
+  ctx.fillStyle = '#1a0033';
+  ctx.fillRect(barX, barY, barWidth, barHeight);
+  
+  // Health (PURPLE/PINK theme for Fates)
+  const healthPercent = fate.health / fate.maxHealth;
+  ctx.fillStyle = healthPercent > 0.5 ? '#FF69B4' : (healthPercent > 0.25 ? '#FF1493' : '#8B008B');
+  ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
+  
+  // Border (purple for enemies)
+  ctx.strokeStyle = '#9370DB';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(barX, barY, barWidth, barHeight);
+  
+  // Health numbers
+  ctx.fillStyle = '#FFF';
+  ctx.font = '9px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${Math.ceil(fate.health)}/${fate.maxHealth}`, fate.x, barY + barHeight - 1);
+}
+
+// Render string traps
+function renderStringTraps() {
+  game.bossFight.stringTraps.forEach(trap => {
+    // String web effect
+    ctx.strokeStyle = 'rgba(255, 215, 0, 0.8)';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([5, 5]);
+    
+    // Draw web pattern
+    for (let i = 0; i < 8; i++) {
+      const angle = (i * Math.PI) / 4;
+      ctx.beginPath();
+      ctx.moveTo(trap.x, trap.y);
+      ctx.lineTo(
+        trap.x + Math.cos(angle) * trap.radius,
+        trap.y + Math.sin(angle) * trap.radius
+      );
+      ctx.stroke();
+    }
+    
+    // Outer circle
+    ctx.beginPath();
+    ctx.arc(trap.x, trap.y, trap.radius, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    ctx.setLineDash([]);
+  });
+}
+
+// Render boss attacks
+function renderBossAttacks() {
+  game.bossFight.attacks.forEach(attack => {
+    if (attack.type === 'scissors') {
+      // Spinning scissors
+      ctx.save();
+      ctx.translate(attack.x, attack.y);
+      ctx.rotate(attack.rotation || 0);
+      
+      ctx.fillStyle = '#C0C0C0';
+      ctx.fillRect(-15, -3, 30, 6);
+      ctx.fillRect(-3, -15, 6, 30);
+      
+      // Sharp points
+      ctx.fillStyle = '#FF4500';
+      ctx.beginPath();
+      ctx.moveTo(-20, 0);
+      ctx.lineTo(-25, -5);
+      ctx.lineTo(-25, 5);
+      ctx.closePath();
+      ctx.fill();
+      
+      ctx.restore();
+    } else if (attack.type === 'string_shot') {
+      // String projectile
+      ctx.strokeStyle = '#FFD700';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(attack.startX, attack.startY);
+      ctx.lineTo(attack.x, attack.y);
+      ctx.stroke();
+      
+      // String end
+      ctx.fillStyle = '#FFD700';
+      ctx.beginPath();
+      ctx.arc(attack.x, attack.y, 8, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (attack.type === 'weapon') {
+      // Player thrown weapon
+      ctx.save();
+      ctx.translate(attack.x, attack.y);
+      
+      // Draw weapon based on type
+      if (attack.weaponType === 'sword') {
+        ctx.fillStyle = '#C0C0C0';
+        ctx.fillRect(-3, -20, 6, 40);
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(-5, 10, 10, 8);
+        ctx.fillStyle = '#FFD700';
+        ctx.fillRect(-8, 5, 16, 3);
+      } else if (attack.weaponType === 'spear') {
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(-2, -25, 4, 50);
+        ctx.fillStyle = '#C0C0C0';
+        ctx.beginPath();
+        ctx.moveTo(0, -30);
+        ctx.lineTo(-5, -20);
+        ctx.lineTo(5, -20);
+        ctx.closePath();
+        ctx.fill();
+      } else if (attack.weaponType === 'dagger') {
+        ctx.fillStyle = '#696969';
+        ctx.fillRect(-2, -10, 4, 20);
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(-3, 5, 6, 5);
+      }
+      
+      ctx.restore();
+    }
+  });
+}
+
+// Render weapon pickups
+function renderWeapons() {
+  game.bossFight.weapons.forEach(weapon => {
+    if (weapon.collected) return;
+    
+    // Glowing pickup effect
+    ctx.shadowColor = 'rgba(255, 215, 0, 0.8)';
+    ctx.shadowBlur = 10;
+    
+    // Weapon background circle
+    ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
+    ctx.beginPath();
+    ctx.arc(weapon.x, weapon.y, 30, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.shadowBlur = 0;
+    
+    // Draw weapon icon
+    ctx.save();
+    ctx.translate(weapon.x, weapon.y);
+    
+    if (weapon.type === 'sword') {
+      ctx.fillStyle = '#C0C0C0';
+      ctx.fillRect(-3, -15, 6, 30);
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(-5, 10, 10, 6);
+      ctx.fillStyle = '#FFD700';
+      ctx.fillRect(-8, 7, 16, 2);
+    } else if (weapon.type === 'spear') {
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(-2, -20, 4, 40);
+      ctx.fillStyle = '#C0C0C0';
+      ctx.beginPath();
+      ctx.moveTo(0, -25);
+      ctx.lineTo(-4, -18);
+      ctx.lineTo(4, -18);
+      ctx.closePath();
+      ctx.fill();
+    } else if (weapon.type === 'dagger') {
+      ctx.fillStyle = '#696969';
+      ctx.fillRect(-2, -8, 4, 16);
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(-3, 5, 6, 4);
+    }
+    
+    ctx.restore();
+    
+    // Pickup hint
+    const dx = weapon.x - game.player.x;
+    const dy = weapon.y - game.player.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    if (distance < 60) {
+      ctx.fillStyle = '#FFF';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Press E', weapon.x, weapon.y - 35);
+    }
+  });
+}
+
+// Render health boxes
+function renderHealthBoxes() {
+  game.bossFight.healthBoxes.forEach(healthBox => {
+    if (healthBox.collected) return;
+    
+    // Pulsing effect
+    const pulse = Math.sin(Date.now() * 0.003) * 0.2 + 0.8;
+    
+    // Health box
+    ctx.fillStyle = `rgba(0, 255, 0, ${0.6 * pulse})`;
+    ctx.fillRect(healthBox.x - 15, healthBox.y - 15, 30, 30);
+    
+    // Cross symbol
+    ctx.fillStyle = '#FFF';
+    ctx.fillRect(healthBox.x - 2, healthBox.y - 10, 4, 20);
+    ctx.fillRect(healthBox.x - 10, healthBox.y - 2, 20, 4);
+    
+    // Glow effect
+    ctx.shadowColor = 'rgba(0, 255, 0, 0.8)';
+    ctx.shadowBlur = 15 * pulse;
+    ctx.strokeStyle = '#0F0';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(healthBox.x - 15, healthBox.y - 15, 30, 30);
+    ctx.shadowBlur = 0;
+  });
+}
+
+// Render boss fight UI
+function renderBossUI() {
+  // Render The Fates image in top-left corner
+  const fatesImg = ASSETS.boss?.fatescalm;
+  if (fatesImg && ASSETS.loaded) {
+    const fatesSize = 80;
+    const fatesX = 20;
+    const fatesY = 20;
+    
+    // Add glow effect to Fates image
+    ctx.shadowColor = 'rgba(147, 112, 219, 0.8)';
+    ctx.shadowBlur = 10;
+    ctx.globalAlpha = 0.9;
+    
+    ctx.drawImage(fatesImg, fatesX, fatesY, fatesSize, fatesSize);
+    
+    // Reset effects
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+    
+    // Add label under the image
+    ctx.fillStyle = '#9370DB';
+    ctx.font = 'bold 12px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('THE FATES', fatesX + fatesSize/2, fatesY + fatesSize + 15);
+  }
+  
+  // PLAYER health bar - GREEN THEME (moved down to make room for Fates image)
+  const healthBarWidth = 250;
+  const healthBarHeight = 25;
+  const healthX = 20;
+  const healthY = 120;
+  
+  // Player label
+  ctx.fillStyle = '#32CD32';
+  ctx.font = 'bold 14px Cinzel, serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('YOUR HEALTH', healthX, healthY - 8);
+  
+  // Background
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(healthX, healthY, healthBarWidth, healthBarHeight);
+  
+  // Health (green theme)
+  const healthPercent = game.bossFight.playerHealth / game.bossFight.maxHealth;
+  const healthColor = healthPercent > 0.5 ? '#32CD32' : (healthPercent > 0.25 ? '#FFD700' : '#FF4500');
+  ctx.fillStyle = healthColor;
+  ctx.fillRect(healthX, healthY, healthBarWidth * healthPercent, healthBarHeight);
+  
+  // Border (green)
+  ctx.strokeStyle = '#32CD32';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(healthX, healthY, healthBarWidth, healthBarHeight);
+  
+  // Health text
+  ctx.fillStyle = '#FFF';
+  ctx.font = 'bold 18px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${Math.ceil(game.bossFight.playerHealth)} / ${game.bossFight.maxHealth}`, healthX + healthBarWidth/2, healthY + 18);
+  
+  // Show current weapon if holding one
+  if (game.bossFight.playerWeapon) {
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 14px Cinzel, serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(`Weapon: ${game.bossFight.playerWeapon.type.toUpperCase()} (SPACE to throw)`, healthX, healthY + healthBarHeight + 20);
+  }
+  
+  // Boss phase indicator
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 24px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(`THE FATES - Phase ${game.bossFight.phase}`, canvas.width/2, 60);
+  
+  // Instructions
+  if (game.bossFight.phase === 1) {
+    ctx.fillStyle = '#FFF';
+    ctx.font = '16px Cinzel, serif';
+    ctx.fillText('Avoid the Fates\' attacks and survive!', canvas.width/2, canvas.height - 40);
+    ctx.fillText('WASD to move - Don\'t get caught in their strings!', canvas.width/2, canvas.height - 20);
+  }
+}
+
+// Render Benson Boone in the corner (Level 4 only!)
+function renderBensonBoone() {
+  const bensonImg = ASSETS.boss?.bensonboone;
+  
+  if (bensonImg && ASSETS.loaded) {
+    // Position in bottom-right corner (but not covering instructions)
+    const size = 100;
+    const x = canvas.width - size - 20;
+    const y = canvas.height - size - 80; // Higher up to avoid instructions
+    
+    // Add a subtle glow effect
+    ctx.shadowColor = 'rgba(255, 215, 0, 0.5)';
+    ctx.shadowBlur = 15;
+    
+    // Draw Benson Boone
+    ctx.globalAlpha = 0.9; // Slightly transparent
+    ctx.drawImage(bensonImg, x, y, size, size);
+    
+    // Reset effects
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+    
+    // Add a label
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 12px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('BENSON BOONE', x + size/2, y + size + 15);
+    ctx.fillText('WATCHING', x + size/2, y + size + 28);
+    ctx.textAlign = 'left';
+  } else {
+    // Fallback if image doesn't load
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 14px Cinzel, serif';
+    ctx.textAlign = 'right';
+    ctx.fillText('BENSON BOONE', canvas.width - 20, canvas.height - 100);
+    ctx.fillText('IS WATCHING', canvas.width - 20, canvas.height - 80);
+    ctx.textAlign = 'left';
   }
 }
 

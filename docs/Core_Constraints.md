@@ -37,25 +37,35 @@ Hide gameplay until a supported setup is detected.
 
 ---
 
-## 2. Controls (Keyboard Map — Final for v1)
+## 2. Controls (Keyboard Map — Current Implementation)
 
 ### **Key Bindings**
 - **W / A / S / D** — Move (top-down, instant start/stop; no acceleration)
 - **E** — Interact (pick from bin, place at table, deliver at counter)
 - **Q** — Undo top item (only while standing at the table)
 - **Enter** — Deliver (only inside the deliver zone at the counter)
+- **C** — Cut ingredient (only at cutting board)
+- **V** — Retrieve cooked/processed item (from oven or saucepan)
+- **X** — Trash carried ingredient (at trash bin)
 - **Esc** — Pause
+
+### **Level 4 Boss Fight Exception**
+- **WASD Only**: During boss fight, only movement controls work
+- **All other keys disabled**: No E/Q/Enter/C/V/X during boss battle
+- **Pure Action Mode**: No cooking mechanics during The Fates battle
 
 ### **Hard Rules**
 - **Keyboard only**. Mouse clicks, touch taps, scroll, and gamepad input do nothing
 - **Deliver debounce**: ignore additional deliver inputs for 0.3s after a deliver
 - **Undo guard**: if not at the table, Q shows toast "Go to table"
-- **Interact radius** is generous and visibly highlighted when in range of bins/table/counter
+- **Equipment guards**: C only works at cutting board, V only at oven/saucepan
+- **Interact radius** is generous and visibly highlighted when in range of stations
 - **Diagonal movement** is not faster than straight (normalize speed)
 
 ### **Acceptance Tests**
 - Every game action is reachable with the keys above; nothing else triggers actions
-- Undo does nothing away from the table and shows the guard toast
+- Equipment controls only work at appropriate stations with appropriate guards
+- Boss fight mode disables all cooking controls correctly
 - Deliver only works in the deliver zone; debounce prevents double-submits
 
 ---
@@ -80,23 +90,28 @@ If any touch input is detected, show the laptop-only overlay (see Platform).
 
 ### **Allowed Ingredient Words**
 Must match exactly in riddles and on bins:
-- bread, tomato, cheese, meat, egg, pepper
+- **Base (All Levels)**: bread, tomato, cheese, meat, egg, pepper
+- **Level 2+**: bacon, avocado, oliveoil, olives
+- **Level 3+**: milk, yogurt
+- **Processed Items**: cut_tomato, cut_cheese, cut_meat, cut_avocado, cut_pepper, cooked_meat, cooked_egg, cooked_bacon
 
 ### **Rules**
 - No synonyms. No plurals. No adjectives. No alternate spellings
 - Digits for counts (e.g., "2 tomato, 1 cheese")
-- Allowed connectors: and, with, no, between, again
+- Allowed connectors: and, with, no, between, again, slice, cook, process
 - Max 8 words per riddle (not counting the fixed prefix "For the riddle:")
+- **Level 4 Exception**: No riddles during boss fight
 
 ### **Acceptance Tests**
-- Every shipped riddle uses only the six base nouns + allowed connectors + digits
+- Every shipped riddle uses only the allowed nouns + connectors + digits
 - Bin labels match the nouns exactly (same casing and spelling)
+- Level restrictions enforced: Level 2+ ingredients hidden in Level 1, etc.
 
 ---
 
 ## 5. Riddle Logic Types (Exactly One Per Riddle)
 
-Only these three logic types are allowed; **never combine them**.
+Six logic types are now implemented; **never combine them**.
 
 ### **A) COUNT**
 - Specifies exact counts of ingredients
@@ -113,13 +128,31 @@ Only these three logic types are allowed; **never combine them**.
 - **Judge**: order and length must match (bread–X–bread)
 - **Examples**: "Bread, tomato, bread." / "Bread, cheese, bread"
 
+### **D) TOTALCOUNT**
+- Specifies exact total number of items on plate
+- **Judge**: total item count must match exactly
+- **Example**: "EXACTLY 5 items total"
+
+### **E) UNIQUE**
+- All ingredients must be different (no repeats)
+- **Judge**: no ingredient appears more than once
+- **Example**: "4 DIFFERENT items (no repeats)"
+
+### **F) COOKING**
+- Requires preparation using kitchen equipment
+- **Judge**: must use cut/cooked/processed items as specified
+- **Examples**: "SLICE: 1 tomato", "COOK: 1 meat", "PROCESS: milk → yogurt"
+
+### **Level 4 Exception**
+- **Boss Fight Mode**: No riddles, pure action survival
+
 ### **Prohibited**
 - No ordering constraints beyond SANDWICH(3)
 - No OR/IF logic, no ranges ("at least"), no synonyms, no modifiers
 
 ### **Acceptance Tests**
-- Each shipped riddle is tagged as COUNT or EXCLUDE or SANDWICH(3)
-- Judge rejects: extra items in COUNT; any banned item in EXCLUDE; wrong length/order in SANDWICH(3)
+- Each riddle tagged as one of the six types
+- Judge rejects: extra items in COUNT; banned items in EXCLUDE; wrong order in SANDWICH; wrong totals in TOTALCOUNT; duplicates in UNIQUE; missing preparation in COOKING
 
 ---
 
@@ -143,13 +176,70 @@ Only these three logic types are allowed; **never combine them**.
 
 ---
 
+## 6.5. Cooking System Constraints (Levels 1-3)
+
+### **Equipment Requirements**
+- **Oven**: Cook meat, egg, bacon only (3s timer, V to retrieve)
+- **Cutting Board**: Cut tomato, cheese, meat, avocado, pepper only (C key)
+- **Saucepan**: Process milk → yogurt only (Level 3+, 3s timer, V to retrieve)
+
+### **Processing Rules**
+- **One item at a time**: Each equipment can only process one item
+- **Cannot interrupt**: Must wait for completion or restart level
+- **Level restrictions**: Saucepan hidden in Levels 1-2
+- **Visual feedback**: Progress bars and steam effects required
+
+### **Acceptance Tests**
+- Only specified items can be processed in each equipment
+- Equipment processing timers work correctly
+- Level restrictions properly enforced
+- Cannot place/retrieve items prematurely
+
+---
+
+## 6.6. Boss Fight Constraints (Level 4)
+
+### **Mode Transformation**
+- **Kitchen disappears**: All cooking equipment hidden
+- **Mystical UI**: Purple orbs replace ingredient crates
+- **No timer**: Remove all timer displays and countdown
+- **No riddles**: Disable riddle system completely
+
+### **Boss Fight Rules**
+- **Movement only**: WASD movement, all other keys disabled
+- **Player health**: 100 HP with damage system
+- **Invulnerability frames**: 1-second immunity after taking damage
+- **Victory condition**: Defeat all 3 Fates to win game
+
+### **Acceptance Tests**
+- Boss fight mode properly disables all cooking mechanics
+- Player health system works correctly
+- Victory triggers properly when all Fates defeated
+- Cannot access cooking equipment during boss fight
+
+---
+
 ## 7. Non-Negotiable Copy Locks (To Prevent UI Drift)
 
 ### **Fixed Text**
 - Customer bubble always begins: "For the riddle: [text]"
-- HUD shows Points: N/30 and L1/L2/L3 badge at all times
+- HUD shows Points: N/40 and L1/L2/L3/L4 badge at all times
 - Failure to deliver shows "Time up" or "Wrong"; empty deliver shows "Nothing to serve"
 - Guard toasts: "Hands full.", "Plate is full.", "Go to table.", "Place at table.", "Speed Up"
+
+### **Cooking System Text**
+- Equipment interactions: "Press C to cut", "Press V to retrieve", "Press X to trash"
+- Equipment status: "Cutting...", "Cooking...", "Processing...", "Ready!"
+- Equipment guards: "Need cutting board", "Need oven", "Need saucepan"
+
+### **Level Progression Text**
+- Level transitions: "Escape to the Acropolis", "Ascension to Mount Olympus", "The Loom of Destiny"
+- Story panel dismiss: "Press ENTER to continue"
+
+### **Boss Fight Text**
+- Victory message: "The Fates have been defeated!"
+- Boss health displays: Individual Fate names with health bars
+- Boss fight UI: "Threads of Fate" (preparation area)
 
 ---
 
@@ -161,16 +251,32 @@ Only these three logic types are allowed; **never combine them**.
 
 ### **Input Compliance**
 - [ ] Only the defined keys trigger actions; mouse/touch do nothing
+- [ ] All cooking controls work only at appropriate equipment
+- [ ] Boss fight mode disables all cooking controls
 - [ ] Deliver debounce active
 
 ### **Content Compliance**
-- [ ] All riddles use only the six nouns + allowed connectors + digits
-- [ ] Every riddle is exactly one of COUNT / EXCLUDE / SANDWICH(3)
+- [ ] All riddles use only the expanded vocabulary + allowed connectors + digits
+- [ ] Every riddle is exactly one of COUNT / EXCLUDE / SANDWICH / TOTALCOUNT / UNIQUE / COOKING
+- [ ] Level restrictions properly enforced for ingredients and equipment
 
 ### **Gameplay Compliance**
 - [ ] Movement cannot exit the room; customers are non-blocking
-- [ ] Interactions respect zones
-- [ ] HUD shows Points and speed badge at all times; riddle is never obscured
+- [ ] Interactions respect zones and level restrictions
+- [ ] HUD shows Points and level badge at all times; riddle is never obscured
+- [ ] Boss fight transformation works correctly
+
+### **Cooking System Compliance**
+- [ ] Equipment timers and visual feedback work correctly
+- [ ] Only specified items can be processed in each equipment
+- [ ] Level restrictions properly hide/show equipment
+- [ ] Cut/cooked items render correctly in all contexts
+
+### **Boss Fight Compliance**
+- [ ] Kitchen UI properly transforms to mystical interface
+- [ ] Player health system works with invulnerability frames
+- [ ] All cooking mechanics disabled during boss fight
+- [ ] Victory condition triggers when all Fates defeated
 
 ---
 

@@ -8,51 +8,78 @@ Make riddles clear, fast to read, and fair to judge while staying simple to buil
 
 ---
 
-## 1. Non-Negotiables (Core Rules)
+## 1. Non-Negotiables (Expanded System)
 
 ### **Fixed Elements**
 - **Prefix**: Every customer bubble begins "For the riddle:"
-- **Vocabulary**: bread, tomato, cheese, meat, egg, pepper (exact words only)
+- **Expanded Vocabulary**: bread, tomato, cheese, meat, egg, pepper, bacon, avocado, oliveoil, olives, milk, yogurt + processed items
 - **Max length**: ≤ 8 words after the prefix
-- **Plate limit**: max 5 items
+- **Plate limits**: 5 items (Level 1), 6 items (Level 2+)
+- **Level 4 Exception**: No riddles during boss fight
 
-### **Logic Types (One Per Riddle)**
+### **Logic Types (Six Types Implemented)**
 - **COUNT** — exact counts (e.g., "2 tomato, 1 cheese")
 - **EXCLUDE** — "no X" bans ingredients (e.g., "Tomato and meat, no egg")
 - **SANDWICH(3)** — exactly 3 items; bread–X–bread
+- **TOTALCOUNT** — exact total items (e.g., "EXACTLY 5 items total")
+- **UNIQUE** — all different items (e.g., "4 DIFFERENT items")
+- **COOKING** — requires preparation (e.g., "SLICE: 1 tomato", "COOK: 1 meat")
 
 ---
 
-## 2. Riddle Grammar (Simple Rules)
+## 2. Riddle Grammar (Expanded System)
 
 ### **Allowed Connectors**
 - and, with, no, between, again
+- **Cooking Actions**: slice, cook, process
 - Digits for counts: use numerals (2, 3), not words
 - Punctuation: commas to separate phrases; end with a period
+
+### **Level-Dependent Vocabulary**
+- **Level 1**: Basic 6 ingredients only
+- **Level 2**: Add bacon, avocado, oliveoil, olives 
+- **Level 3**: Add milk, yogurt + all cooking actions
+- **Level 4**: No riddles (boss fight)
 
 ### **Clarity Test**
 - Read aloud in < 4 seconds
 - A new player should know what to build
+- Equipment requirements clearly stated
 
 ### **Examples (Valid)**
+
 **COUNT**: 
 - "2 tomato, 1 cheese"
-- "Bread with pepper"
-- "Bread, meat, tomato"
+- "Bread with oliveoil" (Level 2+)
+- "1 yogurt, 1 bread" (Level 3+)
 
 **EXCLUDE**: 
 - "Tomato and meat, no egg"
-- "2 egg, no meat"
+- "2 olives, no bacon" (Level 2+)
 
 **SANDWICH(3)**: 
 - "Bread, cheese, bread"
-- "Bread, tomato, bread"
+- "Bread, avocado, bread" (Level 2+)
+
+**TOTALCOUNT**:
+- "EXACTLY 5 items total"
+- "6 items (any ingredients)" (Level 2+)
+
+**UNIQUE**:
+- "4 DIFFERENT items (no repeats)"
+- "5 UNIQUE ingredients" (Level 2+)
+
+**COOKING** (Level 3+):
+- "SLICE: 1 tomato (use cutting board)"
+- "COOK: 1 meat (use oven, wait 3 seconds)"
+- "PROCESS: milk → yogurt (use saucepan)"
 
 ### **Examples (Reject)**
 - "At least 2 tomato" (Ranges not allowed)
 - "Bread or cheese" (OR not allowed)
 - "2 breads" (Plurals not allowed)
-- "Bread, tomato, cheese, meat, egg, pepper" (6 items exceeds plate limit)
+- Using Level 2+ ingredients in Level 1
+- Cooking riddles without equipment available
 
 ---
 
@@ -73,12 +100,31 @@ Make riddles clear, fast to read, and fair to judge while staying simple to buil
 - Slot1 == bread, Slot3 == bread, Slot2 == any single allowed ingredient
 - Any deviation fails: wrong order, wrong count, wrong length
 
+### **D) TOTALCOUNT**
+- Plate must contain exactly the specified total number of items
+- Individual item types don't matter, only total count
+- No extras, no shortfalls
+
+### **E) UNIQUE**
+- All plate items must be different ingredients
+- No ingredient may appear more than once
+- Total count must match specified number of unique items
+
+### **F) COOKING**
+- Must use processed items as specified (cut_tomato, cooked_meat, yogurt)
+- Equipment must be used before riddle completion
+- Raw ingredients fail if cooked version required
+
+### **Level Restrictions**
+- **Level 1**: Only COUNT, EXCLUDE, SANDWICH types allowed
+- **Level 2**: Add TOTALCOUNT, UNIQUE types + new ingredients
+- **Level 3**: Add COOKING type + milk/yogurt processing
+- **Level 4**: No riddles (boss fight mode)
+
 ### **Fail Reasons (Copy Locks)**
-- "Wrong set"
-- "Exclusion violated"
-- "Not sandwich(3)"
-- "Nothing to serve"
-- "Time up"
+- "Wrong set", "Exclusion violated", "Not sandwich(3)"
+- "Wrong total count", "Duplicate ingredients", "Equipment needed"  
+- "Nothing to serve", "Time up"
 
 ---
 
@@ -92,56 +138,77 @@ Make riddles clear, fast to read, and fair to judge while staying simple to buil
 
 ---
 
-## 5. Riddle Bank (Hackathon Version)
+## 5. Riddle Bank (Current Implementation)
 
-### **Total Riddles**: 20-25 (enough for testing)
+### **Total Riddles**: 50+ across all levels and types
 
-### **Level Distribution**
-**Level 1 (22s)**: Simple COUNT riddles
-- "Bread with tomato"
-- "Meat with cheese"
-- "Tomato with cheese"
-- "Bread with pepper"
-- "Egg with cheese"
-- "Bread, tomato, bread" (SANDWICH)
-- "Bread, cheese, bread" (SANDWICH)
-- "2 meat, 1 cheese"
-- "2 tomato, 1 cheese"
-- "2 bread, 1 tomato"
+### **Level 1 Distribution (26s, Basic Ingredients Only)**
+**Basic COUNT Riddles**:
+- "Bread with tomato", "Meat with cheese", "Egg with cheese"
+- "2 meat, 1 cheese", "2 tomato, 1 cheese", "2 bread, 1 tomato"
 
-**Level 2 (18s)**: Add EXCLUDE, denser mixes
-- "Tomato and meat, no egg"
-- "2 meat, no cheese"
-- "Cheese and pepper, no tomato"
-- "Bread and egg, no pepper"
-- "2 cheese, 1 tomato"
-- "2 bread, 1 cheese"
-- "Bread, tomato, bread" (SANDWICH)
-- "Bread, cheese, bread" (SANDWICH)
+**Basic EXCLUDE Riddles**:
+- "Bread and tomato (NO egg)", "1 tomato + 1 meat (NO egg)"
 
-**Level 3 (15s)**: Complex COUNT and EXCLUDE
-- "Bread, meat, tomato"
-- "Bread, cheese, tomato"
-- "Meat, cheese, pepper"
-- "Bread, tomato, cheese, meat"
-- "Tomato and cheese, no egg"
-- "2 meat, 1 pepper"
-- "2 cheese, no pepper"
+**Basic SANDWICH Riddles**:
+- "Bread, tomato, bread", "Bread, cheese, bread", "Bread, meat, bread"
+
+### **Level 2 Distribution (20s, Add Heroes Ingredients)**
+**Enhanced COUNT Riddles**:
+- "Bacon with cheese", "1 avocado + 1 bread", "Olive oil + tomato"
+- "2 olives, 1 cheese", "Bacon + avocado + bread"
+
+**Enhanced EXCLUDE Riddles**:
+- "2 olives, no bacon", "Avocado and cheese, no egg", "Olive oil + meat (NO tomato)"
+
+**New TOTALCOUNT Riddles**:
+- "EXACTLY 5 items total", "6 items (any ingredients)"
+
+**New UNIQUE Riddles**:
+- "4 DIFFERENT items (no repeats)", "5 UNIQUE ingredients"
+
+**SANDWICH with New Ingredients**:
+- "Bread, avocado, bread", "Bread, bacon, bread"
+
+### **Level 3 Distribution (15s, Add Gods + Cooking)**
+**Basic Cooking Riddles** (25-45s time bonuses):
+- "SLICE: 1 tomato", "COOK: 1 meat", "SLICE: 1 pepper", "COOK: 1 bacon"
+- "PROCESS: milk → yogurt"
+
+**Advanced Cooking Combinations** (30-50s bonuses):
+- "Cut tomato + cooked meat", "Yogurt + bread + cut cheese"
+- "Cooked bacon + cut avocado + bread", "Cut pepper + olive oil + cheese"
+
+**Complex Multi-Ingredient**:
+- "2 cut cheese + 1 cooked meat", "Yogurt + cut tomato + bread + olive oil"
 
 ---
 
-## 6. Selection Policy (Simple)
+## 6. Selection Policy (Level-Based System)
 
-### **Basic Rules**
-- **No repeats**: Don't serve the same riddle twice in a row
-- **No back-to-back SANDWICH**: Insert a COUNT riddle between
-- **Level progression**: Start with Level 1, progress to Level 3
-- **Pepper limit**: Don't use pepper too often (max 2 in 5 riddles)
+### **Level-Based Rules**
+- **Level Restrictions**: Only use riddles appropriate for current level
+- **No Repeats**: Don't serve same riddle until level pool exhausted
+- **Equipment Availability**: Only show cooking riddles when equipment unlocked
+- **Time Bonuses**: Cooking riddles provide bonus time for complexity
 
-### **Simple Implementation**
-- Shuffle riddles at start of run
-- Pick next available riddle that follows rules
-- If rule broken, pick next available
+### **Level Progression**
+- **Level 1 (0-9 points)**: Basic riddles, 6 ingredients, 5-slot plates
+- **Level 2 (10-19 points)**: Add new ingredients, TOTALCOUNT/UNIQUE types, 6-slot plates
+- **Level 3 (20-29 points)**: Add cooking riddles, milk/yogurt processing
+- **Level 4 (30+ points)**: No riddles (boss fight mode)
+
+### **Implementation**
+- Separate riddle pools per level
+- Level-appropriate ingredient filtering
+- Equipment availability checking
+- Automatic level advancement at score thresholds
+
+### **Time Bonus System**
+- **Basic riddles**: No bonus
+- **Simple cooking**: +25-45 seconds for complexity
+- **Advanced cooking**: +30-50 seconds for multi-step processes
+- **Applied to timer**: Bonus added when riddle solved correctly
 
 ---
 
