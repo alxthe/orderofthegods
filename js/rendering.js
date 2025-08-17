@@ -147,7 +147,8 @@ function renderFallbackBackground() {
 
 // Render ingredient crates
 function renderIngredientCrates() {
-  const crateSize = 80;
+  const targetCrateSize = 90; // Target size for consistent layout (increased for better visibility)
+  
   for (let [ingredient, pos] of Object.entries(KITCHEN.POSITIONS.BINS)) {
     // Skip Level 2+ ingredients in Level 1
     if (game.currentLevel < 2 && (ingredient === 'oliveoil' || ingredient === 'olives')) {
@@ -158,25 +159,45 @@ function renderIngredientCrates() {
       continue;
     }
     
-    // Draw wooden crate background using crate.png
+    // Draw wooden crate background using crate.png with proper aspect ratio
     const crateImg = ASSETS.ui.crate;
+    let crateWidth = targetCrateSize;
+    let crateHeight = targetCrateSize;
+    
     if (crateImg && ASSETS.loaded) {
+      // Preserve crate aspect ratio
+      const crateAspectRatio = crateImg.width / crateImg.height;
+      
+      if (crateAspectRatio > 1) {
+        // Wider than tall - fit width, adjust height
+        crateWidth = targetCrateSize;
+        crateHeight = targetCrateSize / crateAspectRatio;
+      } else {
+        // Taller than wide or square - fit height, adjust width
+        crateHeight = targetCrateSize;
+        crateWidth = targetCrateSize * crateAspectRatio;
+      }
+      
+      // Ensure high quality crate rendering
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      
       ctx.drawImage(
         crateImg,
-        pos.x - crateSize/2,
-        pos.y - crateSize/2,
-        crateSize,
-        crateSize
+        pos.x - crateWidth/2,
+        pos.y - crateHeight/2,
+        crateWidth,
+        crateHeight
       );
     } else {
       // Fallback wooden crate appearance
-      renderFallbackCrate(pos, crateSize, ingredient);
+      renderFallbackCrate(pos, targetCrateSize, ingredient);
     }
     
-    // Draw food icon on top of crate
+    // Draw food icon CENTERED on the crate
     const foodImg = ASSETS.ingredients[ingredient];
     if (foodImg && ASSETS.loaded) {
-      const iconSize = 45; // Size of the food icon
+      const maxIconSize = 45; // Optimized size for the larger crates
       
       // Ensure high quality food icon rendering
       ctx.imageSmoothingEnabled = true;
@@ -187,24 +208,24 @@ function renderIngredientCrates() {
       let imgWidth, imgHeight;
       
       if (imgAspectRatio > 1) {
-        // Wider than tall
-        imgWidth = iconSize;
-        imgHeight = iconSize / imgAspectRatio;
+        // Wider than tall - fit width, scale height
+        imgWidth = maxIconSize;
+        imgHeight = maxIconSize / imgAspectRatio;
       } else {
-        // Taller than wide or square
-        imgHeight = iconSize;
-        imgWidth = iconSize * imgAspectRatio;
+        // Taller than wide or square - fit height, scale width
+        imgHeight = maxIconSize;
+        imgWidth = maxIconSize * imgAspectRatio;
       }
       
-      // Position the food icon in the center-top area of the crate
+      // Position the food icon PERFECTLY CENTERED on the crate
       const iconX = pos.x - imgWidth/2;
-      const iconY = pos.y - crateSize/2 + 8; // 8px from top of crate
+      const iconY = pos.y - imgHeight/2 + 2; // Slightly below center for better visual balance
       
       // Add subtle shadow for the food icon
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-      ctx.shadowBlur = 3;
-      ctx.shadowOffsetX = 1;
-      ctx.shadowOffsetY = 1;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+      ctx.shadowBlur = 4;
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 2;
       
       ctx.drawImage(
         foodImg,
@@ -220,25 +241,32 @@ function renderIngredientCrates() {
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 0;
     } else {
-      // Fallback food icon - colored circle
+      // Fallback food icon - colored circle CENTERED
       ctx.fillStyle = CONFIG.COLORS[ingredient.toUpperCase()] || '#8B4513';
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-      ctx.shadowBlur = 3;
-      ctx.beginPath();
-      ctx.arc(pos.x, pos.y - crateSize/2 + 20, 18, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+      ctx.shadowBlur = 4;
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 2;
       
-      // Add border to fallback icon
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y + 2, 18, 0, Math.PI * 2); // Centered with slight downward offset
+      ctx.fill();
+      
+      // Reset shadow and add border
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      
       ctx.strokeStyle = '#000';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(pos.x, pos.y - crateSize/2 + 20, 18, 0, Math.PI * 2);
+      ctx.arc(pos.x, pos.y + 2, 18, 0, Math.PI * 2);
       ctx.stroke();
     }
     
     // Ancient-style label with parchment appearance
-    renderCrateLabel(pos, ingredient);
+    renderCrateLabel(pos, ingredient, crateHeight);
     
     // Interaction feedback
     if (game.player.currentZone === `bin_${ingredient.toLowerCase()}`) {
@@ -270,10 +298,10 @@ function renderFallbackCrate(pos, crateSize, ingredient) {
 }
 
 // Render crate label
-function renderCrateLabel(pos, ingredient) {
+function renderCrateLabel(pos, ingredient, crateHeight = 90) {
   const labelWidth = 85;
   const labelHeight = 24;
-  const labelY = pos.y + 32;
+  const labelY = pos.y + Math.max(28, crateHeight/2 + 4); // Position closer to crate
   
   // Parchment background
   ctx.fillStyle = '#F5DEB3'; // Wheat/parchment
@@ -341,10 +369,10 @@ function renderFatesIngredientSources() {
     ctx.fillStyle = glowGrad;
     ctx.fillRect(pos.x - 50, pos.y - 50, 100, 100);
     
-    // Draw mystical food icon in the center of the orb
+    // Draw mystical food icon PERFECTLY CENTERED in the orb
     const foodImg = ASSETS.ingredients[ingredient];
     if (foodImg && ASSETS.loaded) {
-      const iconSize = 40; // Size of the mystical food icon
+      const maxIconSize = 36; // Optimized size for the mystical orbs
       
       // Ensure high quality food icon rendering
       ctx.imageSmoothingEnabled = true;
@@ -355,19 +383,22 @@ function renderFatesIngredientSources() {
       let imgWidth, imgHeight;
       
       if (imgAspectRatio > 1) {
-        // Wider than tall
-        imgWidth = iconSize;
-        imgHeight = iconSize / imgAspectRatio;
+        // Wider than tall - fit width, scale height
+        imgWidth = maxIconSize;
+        imgHeight = maxIconSize / imgAspectRatio;
       } else {
-        // Taller than wide or square
-        imgHeight = iconSize;
-        imgWidth = iconSize * imgAspectRatio;
+        // Taller than wide or square - fit height, scale width
+        imgHeight = maxIconSize;
+        imgWidth = maxIconSize * imgAspectRatio;
       }
       
       // Add mystical glow effect to food icon
-      ctx.shadowColor = 'rgba(147, 112, 219, 0.8)';
-      ctx.shadowBlur = 15;
+      ctx.shadowColor = 'rgba(147, 112, 219, 0.9)';
+      ctx.shadowBlur = 16;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
       
+      // Position PERFECTLY CENTERED in the orb
       ctx.drawImage(
         foodImg,
         pos.x - imgWidth/2,
@@ -377,16 +408,33 @@ function renderFatesIngredientSources() {
       );
       
       // Reset shadow
+      ctx.shadowColor = 'transparent';
       ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
     } else {
-      // Fallback - floating ingredient name
-      ctx.fillStyle = '#E6E6FA'; // Lavender
-      ctx.font = 'bold 14px Cinzel, serif';
-      ctx.textAlign = 'center';
-      ctx.shadowColor = 'rgba(147, 112, 219, 0.8)';
-      ctx.shadowBlur = 10;
-      ctx.fillText(ingredient.toUpperCase(), pos.x, pos.y);
+      // Fallback - mystical ingredient symbol CENTERED
+      ctx.fillStyle = CONFIG.COLORS[ingredient.toUpperCase()] || '#DDA0DD';
+      ctx.shadowColor = 'rgba(147, 112, 219, 0.9)';
+      ctx.shadowBlur = 12;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, 16, 0, Math.PI * 2); // CENTERED circle
+      ctx.fill();
+      
+      // Reset shadow and add mystical border
+      ctx.shadowColor = 'transparent';
       ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      
+      ctx.strokeStyle = '#DDA0DD';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, 16, 0, Math.PI * 2);
+      ctx.stroke();
     }
     
     // Floating ingredient name below the icon
@@ -395,7 +443,7 @@ function renderFatesIngredientSources() {
     ctx.textAlign = 'center';
     ctx.shadowColor = 'rgba(147, 112, 219, 0.8)';
     ctx.shadowBlur = 10;
-    ctx.fillText(ingredient.toUpperCase(), pos.x, pos.y + 35);
+    ctx.fillText(ingredient.toUpperCase(), pos.x, pos.y + 30); // Positioned better below centered icon
     ctx.shadowBlur = 0;
     
     // Interactive hint when player is near

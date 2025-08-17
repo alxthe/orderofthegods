@@ -401,73 +401,59 @@ function renderDeveloperButton() {
   }
 }
 
-// Menu screen
+// Menu screen - Frontpage Display
 function renderMenu() {
-  // Simple elegant Greek background
-  const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  bgGrad.addColorStop(0, '#2C1810'); // Dark brown
-  bgGrad.addColorStop(0.6, '#1A0F08'); // Nearly black
-  bgGrad.addColorStop(1, '#000000'); // Black
-  ctx.fillStyle = bgGrad;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // Display frontpage.png as full-screen background
+  const frontpageImg = ASSETS.ui.frontpage;
   
-  // Subtle stone texture
-  ctx.fillStyle = 'rgba(139, 69, 19, 0.1)';
-  for (let i = 0; i < 30; i++) {
-    const x = Math.random() * canvas.width;
-    const y = Math.random() * canvas.height;
-    ctx.fillRect(x, y, 2, 2);
+  if (frontpageImg && ASSETS.loaded) {
+    // Ensure high quality image rendering
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    
+    // Calculate scaling to fill screen while maintaining aspect ratio
+    const imgAspectRatio = frontpageImg.width / frontpageImg.height;
+    const screenAspectRatio = canvas.width / canvas.height;
+    
+    let drawWidth, drawHeight, drawX, drawY;
+    
+    if (imgAspectRatio > screenAspectRatio) {
+      // Image is wider than screen - fit to height and crop sides
+      drawHeight = canvas.height;
+      drawWidth = canvas.height * imgAspectRatio;
+      drawX = (canvas.width - drawWidth) / 2;
+      drawY = 0;
+    } else {
+      // Image is taller than screen - fit to width and crop top/bottom
+      drawWidth = canvas.width;
+      drawHeight = canvas.width / imgAspectRatio;
+      drawX = 0;
+      drawY = (canvas.height - drawHeight) / 2;
+    }
+    
+    // Draw the frontpage image
+    ctx.drawImage(frontpageImg, drawX, drawY, drawWidth, drawHeight);
+  } else {
+    // Fallback if frontpage.png fails to load
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    bgGrad.addColorStop(0, '#2C1810'); // Dark brown
+    bgGrad.addColorStop(0.6, '#1A0F08'); // Nearly black
+    bgGrad.addColorStop(1, '#000000'); // Black
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Fallback text
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 64px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+    ctx.shadowBlur = 8;
+    ctx.fillText('ORDER OF THE GODS', canvas.width/2, canvas.height * 0.4);
+    ctx.fillText('(Loading frontpage.png...)', canvas.width/2, canvas.height * 0.5);
+    ctx.shadowBlur = 0;
   }
   
-  // Main title
-  ctx.fillStyle = '#FFD700';
-  ctx.font = 'bold 64px Cinzel, serif';
-  ctx.textAlign = 'center';
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-  ctx.shadowBlur = 8;
-  ctx.fillText('ORDER OF THE GODS', canvas.width/2, canvas.height * 0.15);
-  ctx.shadowBlur = 0;
-  
-  // Subtitle
-  ctx.fillStyle = '#CD853F';
-  ctx.font = '28px Cinzel, serif';
-  ctx.fillText('Dungeon of Mount Olympus', canvas.width/2, canvas.height * 0.22);
-  
-  // Story text
-  const storyLines = [
-    "Collared by the Fates themselves, you stand in the Tartarus Feast Hall—",
-    "a torchlit kitchen suspended between worlds, where mythic creatures",
-    "gather to test your worth with cryptic riddles.",
-    "",
-    "Each correct order cracks your iron collar. Each failure tightens it.",
-    "Survive four trials: creatures, heroes, gods, and the Fates themselves...",
-    "",
-    "The Fates have written your contract in riddles of their own."
-  ];
-  
-  ctx.fillStyle = '#E6D2A3'; // Light wheat for better readability
-  ctx.font = '20px Crimson Text, serif';
-  ctx.textAlign = 'center';
-  storyLines.forEach((line, index) => {
-    ctx.fillText(line, canvas.width/2, canvas.height * 0.35 + (index * 28));
-  });
-  
-  // Call to action
-  ctx.fillStyle = '#FFD700';
-  ctx.font = 'bold 32px Cinzel, serif';
-  ctx.fillText('Press ENTER to Begin Your Trial', canvas.width/2, canvas.height * 0.75);
-  
-  // Hall of Heroes button
-  ctx.fillStyle = '#CD853F';
-  ctx.font = 'bold 24px Cinzel, serif';
-  ctx.fillText('Press H for Hall of Heroes', canvas.width/2, canvas.height * 0.82);
-  
-  // Simple controls text
-  ctx.fillStyle = '#CD853F';
-  ctx.font = '18px Crimson Text, serif';
-  ctx.fillText('WASD: Move  |  E: Interact  |  Q: Undo  |  X: Trash  |  Enter: Deliver', canvas.width/2, canvas.height * 0.9);
-  
-  // Input handling
+  // Input handling - ENTER to start game, H for Hall of Heroes
   if (input.wasPressed('enter')) {
     startGame();
   }

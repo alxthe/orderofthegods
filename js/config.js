@@ -25,15 +25,15 @@ const KITCHEN = {
     TRASH: { x: window.innerWidth - 150, y: window.innerHeight - 150 }, // Trash bin - bottom right corner (responsive)
     
     // COOKING DEVICES - Along the walls to avoid blocking center
-    OVEN: { x: 380, y: 350 },                                          // Left wall
-    CUTTING_BOARD: { x: window.innerWidth - 200, y: 350 },            // Right wall
+    OVEN: { x: 380, y: 380 },                                          // Left wall (moved down)
+    CUTTING_BOARD: { x: window.innerWidth - 200, y: 380 },            // Right wall (moved down)
     SAUCEPAN: { x: 380, y: 450 },                                     // Left wall, below oven (Level 3+)
     
     BINS: {
       // LEFT SIDE - Core ingredients (vertical arrangement)
       bread: { x: 350, y: 250 },
       tomato: { x: 350, y: 550 },
-      cheese: { x: 350, y: 650 },
+      cheese: { x: 350, y: 680 },
       
       // RIGHT SIDE - Core ingredients (vertical arrangement)  
       meat: { x: window.innerWidth - 170, y: 250 },
@@ -151,7 +151,8 @@ const ASSET_FILES = {
   },
   ui: {
     plate: null, // Removed plate asset
-    crate: 'assets/backgrounds & tools/crate.png'
+    crate: 'assets/backgrounds & tools/crate.png',
+    frontpage: 'assets/frontpage.png'
   },
   kitchen: {
     oven: 'assets/backgrounds & tools/oven.png',
