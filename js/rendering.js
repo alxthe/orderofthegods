@@ -148,7 +148,7 @@ function renderFallbackBackground() {
 
 // Render ingredient crates
 function renderIngredientCrates() {
-  const targetCrateSize = 90; // Target size for consistent layout (increased for better visibility)
+  const targetCrateSize = 120; // Target size for consistent layout (increased from 90 for much better visibility)
   
   for (let [ingredient, pos] of Object.entries(KITCHEN.POSITIONS.BINS)) {
     // Skip Level 2+ ingredients in Level 1
@@ -198,7 +198,7 @@ function renderIngredientCrates() {
     // Draw food icon CENTERED on the crate
     const foodImg = ASSETS.ingredients[ingredient];
     if (foodImg && ASSETS.loaded) {
-      const maxIconSize = 45; // Optimized size for the larger crates
+      const maxIconSize = 60; // Increased from 45 for much bigger food icons in larger crates
       
       // Ensure high quality food icon rendering
       ctx.imageSmoothingEnabled = true;
@@ -250,7 +250,7 @@ function renderIngredientCrates() {
       ctx.shadowOffsetY = 2;
       
       ctx.beginPath();
-      ctx.arc(pos.x, pos.y + 2, 18, 0, Math.PI * 2); // Centered with slight downward offset
+      ctx.arc(pos.x, pos.y + 2, 24, 0, Math.PI * 2); // Increased from 18 to 24 for bigger fallback circles
       ctx.fill();
       
       // Reset shadow and add border
@@ -359,7 +359,7 @@ function renderFatesIngredientSources() {
     // Draw mystical food icon PERFECTLY CENTERED in the orb
     const foodImg = ASSETS.ingredients[ingredient];
     if (foodImg && ASSETS.loaded) {
-      const maxIconSize = 36; // Optimized size for the mystical orbs
+      const maxIconSize = 48; // Increased from 36 for bigger food icons in mystical orbs
       
       // Ensure high quality food icon rendering
       ctx.imageSmoothingEnabled = true;
@@ -503,8 +503,8 @@ function renderTable() {
   const table = KITCHEN.POSITIONS.TABLE;
   const tableImg = ASSETS.ui.table;
   
-  let tableWidth = 300;
-  let tableHeight = 200;
+  let tableWidth = 380; // Increased from 300 for better visibility
+  let tableHeight = 260; // Increased from 200 for better visibility
   
   if (tableImg && ASSETS.loaded) {
     // Use table.png asset with proper aspect ratio
@@ -512,12 +512,12 @@ function renderTable() {
     
     if (tableAspectRatio > 1) {
       // Wider than tall - fit width, adjust height
-      tableWidth = 300;
-      tableHeight = 300 / tableAspectRatio;
+      tableWidth = 380;
+      tableHeight = 380 / tableAspectRatio;
     } else {
       // Taller than wide or square - fit height, adjust width
-      tableHeight = 200;
-      tableWidth = 200 * tableAspectRatio;
+      tableHeight = 260;
+      tableWidth = 260 * tableAspectRatio;
     }
     
     // Ensure high quality table rendering
@@ -808,7 +808,7 @@ function renderSlotIngredient(slotX, slotY, ingredient) {
   }
   
   if (ingredientImg && ASSETS.loaded) {
-    const maxSize = 64; // Maximum dimension
+    const maxSize = 80; // Increased from 64 for bigger food items on the table
     
     // Ensure high quality rendering
     ctx.imageSmoothingEnabled = true;
@@ -867,8 +867,8 @@ function renderDeliveryAltar() {
   const counter = KITCHEN.POSITIONS.COUNTER;
   const altarImg = ASSETS.ui.altar;
   
-  let altarWidth = 280;
-  let altarHeight = 60;
+  let altarWidth = 350; // Increased from 280 for better visibility
+  let altarHeight = 80; // Increased from 60 for better visibility
   
   if (altarImg && ASSETS.loaded) {
     // Use altar.png asset with proper aspect ratio
@@ -876,12 +876,12 @@ function renderDeliveryAltar() {
     
     if (altarAspectRatio > 1) {
       // Wider than tall - fit width, adjust height
-      altarWidth = 280;
-      altarHeight = 280 / altarAspectRatio;
+      altarWidth = 350;
+      altarHeight = 350 / altarAspectRatio;
     } else {
       // Taller than wide or square - fit height, adjust width
-      altarHeight = 60;
-      altarWidth = 60 * altarAspectRatio;
+      altarHeight = 80;
+      altarWidth = 80 * altarAspectRatio;
     }
     
     // Ensure high quality altar rendering
@@ -1287,7 +1287,7 @@ function renderUrnInteraction(trash, width, height) {
 function renderOven() {
   const oven = KITCHEN.POSITIONS.OVEN;
   const ovenImg = ASSETS.kitchen?.oven;
-  const ovenSize = 80;
+  const ovenSize = 110; // Increased from 80 for better visibility
   
   if (ovenImg && ASSETS.loaded) {
     // Draw oven sprite
@@ -1329,7 +1329,7 @@ function renderOven() {
 function renderCuttingBoard() {
   const cuttingBoard = KITCHEN.POSITIONS.CUTTING_BOARD;
   const boardImg = ASSETS.kitchen?.cuttingBoard;
-  const boardSize = 80;
+  const boardSize = 110; // Increased from 80 for better visibility
   
   if (boardImg && ASSETS.loaded) {
     // Draw cutting board sprite
@@ -1374,7 +1374,7 @@ function renderCuttingBoard() {
 function renderSaucepan() {
   const saucepan = KITCHEN.POSITIONS.SAUCEPAN;
   const saucepanImg = ASSETS.kitchen?.saucepan;
-  const saucepanSize = 80;
+  const saucepanSize = 110; // Increased from 80 for better visibility
   
   if (saucepanImg && ASSETS.loaded) {
     // Draw saucepan sprite

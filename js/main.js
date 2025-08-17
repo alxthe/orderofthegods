@@ -80,6 +80,60 @@ function update(deltaTime) {
   const allowCookingControls = !game.showingInstructions && 
     (game.currentLevel !== 4 || !game.bossFight.active || 
      (game.bossFight.active && game.currentRiddle)); // Allow cooking during boss fight if there's a riddle
+  
+  // DEBUG: Log cooking controls status for Level 4 - COMPREHENSIVE DEBUGGING
+  if (game.currentLevel === 4) {
+    if (input.wasPressed('e')) {
+      console.log('🎛️ ===== E KEY PRESSED IN LEVEL 4 =====');
+      console.log('🎛️ GAME STATE:');
+      console.log('  - showingInstructions:', game.showingInstructions);
+      console.log('  - currentLevel:', game.currentLevel);
+      console.log('  - bossFight.active:', game.bossFight.active);
+      console.log('  - currentRiddle:', !!game.currentRiddle);
+      console.log('  - currentRiddle.text:', game.currentRiddle?.text);
+      console.log('  - currentRiddle.type:', game.currentRiddle?.type);
+      console.log('  - allowCookingControls:', allowCookingControls);
+      console.log('🎛️ PLAYER STATE:');
+      console.log('  - player.x:', game.player.x);
+      console.log('  - player.y:', game.player.y);
+      console.log('  - player.carrying:', game.player.carrying);
+      console.log('  - player.currentZone:', game.player.currentZone);
+      console.log('🎛️ INPUT STATE:');
+      console.log('  - input.keys.e:', input.keys?.e);
+      console.log('  - input.pressedThisFrame.e:', input.pressedThisFrame?.e);
+      console.log('🎛️ LOGIC BREAKDOWN:');
+      console.log('  Step 1 - !showingInstructions:', !game.showingInstructions);
+      console.log('  Step 2 - currentLevel !== 4:', game.currentLevel !== 4);
+      console.log('  Step 3 - !bossFight.active:', !game.bossFight.active);
+      console.log('  Step 4 - (bossFight.active && currentRiddle):', !!(game.bossFight.active && game.currentRiddle));
+      console.log('  FINAL RESULT - allowCookingControls:', allowCookingControls);
+      
+      if (!allowCookingControls) {
+        console.log('🚫 COOKING CONTROLS BLOCKED! E key will not work.');
+        console.log('🔍 BLOCKING REASON:');
+        if (game.showingInstructions) {
+          console.log('  ❌ Instructions are showing');
+        }
+        if (game.currentLevel === 4 && game.bossFight.active && !game.currentRiddle) {
+          console.log('  ❌ Boss fight active but no riddle set');
+        }
+      } else {
+        console.log('✅ COOKING CONTROLS ALLOWED! E key should work.');
+        console.log('🔍 Will now call handleInteraction()...');
+      }
+      console.log('🎛️ =====================================');
+    }
+    
+    // Also log every few seconds to monitor state
+    if (Math.floor(Date.now() / 3000) !== Math.floor((Date.now() - deltaTime) / 3000)) {
+      console.log('⏰ Level 4 Periodic Status:');
+      console.log('  Riddle:', !!game.currentRiddle, '|', game.currentRiddle?.text);
+      console.log('  Boss Fight:', game.bossFight.active, '| Instructions:', game.showingInstructions);
+      console.log('  Controls Allowed:', !game.showingInstructions && 
+        (game.currentLevel !== 4 || !game.bossFight.active || 
+         (game.bossFight.active && game.currentRiddle)));
+    }
+  }
      
   if (allowCookingControls) {
     // Cooking game controls (including Cooking Under Attack mode)

@@ -370,13 +370,13 @@ function renderTimer() {
   ctx.shadowBlur = 0;
 }
 
-// Render current riddle with special handling for Level 4 cooking challenges
+// Render current riddle - minimalist design with Level 4 details
 function renderRiddle() {
   if (!game.currentRiddle) return;
   
-  // Level 4 gets special detailed cooking display
+  // Level 4 gets detailed requirements display
   if (game.currentLevel === 4 && game.currentRiddle.type === "ULTIMATE_FEAST") {
-    renderLevel4CookingChallenge();
+    renderLevel4DetailedRequirements();
     return;
   }
   
@@ -405,101 +405,80 @@ function renderRiddle() {
   ctx.fillText(game.currentRiddle.text, canvas.width/2, riddleY + 22);
 }
 
-// Render detailed Level 4 cooking challenge display
-function renderLevel4CookingChallenge() {
+// Render detailed Level 4 cooking requirements
+function renderLevel4DetailedRequirements() {
   const riddle = game.currentRiddle;
   if (!riddle || riddle.type !== "ULTIMATE_FEAST") return;
   
-  // Position at top-center, larger and more prominent
-  const panelX = canvas.width/2 - 300;
+  // Bigger panel in top-left corner, sized to avoid blocking crates
+  const panelX = 20;
   const panelY = 20;
-  const panelWidth = 600;
-  const panelHeight = 180;
+  const panelWidth = 320;  // Narrower to avoid bread crate at x=350
+  const panelHeight = 180; // Taller but below milk crate at y=180
   
-  // Dark background with golden border for visibility
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+  // Elegant parchment background with gradient
+  const bgGrad = ctx.createLinearGradient(panelX, panelY, panelX, panelY + panelHeight);
+  bgGrad.addColorStop(0, 'rgba(255, 248, 220, 0.98)');
+  bgGrad.addColorStop(1, 'rgba(245, 222, 179, 0.95)');
+  ctx.fillStyle = bgGrad;
   ctx.fillRect(panelX, panelY, panelWidth, panelHeight);
   
-  // Golden border
-  ctx.strokeStyle = '#FFD700';
-  ctx.lineWidth = 3;
+  // Elegant border with rounded corners effect
+  ctx.strokeStyle = '#8B4513';
+  ctx.lineWidth = 2;
   ctx.strokeRect(panelX, panelY, panelWidth, panelHeight);
   
-  // Inner golden line
-  ctx.strokeStyle = '#DAA520';
+  // Subtle inner glow
+  ctx.strokeStyle = 'rgba(255, 215, 0, 0.3)';
   ctx.lineWidth = 1;
-  ctx.strokeRect(panelX + 3, panelY + 3, panelWidth - 6, panelHeight - 6);
+  ctx.strokeRect(panelX + 2, panelY + 2, panelWidth - 4, panelHeight - 4);
   
-  // Title
-  ctx.fillStyle = '#FFD700';
-  ctx.font = 'bold 24px Cinzel, serif';
-  ctx.textAlign = 'center';
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-  ctx.shadowBlur = 4;
+  // Bigger title as requested
+  ctx.fillStyle = '#8B0000';
+  ctx.font = 'bold 20px Cinzel, serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(riddle.text, panelX + 15, panelY + 30);
   
-  ctx.fillText(riddle.text, canvas.width/2, panelY + 30);
-  
-  // Subtitle
-  ctx.fillStyle = '#FFA500';
-  ctx.font = 'bold 16px Cinzel, serif';
-  ctx.fillText(`🍳⚔️ COOK WHILE DODGING THE FATES! ⚔️🍳`, canvas.width/2, panelY + 55);
-  
-  // Required ingredients list
-  ctx.fillStyle = '#FFFFFF';
+  // Requirements header
+  ctx.fillStyle = '#2F4F4F';
   ctx.font = 'bold 14px Cinzel, serif';
+  ctx.fillText('REQUIRED:', panelX + 15, panelY + 55);
+  
+  // Ingredient list - single column with clear text
+  ctx.fillStyle = '#4A4A4A';
+  ctx.font = 'bold 12px Cinzel, serif';
   ctx.textAlign = 'left';
   
-  let ingredientsText = "REQUIRED: ";
+  let currentY = panelY + 75; // Adjusted for bigger title/header
+  
   riddle.required.forEach((ingredient, index) => {
-    if (index > 0) ingredientsText += ", ";
-    // Make cooking instructions more clear
+    let displayText = '';
+    let color = '#2F4F4F';
+    
+    // Format ingredient with cooking technique (compact version)
     if (ingredient.startsWith('cooked_')) {
-      ingredientsText += `COOK ${ingredient.replace('cooked_', '')}`;
+      displayText = `🔥 COOK ${ingredient.replace('cooked_', '')} (V)`;
+      color = '#B22222';
     } else if (ingredient.startsWith('cut_')) {
-      ingredientsText += `SLICE ${ingredient.replace('cut_', '')}`;
+      displayText = `🔪 SLICE ${ingredient.replace('cut_', '')} (E)`;
+      color = '#CD853F';
     } else if (ingredient === 'yogurt') {
-      ingredientsText += `YOGURT (saucepan)`;
+      displayText = `🥛 YOGURT (milk→saucepan, E)`;
+      color = '#4169E1';
     } else {
-      ingredientsText += ingredient;
+      displayText = `📦 ${ingredient}`;
+      color = '#228B22';
     }
+    
+    ctx.fillStyle = color;
+    ctx.fillText(displayText, panelX + 15, currentY);
+    currentY += 16; // Slightly more spacing for better readability
   });
   
-  // Wrap text for better display
-  const words = ingredientsText.split(' ');
-  let line = '';
-  let y = panelY + 85;
-  const lineHeight = 18;
-  const maxWidth = panelWidth - 40;
-  
-  for (let i = 0; i < words.length; i++) {
-    const testLine = line + words[i] + ' ';
-    const metrics = ctx.measureText(testLine);
-    
-    if (metrics.width > maxWidth && line !== '') {
-      ctx.fillText(line, panelX + 20, y);
-      line = words[i] + ' ';
-      y += lineHeight;
-    } else {
-      line = testLine;
-    }
-  }
-  ctx.fillText(line, panelX + 20, y);
-  
-  // Total count at bottom
-  ctx.fillStyle = '#FFD700';
-  ctx.font = 'bold 16px Cinzel, serif';
-  ctx.textAlign = 'center';
-  ctx.fillText(`TOTAL: ${riddle.totalCount} ITEMS`, canvas.width/2, panelY + panelHeight - 20);
-  
-  // Equipment reminder
-  ctx.fillStyle = '#FFA500';
-  ctx.font = 'bold 12px Cinzel, serif';
-  ctx.fillText('USE: Oven (V), Cutting Board (E), Saucepan (E), Table (E), Altar (Enter)', canvas.width/2, panelY + panelHeight - 5);
-  
-  // Reset shadow
-  ctx.shadowBlur = 0;
-  ctx.shadowColor = 'transparent';
+  // No final instructions - keep it clean
 }
+
+
 
 // Render story panel
 function renderStoryPanel() {

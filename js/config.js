@@ -27,7 +27,7 @@ const KITCHEN = {
     // COOKING DEVICES - Along the walls to avoid blocking center
     OVEN: { x: 380, y: 380 },                                          // Left wall (moved down)
     CUTTING_BOARD: { x: window.innerWidth - 200, y: 380 },            // Right wall (moved down)
-    SAUCEPAN: { x: 380, y: 450 },                                     // Left wall, below oven (Level 3+)
+    SAUCEPAN: { x: window.innerWidth - 280, y: 500 },                 // Right side, moved left from cutting board (Level 3+)
     
     BINS: {
       // LEFT SIDE - Core ingredients (vertical arrangement)
@@ -68,14 +68,14 @@ const CONFIG = {
   PLAYER_SPEED: 5,           // Pixels per frame (300 px/sec at 60fps)
   PLAYER_SIZE: 32,           // Player square size
   MAX_PLATE_SIZE: 5,         // Maximum ingredients on plate (Level 1)
-  MAX_PLATE_SIZE_LEVEL_2: 6, // Maximum ingredients on plate for Level 2+
+  MAX_PLATE_SIZE_LEVEL_2: 6, // Maximum ingredients on plate for Level 2+ (max 6 total)
   MAX_CARRY: 1,              // Can only carry one ingredient
   
-  // Timing - Rebalanced for Better Progression
-  LEVEL_1_TIME: 20,          // Level 1: Challenging but learnable (was 26s)
-  LEVEL_2_TIME: 16,          // Level 2: Moderate with hero powers (was 20s)
-  LEVEL_3_TIME: 15,          // Level 3: Hard with frequent god powers
-  LEVEL_4_TIME: 12,          // Level 4: Epic boss battle
+  // Timing - Proper Difficulty Progression
+  LEVEL_1_TIME: 24,          // Level 1: Easy to learn (increased from 20s)
+  LEVEL_2_TIME: 20,          // Level 2: More ingredients, moderate difficulty
+  LEVEL_3_TIME: 18,          // Level 3: Complex riddles with powers
+  LEVEL_4_TIME: 60,          // Level 4: Cooking under attack (was 12s boss fight)
   
   // Progression - Slower advancement for more practice
   LEVEL_2_SCORE: 15,         // Score needed for level 2 (was 10)

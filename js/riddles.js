@@ -2,9 +2,9 @@
 // ORDER OF THE GODS - RIDDLES & CUSTOMER DATA
 // =============================================================================
 
-// RIDDLES DATABASE
+// RIDDLES DATABASE - PROPER DIFFICULTY PROGRESSION
 const RIDDLES = [
-  // LEVEL 1 - Simple COUNT riddles (22 seconds)
+  // LEVEL 1 - SIMPLE (2-3 ingredients, 24 seconds)
   { id: "l1_1", text: "1 bread + 1 tomato", type: "COUNT", level: 1, 
     counts: { bread: 1, tomato: 1 }},
   { id: "l1_2", text: "1 meat + 1 cheese", type: "COUNT", level: 1,
@@ -21,182 +21,144 @@ const RIDDLES = [
     sandwich: ["bread", "tomato", "bread"]},
   { id: "l1_8", text: "3 cheese", type: "COUNT", level: 1,
     counts: { cheese: 3 }},
-  // More 3-ingredient Level 1 combinations for challenge
   { id: "l1_9", text: "1 bread + 1 tomato + 1 cheese", type: "COUNT", level: 1,
     counts: { bread: 1, tomato: 1, cheese: 1 }},
   { id: "l1_10", text: "1 meat + 1 egg + 1 pepper", type: "COUNT", level: 1,
     counts: { meat: 1, egg: 1, pepper: 1 }},
-  { id: "l1_11", text: "2 bread + 1 cheese + 1 tomato", type: "COUNT", level: 1,
-    counts: { bread: 2, cheese: 1, tomato: 1 }},
-  { id: "l1_12", text: "1 bread + 2 tomato + 1 meat", type: "COUNT", level: 1,
-    counts: { bread: 1, tomato: 2, meat: 1 }},
   
-  // LEVEL 2 - Divine EXCLUDE riddles (18 seconds)
-  { id: "l2_1", text: "1 tomato + 1 meat (NO egg)", type: "EXCLUDE", level: 2,
-    counts: { tomato: 1, meat: 1 }, excludes: ["egg"]},
-  { id: "l2_2", text: "2 meat (NO cheese)", type: "EXCLUDE", level: 2,
-    counts: { meat: 2 }, excludes: ["cheese"]},
-  { id: "l2_3", text: "SANDWICH: bread + meat + bread", type: "SANDWICH", level: 2,
-    sandwich: ["bread", "meat", "bread"]},
-  { id: "l2_4", text: "1 bread + 1 cheese + 1 pepper", type: "COUNT", level: 2,
-    counts: { bread: 1, cheese: 1, pepper: 1 }},
-  { id: "l2_5", text: "EXACTLY 5 items total", type: "TOTALCOUNT", level: 2,
-    totalCount: 5},
-  { id: "l2_6", text: "SANDWICH: bread + pepper + bread", type: "SANDWICH", level: 2,
-    sandwich: ["bread", "pepper", "bread"]},
-  { id: "l2_7", text: "3 bread + 1 tomato (NO cheese)", type: "EXCLUDE", level: 2,
-    counts: { bread: 3, tomato: 1 }, excludes: ["cheese"]},
-  { id: "l2_8", text: "4 DIFFERENT items (no repeats)", type: "UNIQUE", level: 2,
-    totalCount: 4, unique: true},
-  // More EXCLUDE and TOTALCOUNT riddles for Level 2 challenge
-  { id: "l2_25", text: "2 bread + 2 cheese (NO meat)", type: "EXCLUDE", level: 2,
-    counts: { bread: 2, cheese: 2 }, excludes: ["meat"]},
-  { id: "l2_26", text: "EXACTLY 6 items total", type: "TOTALCOUNT", level: 2,
-    totalCount: 6},
-  { id: "l2_27", text: "1 tomato + 1 pepper + 1 egg (NO cheese)", type: "EXCLUDE", level: 2,
-    counts: { tomato: 1, pepper: 1, egg: 1 }, excludes: ["cheese"]},
-  { id: "l2_28", text: "5 DIFFERENT items (all unique)", type: "UNIQUE", level: 2,
+  // LEVEL 2 - MODERATE (4-5 ingredients, 20 seconds)
+  { id: "l2_1", text: "2 tomato + 1 meat + 1 bread + 1 cheese", type: "COUNT", level: 2,
+    counts: { tomato: 2, meat: 1, bread: 1, cheese: 1 }},
+  { id: "l2_2", text: "1 bacon + 1 avocado + 1 oliveoil + 1 bread", type: "COUNT", level: 2,
+    counts: { bacon: 1, avocado: 1, oliveoil: 1, bread: 1 }},
+  { id: "l2_3", text: "EXACTLY 5 items (NO pepper)", type: "EXCLUDE", level: 2,
+    totalCount: 5, excludes: ["pepper"]},
+  { id: "l2_4", text: "2 olives + 1 cheese + 1 meat + 1 tomato", type: "COUNT", level: 2,
+    counts: { olives: 2, cheese: 1, meat: 1, tomato: 1 }},
+  { id: "l2_5", text: "5 DIFFERENT items (no repeats)", type: "UNIQUE", level: 2,
     totalCount: 5, unique: true},
-  { id: "l2_29", text: "3 bread + 1 meat (NO tomato, NO cheese)", type: "EXCLUDE", level: 2,
-    counts: { bread: 3, meat: 1 }, excludes: ["tomato", "cheese"]},
+  { id: "l2_6", text: "SANDWICH: bread + bacon + avocado + cheese + bread", type: "SANDWICH", level: 2,
+    sandwich: ["bread", "bacon", "avocado", "cheese", "bread"]},
+  { id: "l2_7", text: "1 oliveoil + 1 olives + 1 bread + 1 tomato + 1 meat", type: "COUNT", level: 2,
+    counts: { oliveoil: 1, olives: 1, bread: 1, tomato: 1, meat: 1 }},
+  { id: "l2_8", text: "2 avocado + 2 bacon + 1 egg", type: "COUNT", level: 2,
+    counts: { avocado: 2, bacon: 2, egg: 1 }},
+  { id: "l2_9", text: "EXACTLY 4 items with olives (NO cheese)", type: "EXCLUDE", level: 2,
+    counts: { olives: 1 }, totalCount: 4, excludes: ["cheese"]},
+  { id: "l2_10", text: "1 each: bread, meat, avocado, oliveoil, pepper", type: "COUNT", level: 2,
+    counts: { bread: 1, meat: 1, avocado: 1, oliveoil: 1, pepper: 1 }},
   
-  // LEVEL 2 - OLIVE OIL RIDDLES (Heroes love their olive oil!)
-  { id: "l2_9", text: "1 bread + 1 oliveoil", type: "COUNT", level: 2,
-    counts: { bread: 1, oliveoil: 1 }},
-  { id: "l2_10", text: "SANDWICH: bread + oliveoil + tomato + bread", type: "SANDWICH", level: 2,
-    sandwich: ["bread", "oliveoil", "tomato", "bread"]},
-  { id: "l2_11", text: "2 oliveoil + 1 cheese (NO meat)", type: "EXCLUDE", level: 2,
-    counts: { oliveoil: 2, cheese: 1 }, excludes: ["meat"]},
-  { id: "l2_12", text: "1 oliveoil + 1 pepper + 1 avocado", type: "COUNT", level: 2,
-    counts: { oliveoil: 1, pepper: 1, avocado: 1 }},
-  { id: "l2_13", text: "EXACTLY 3 items with oliveoil", type: "COUNT", level: 2,
-    counts: { oliveoil: 1 }, totalCount: 3},
+  // LEVEL 3 - COMPLEX (5-6 ingredients, 18 seconds)
+  { id: "l3_1", text: "2 bread + 2 cheese + 1 meat + 1 tomato", type: "COUNT", level: 3,
+    counts: { bread: 2, cheese: 2, meat: 1, tomato: 1 }},
+  { id: "l3_2", text: "6 DIFFERENT items (all unique)", type: "UNIQUE", level: 3,
+    totalCount: 6, unique: true},
+  { id: "l3_3", text: "SANDWICH: bread + meat + cheese + tomato + avocado + bread", type: "SANDWICH", level: 3,
+    sandwich: ["bread", "meat", "cheese", "tomato", "avocado", "bread"]},
+  { id: "l3_4", text: "EXACTLY 6 items: must include milk AND yogurt", type: "COUNT", level: 3,
+    counts: { milk: 1, yogurt: 1 }, totalCount: 6, timeBonus: 30},
+  { id: "l3_5", text: "2 yogurt + 2 olives + 1 oliveoil + 1 bread", type: "COUNT", level: 3,
+    counts: { yogurt: 2, olives: 2, oliveoil: 1, bread: 1 }, timeBonus: 25},
+  { id: "l3_6", text: "1 milk + 1 yogurt + 1 bread + 1 cheese + 1 meat + 1 tomato", type: "COUNT", level: 3,
+    counts: { milk: 1, yogurt: 1, bread: 1, cheese: 1, meat: 1, tomato: 1 }, timeBonus: 35},
+  { id: "l3_7", text: "EXACTLY 5 items with yogurt (NO meat)", type: "EXCLUDE", level: 3,
+    counts: { yogurt: 1 }, totalCount: 5, excludes: ["meat"], timeBonus: 20},
+  { id: "l3_8", text: "3 olives + 1 oliveoil + 1 avocado + 1 bacon", type: "COUNT", level: 3,
+    counts: { olives: 3, oliveoil: 1, avocado: 1, bacon: 1 }},
   
-  // LEVEL 2 - OLIVE RIDDLES (More Mediterranean flavors!)
-  { id: "l2_14", text: "2 olives + 1 cheese", type: "COUNT", level: 2,
-    counts: { olives: 2, cheese: 1 }},
-  { id: "l2_15", text: "SANDWICH: bread + olives + tomato + bread", type: "SANDWICH", level: 2,
-    sandwich: ["bread", "olives", "tomato", "bread"]},
-  { id: "l2_16", text: "1 olives + 1 oliveoil + 1 bread", type: "COUNT", level: 2,
-    counts: { olives: 1, oliveoil: 1, bread: 1 }},
-  { id: "l2_17", text: "3 olives (NO pepper)", type: "EXCLUDE", level: 2,
-    counts: { olives: 3 }, excludes: ["pepper"]},
-  { id: "l2_18", text: "EXACTLY 6 items with olives", type: "COUNT", level: 2,
-    counts: { olives: 1 }, totalCount: 6},
-  { id: "l2_19", text: "2 olives + 2 avocado + 1 meat + 1 bread", type: "COUNT", level: 2,
-    counts: { olives: 2, avocado: 2, meat: 1, bread: 1 }},
-  
-  // LEVEL 3 - Godly COMPLEX riddles (15 seconds)
-  { id: "l3_1", text: "EXACTLY 3 items total", type: "TOTALCOUNT", level: 3,
-    totalCount: 3},
-  { id: "l3_2", text: "2 bread + 2 cheese + 1 meat (NO tomato)", type: "EXCLUDE", level: 3,
-    counts: { bread: 2, cheese: 2, meat: 1 }, excludes: ["tomato"]},
-  { id: "l3_3", text: "5 DIFFERENT items (no repeats)", type: "UNIQUE", level: 3,
-    totalCount: 5, unique: true},
-  { id: "l3_4", text: "SANDWICH: bread + cheese + tomato + bread", type: "SANDWICH", level: 3,
-    sandwich: ["bread", "cheese", "tomato", "bread"]},
-  { id: "l3_5", text: "1 of each: bread, cheese, meat", type: "COUNT", level: 3,
-    counts: { bread: 1, cheese: 1, meat: 1 }},
-  { id: "l3_6", text: "EXACTLY 4 items (NO pepper)", type: "EXCLUDE", level: 3,
-    totalCount: 4, excludes: ["pepper"]},
-  { id: "l3_7", text: "2 meat + 2 tomato (NO bread)", type: "EXCLUDE", level: 3,
-    counts: { meat: 2, tomato: 2 }, excludes: ["bread"]},
-  { id: "l3_8", text: "SANDWICH: bread + meat + cheese + tomato + bread", type: "SANDWICH", level: 3,
-    sandwich: ["bread", "meat", "cheese", "tomato", "bread"]},
-  
-  // LEVEL 3 - MILK & YOGURT RIDDLES (Complex divine challenges!)
-  { id: "l3_9", text: "2 milk + 1 yogurt + 1 cheese", type: "COUNT", level: 3,
-    counts: { milk: 2, yogurt: 1, cheese: 1 }, timeBonus: 50}, // Increased from 25s - saucepan complexity!
-  { id: "l3_10", text: "EXACTLY 6 items: must include milk AND yogurt", type: "COUNT", level: 3,
-    counts: { milk: 1, yogurt: 1 }, totalCount: 6, timeBonus: 55}, // Increased from 30s
-  { id: "l3_11", text: "3 yogurt + 2 olives (NO milk)", type: "EXCLUDE", level: 3,
-    counts: { yogurt: 3, olives: 2 }, excludes: ["milk"], timeBonus: 50}, // Increased from 25s
-  { id: "l3_12", text: "SANDWICH: bread + yogurt + oliveoil + olives + bread", type: "SANDWICH", level: 3,
-    sandwich: ["bread", "yogurt", "oliveoil", "olives", "bread"], timeBonus: 55}, // Increased from 35s
-  { id: "l3_13", text: "1 milk + 1 yogurt + 1 of each: bread, cheese, meat, tomato", type: "COUNT", level: 3,
-    counts: { milk: 1, yogurt: 1, bread: 1, cheese: 1, meat: 1, tomato: 1 }, timeBonus: 55}, // Increased from 40s
-  { id: "l3_14", text: "6 DIFFERENT items including BOTH milk and yogurt", type: "UNIQUE", level: 3,
-    totalCount: 6, unique: true, required: ["milk", "yogurt"], timeBonus: 55}
+  // LEVEL 4 - ULTIMATE COOKING CHALLENGES (6 ingredients, 60 seconds)
+  { id: "l4_clothos_masterpiece", text: "CLOTHO'S MASTERPIECE", type: "ULTIMATE_FEAST", level: 4,
+    required: ["cooked_meat", "cut_cheese", "yogurt", "cut_avocado", "cooked_bacon", "oliveoil"],
+    totalCount: 6, timeLimit: 60, customer: "Clotho",
+    description: "The Spinner's ultimate feast requiring all cooking mastery!" },
+    
+  { id: "l4_lachesis_perfection", text: "LACHESIS' PERFECTION", type: "ULTIMATE_FEAST", level: 4,
+    required: ["cut_tomato", "cooked_egg", "yogurt", "cut_pepper", "cooked_meat", "olives"],
+    totalCount: 6, timeLimit: 60, customer: "Lachesis",
+    description: "The Allotter demands perfect technique and timing!" },
+    
+  { id: "l4_atropos_finale", text: "ATROPOS' FINALE", type: "ULTIMATE_FEAST", level: 4,
+    required: ["cut_cheese", "cooked_bacon", "yogurt", "cut_avocado", "bread", "cooked_egg"],
+    totalCount: 6, timeLimit: 60, customer: "Atropos",
+    description: "The final challenge before the shears fall!" }
 ];
 
 // ADVANCED COOKING/CUTTING RIDDLES
 const ADVANCED_RIDDLES = [
   // Level 1 - Super simple cutting
   {
-    id: 'cut_tomato_basic',
-    text: "SLICE 1 tomato",
+    id: 'cut_tomato_simple',
+    text: "SLICE: 1 tomato (use cutting board)",
     level: 1,
     type: "COOKING",
     required: ["cut_tomato"],
-    timeBonus: 35 // Increased from 10s - cutting takes time!
+    timeBonus: 35 // Increased from 10s
   },
   {
     id: 'cut_cheese_simple',
-    text: "SLICE 1 cheese",
+    text: "SLICE: 1 cheese (use cutting board)",
     level: 1,
-    type: "COOKING", 
+    type: "COOKING",
     required: ["cut_cheese"],
     timeBonus: 35 // Increased from 10s
   },
   {
-    id: 'cook_meat_basic',
-    text: "COOK 1 meat",
+    id: 'cooked_meat_simple',
+    text: "COOK: 1 meat (use oven, wait 3 seconds)",
     level: 1,
     type: "COOKING",
     required: ["cooked_meat"],
-    timeBonus: 40 // Increased from 15s - cooking takes longer!
+    timeBonus: 40 // Increased from 15s
   },
   {
-    id: 'cook_egg_simple',
-    text: "COOK 1 egg",
+    id: 'cooked_egg_simple',
+    text: "COOK: 1 egg (use oven, wait 3 seconds)",
     level: 1,
     type: "COOKING",
     required: ["cooked_egg"],
     timeBonus: 40 // Increased from 15s
   },
-  
-  // Level 2 - Simple combos
   {
-    id: 'meat_bread_combo',
-    text: "COOKED meat + bread",
-    level: 2,
+    id: 'cut_avocado_simple',
+    text: "SLICE: 1 avocado (use cutting board)",
+    level: 1,
     type: "COOKING",
-    required: ["cooked_meat", "bread"],
-    timeBonus: 45 // Increased from 20s - cooking + assembly takes time
-  },
-  {
-    id: 'cut_tomato_cheese',
-    text: "SLICED tomato + cheese",
-    level: 2,
-    type: "COOKING",
-    required: ["cut_tomato", "cheese"],
-    timeBonus: 40 // Increased from 15s
+    required: ["cut_avocado"],
+    timeBonus: 35 // Increased from 10s
   },
   {
     id: 'cut_pepper_simple',
-    text: "SLICE 1 pepper",
-    level: 2,
+    text: "SLICE: 1 pepper (use cutting board)",
+    level: 1,
     type: "COOKING",
     required: ["cut_pepper"],
     timeBonus: 35 // Increased from 10s
   },
   {
-    id: 'cook_bacon_basic',
-    text: "COOK 1 bacon",
-    level: 2,
+    id: 'cooked_bacon_simple',
+    text: "COOK: 1 bacon (use oven, wait 3 seconds)",
+    level: 1,
     type: "COOKING",
     required: ["cooked_bacon"],
     timeBonus: 40 // Increased from 15s
   },
-  
-  // Level 2 - Olive Oil Advanced Combinations
+
+  // Level 2 - Simple combinations
   {
-    id: 'oliveoil_cut_tomato',
-    text: "OLIVE OIL + SLICED tomato",
+    id: 'cut_tomato_bread',
+    text: "SLICED tomato + bread",
     level: 2,
-    type: "COOKING", 
-    required: ["oliveoil", "cut_tomato"],
+    type: "COOKING",
+    required: ["cut_tomato", "bread"],
     timeBonus: 45 // Increased from 20s
+  },
+  {
+    id: 'cooked_meat_cheese',
+    text: "COOKED meat + cheese",
+    level: 2,
+    type: "COOKING",
+    required: ["cooked_meat", "cheese"],
+    timeBonus: 50 // Increased from 20s
   },
   {
     id: 'cooked_meat_oliveoil',
@@ -214,42 +176,8 @@ const ADVANCED_RIDDLES = [
     required: ["oliveoil", "bread", "cut_cheese"],
     timeBonus: 50 // Increased from 25s
   },
-  
-  // Level 2 - Olive Advanced Combinations
-  {
-    id: 'olives_cut_tomato',
-    text: "OLIVES + SLICED tomato",
-    level: 2,
-    type: "COOKING",
-    required: ["olives", "cut_tomato"],
-    timeBonus: 45 // Increased from 20s
-  },
-  {
-    id: 'olives_cooked_meat',
-    text: "OLIVES + COOKED meat",
-    level: 2,
-    type: "COOKING",
-    required: ["olives", "cooked_meat"],
-    timeBonus: 50 // Increased from 20s
-  },
-  {
-    id: 'olives_oliveoil_bread',
-    text: "OLIVES + OLIVE OIL + bread",
-    level: 2,
-    type: "COOKING",
-    required: ["olives", "oliveoil", "bread"],
-    timeBonus: 50 // Increased from 25s
-  },
-  {
-    id: 'olives_avocado_combo',
-    text: "OLIVES + avocado + SLICED cheese",
-    level: 2,
-    type: "COOKING",
-    required: ["olives", "avocado", "cut_cheese"],
-    timeBonus: 50 // Increased from 25s
-  },
-  
-  // Level 3 - Milk & Yogurt Advanced Combinations (Saucepan required!)
+
+  // Level 3 - Complex combinations with saucepan
   {
     id: 'yogurt_cut_tomato',
     text: "YOGURT + SLICED tomato",
@@ -274,127 +202,8 @@ const ADVANCED_RIDDLES = [
     required: ["yogurt", "cooked_meat", "cut_cheese"],
     timeBonus: 40
   },
-  {
-    id: 'complex_dairy_feast',
-    text: "MILK + YOGURT + OLIVE OIL + SLICED avocado + COOKED bacon",
-    level: 3,
-    type: "COOKING",
-    required: ["milk", "yogurt", "oliveoil", "cut_avocado", "cooked_bacon"],
-    timeBonus: 50
-  },
-  {
-    id: 'divine_dairy_sandwich',
-    text: "BREAD + YOGURT + SLICED tomato + OLIVES + BREAD",
-    level: 3,
-    type: "COOKING",
-    required: ["bread", "yogurt", "cut_tomato", "olives", "bread"],
-    timeBonus: 45
-  },
 
-  // LEVEL 4 - EPIC FATES ORDERS (Cook Under Attack!)
-  {
-    id: 'l4_ultimate_feast',
-    text: "THE ULTIMATE OLYMPIAN BANQUET",
-    level: 4,
-    type: "ULTIMATE_FEAST",
-    required: ["cooked_meat", "cut_cheese", "cut_tomato", "yogurt", "oliveoil", "olives", "bread", "cut_avocado", "cooked_bacon"],
-    totalCount: 9,
-    description: "Create the ultimate Greek feast while dodging the Fates!",
-    requirements: [
-      "• COOKED meat + SLICED cheese + SLICED tomato",
-      "• YOGURT (from saucepan) + olive oil + olives", 
-      "• Bread + SLICED avocado + COOKED bacon",
-      "• TOTAL: 9 items using ALL cooking systems"
-    ],
-    timeLimit: 90,
-    customer: "The Fates"
-  },
 
-  {
-    id: 'l4_clothos_thread',
-    text: "CLOTHO'S THREAD OF LIFE",
-    level: 4,
-    type: "ULTIMATE_FEAST",
-    required: ["bread", "cooked_meat", "cut_avocado", "yogurt", "cut_pepper", "oliveoil", "cooked_egg", "cut_cheese"],
-    totalCount: 8,
-    description: "The Spinner demands her life-giving feast!",
-    requirements: [
-      "• Bread + COOKED meat + SLICED avocado + YOGURT",
-      "• SLICED pepper + olive oil + COOKED egg + SLICED cheese",
-      "• TOTAL: 8 items using oven, cutting board & saucepan"
-    ],
-    timeLimit: 90,
-    customer: "Clotho"
-  },
-
-  {
-    id: 'l4_lachesis_measure',
-    text: "LACHESIS' MEASURED PORTION", 
-    level: 4,
-    type: "ULTIMATE_FEAST",
-    required: ["cooked_bacon", "cut_tomato", "bread", "yogurt", "olives", "cut_cheese", "cooked_meat"],
-    totalCount: 7,
-    description: "The Allotter requires her precise measurements!",
-    requirements: [
-      "• COOKED bacon + SLICED tomato + bread + YOGURT",
-      "• Olives + SLICED cheese + COOKED meat",
-      "• TOTAL: 7 items with exact cooking techniques"
-    ],
-    timeLimit: 90,
-    customer: "Lachesis"
-  },
-
-  {
-    id: 'l4_atropos_final',
-    text: "ATROPOS' FINAL CUT",
-    level: 4,
-    type: "ULTIMATE_FEAST", 
-    required: ["cooked_egg", "cut_avocado", "cut_pepper", "oliveoil", "cooked_bacon", "yogurt", "cut_tomato", "bread", "olives"],
-    totalCount: 9,
-    description: "The Inevitable's last feast before the shears fall!",
-    requirements: [
-      "• COOKED egg + SLICED avocado + SLICED pepper",
-      "• Olive oil + COOKED bacon + YOGURT", 
-      "• SLICED tomato + bread + olives",
-      "• TOTAL: 9 items - master every technique!"
-    ],
-    timeLimit: 90,
-    customer: "Atropos"
-  },
-
-  {
-    id: 'l4_divine_trinity',
-    text: "DIVINE TRINITY OF FATE",
-    level: 4,
-    type: "ULTIMATE_FEAST",
-    required: ["bread", "bread", "bread", "cooked_meat", "cut_cheese", "cut_tomato", "yogurt", "cooked_bacon", "oliveoil"],
-    totalCount: 9,
-    description: "Three loaves for the three sisters of destiny!",
-    requirements: [
-      "• 3 bread (trinity) + COOKED meat + SLICED cheese",
-      "• SLICED tomato + YOGURT + COOKED bacon + olive oil", 
-      "• TOTAL: 9 items honoring the three Fates"
-    ],
-    timeLimit: 90,
-    customer: "The Fates"
-  },
-
-  {
-    id: 'l4_loom_of_destiny',
-    text: "FEAST FROM THE LOOM OF DESTINY",
-    level: 4,
-    type: "ULTIMATE_FEAST",
-    required: ["cooked_egg", "cooked_meat", "cut_cheese", "cut_avocado", "yogurt", "oliveoil", "olives", "cut_pepper"],
-    totalCount: 8,
-    description: "Woven from the threads of mortal cooking mastery!",
-    requirements: [
-      "• COOKED egg + COOKED meat + SLICED cheese + SLICED avocado",
-      "• YOGURT + olive oil + olives + SLICED pepper",
-      "• TOTAL: 8 items perfectly woven together"
-    ],
-    timeLimit: 90,
-    customer: "The Fates"
-  }
 ];
 
 // Level 1: Tartarus Creatures (10 points total)
@@ -416,57 +225,57 @@ const CREATURES = [
     failure: ["Heads hiss in anger.", "Venomous displeasure.", "The hydra strikes back."],
     timeout: ["Many heads, no patience.", "Time slithers away.", "The serpent waits not."]},
   { id: "chimera", name: "Chimera",
-    success: ["All three heads agree!", "Lion purrs, goat bleats, serpent hisses approval.", "Unified in satisfaction."],
-    failure: ["The lion roars, goat screams, serpent spits!", "Three minds in chaos.", "Disagreement breeds fury."],
-    timeout: ["Three heads, three opinions, three times the impatience.", "Chimera cannot wait.", "Beast's patience expires."]}
+    success: ["Three-fold satisfaction!", "Lion's roar of approval!", "All three natures pleased!"],
+    failure: ["Lion snarls!", "Snake spits venom!", "Goat bleats in anger!"],
+    timeout: ["Patience has three heads - you've angered them all!", "Time devours all!", "The beast waits not!"]}
 ];
 
-// Level 2: Heroes and Demigods (10-20 points)
+// Level 2: Heroes (15 points total)
 const HEROES = [
   { id: "hercules", name: "Hercules",
-    success: ["The twelve labors are impressed.", "Strength recognizes strength.", "Heroic approval earned."],
-    failure: ["Even heroes can fail.", "The labors demand more.", "Strength alone is not enough."],
-    timeout: ["Heroes act swiftly.", "No time for hesitation.", "The labors wait for none."]},
+    success: ["By Zeus' beard!", "Strength and sustenance!", "A hero's portion!"],
+    failure: ["Even I have limits.", "This disappoints.", "Try harder, mortal."],
+    timeout: ["Twelve labors wait not.", "Time is strength.", "Heroes need haste."]},
   { id: "achilles", name: "Achilles",
-    success: ["The warrior's rage is soothed.", "Swift satisfaction.", "Battle-tested approval."],
-    failure: ["The heel finds weakness.", "Rage builds at failure.", "Warriors demand perfection."],
-    timeout: ["Swift as the wind, impatient as war.", "Battle waits for no one.", "Time is the enemy."]},
-  { id: "pegasus", name: "Pegasus",
-    success: ["Wings of satisfaction.", "Sky-high approval.", "Divine flight achieved."],
-    failure: ["Grounded by error.", "Wings clipped.", "Fall from grace."],
-    timeout: ["Time flies away.", "Swift as wind departs.", "The sky cannot wait."]},
+    success: ["Swift as my feet!", "Perfect like my aim!", "Worthy of legends!"],
+    failure: ["My heel has failed me!", "This wounds my pride!", "Unworthy of song!"],
+    timeout: ["Swift Achilles waits not!", "Time arrows toward death!", "Haste makes heroes!"]},
+  { id: "pegasus", name: "Pegasus", 
+    success: ["Wings soar with joy!", "A meal fit for flight!", "Cloud-high satisfaction!"],
+    failure: ["Hooves stamp displeasure.", "Grounded by disappointment.", "Cannot take wing."],
+    timeout: ["Pegasus flies on time's wind.", "Sky calls, food waits not.", "Clouds drift away."]},
   { id: "cyclops", name: "Cyclops",
-    success: ["The great eye sees worth.", "Forge-fire approval.", "Craftsmanship recognized."],
-    failure: ["Single eye sees all flaws.", "The forge rejects poor work.", "Giants expect greatness."],
-    timeout: ["The forge fire dims not.", "Great works take no time.", "Titans have no patience."]},
+    success: ["One eye sees perfection!", "Forge-worthy feast!", "Vision is satisfied!"],
+    failure: ["Eye sees all flaws!", "Hammer would fix this!", "Back to the forge!"],
+    timeout: ["One eye watches time!", "Forge fire cools!", "Cyclops works, not waits!"]},
   { id: "satyr", name: "Satyr",
-    success: ["Wild approval dances.", "Nature's chaos is pleased.", "Dionysian satisfaction."],
-    failure: ["The wild rejects order.", "Chaos laughs at failure.", "Nature mocks your effort."],
-    timeout: ["Wild things wait not.", "Chaos has no schedule.", "The forest moves on."]}
+    success: ["Pan pipes play in joy!", "Wild satisfaction!", "Forest feast approved!"],
+    failure: ["Hooves dance in anger!", "Wild disappoints!", "Nature frowns!"],
+    timeout: ["Wild things wait not!", "Pan's time flows swift!", "Forest feeds the quick!"]}
 ];
 
-// Level 3: Greek Gods (20-30 points) 
+// Level 3: Gods (25 points total) 
 const GODS = [
   { id: "hermes", name: "Hermes",
-    success: ["Swift and sure.", "Wings approved.", "Speed and precision unite."],
-    failure: ["Outpaced again.", "Too slow, mortal.", "Haste without thought."],
-    timeout: ["Wings beat you.", "Swift time escapes.", "The messenger departs."]},
-  { id: "poseidon", name: "Poseidon",
-    success: ["The seas are pleased.", "Tidal perfection.", "Oceanic approval flows."],
-    failure: ["The depths are angry.", "Storms brew from failure.", "Poseidon's wrath rises."],
-    timeout: ["The tide waits not.", "Waves of time crash over.", "The ocean reclaims all."]},
+    success: ["Swift messenger approves!", "Delivered perfectly!", "Wings carry satisfaction!"],
+    failure: ["Message lost in translation!", "Delivery failed!", "Wings droop with disappointment!"],
+    timeout: ["Messages wait for no one!", "Time flies faster than I!", "Hermes delivers swiftly!"]},
+  { id: "poseidon", name: "Poseidon", 
+    success: ["Waves crash with joy!", "Ocean's bounty blessed!", "Trident strikes approval!"],
+    failure: ["Storms brew displeasure!", "Seas reject this offering!", "Trident pierces disappointment!"],
+    timeout: ["Tides wait for no mortal!", "Ocean time flows eternal!", "Waves crash onward!"]},
   { id: "zeus", name: "Zeus",
-    success: ["Thunder rumbles approval.", "Lightning strikes satisfaction.", "The sky king is pleased."],
-    failure: ["Storm clouds gather.", "Lightning of wrath!", "Zeus's anger shakes Olympus."],
-    timeout: ["Divine patience ends.", "Thunder crashes time away.", "Zeus waits for no mortal."]},
+    success: ["Thunder roars approval!", "Lightning illuminates excellence!", "King of gods is pleased!"],
+    failure: ["Thunder crashes anger!", "Lightning strikes your failure!", "Olympus trembles with rage!"],
+    timeout: ["Zeus commands time itself!", "Thunder waits not!", "Lightning strikes swift!"]},
   { id: "hera", name: "Hera",
-    success: ["The queen approves.", "Royal satisfaction.", "Hera's grace shines."],
-    failure: ["Royal displeasure.", "The queen's scorn burns.", "Unworthy of Olympus."],
-    timeout: ["Queens do not wait.", "Royal time is precious.", "Hera's patience expires."]},
+    success: ["Queen's wisdom is satisfied!", "Royalty recognizes quality!", "Divine approval granted!"],
+    failure: ["Royal displeasure!", "Queen's judgment is harsh!", "Unfit for Olympus!"],
+    timeout: ["Queens wait for no one!", "Royal time is precious!", "Majesty demands promptness!"]},
   { id: "hades", name: "Hades",
-    success: ["The underworld approves.", "Death itself is satisfied.", "Darkness embraces your skill."],
-    failure: ["The dead are restless.", "Hades' realm rejects this.", "Shadows consume your failure."],
-    timeout: ["Death waits for none.", "The underworld calls.", "Time itself dies here."]}
+    success: ["Underworld appetites satisfied!", "Death itself approves!", "Shadows feast well!"],
+    failure: ["Realm of dead rejects this!", "Even death has standards!", "Underworld unimpressed!"],
+    timeout: ["Death waits for no one!", "Underworld time eternal!", "Shadows consume quickly!"]}
 ];
 
 // Level 4: The Fates (Boss Battle) - Individual and Collective Responses
@@ -489,8 +298,4 @@ const FATES = [
     timeout: ["The Fates grow impatient!", "Destiny will not be delayed!", "Time itself abandons you!"]}
 ];
 
-// Merge advanced riddles with main riddles
-RIDDLES.push(...ADVANCED_RIDDLES);
-
-console.log(`✅ Riddles loaded: ${RIDDLES.length} total riddles`);
-console.log(`✅ Customers loaded: ${CREATURES.length} creatures, ${HEROES.length} heroes, ${GODS.length} gods, ${FATES.length} fates`);
+console.log("✅ Riddles loaded with proper difficulty progression");

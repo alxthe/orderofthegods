@@ -50,24 +50,24 @@ const LEVEL_INSTRUCTIONS = {
   
   4: {
     title: "THE LOOM OF DESTINY",
-    subtitle: "Face the Fates Themselves",
+    subtitle: "Cooking Under Attack",
     story: [
       "Your collar fractures to its breaking point...",
-      "The kitchen dissolves into swirling mists as reality bends,",
-      "revealing the cosmic Loom where the Fates weave all destinies.",
+      "The kitchen transforms as the Fates materialize around you,",
+      "their cosmic loom weaving destiny in the air above.",
       "",
-      "Clotho, Lachesis, and Atropos await—the three sisters who",
-      "spin, measure, and cut the threads of every mortal life.",
-      "Your thread hangs by the thinnest strand..."
+      "Clotho, Lachesis, and Atropos circle like predators—",
+      "the three sisters who control all mortal threads.",
+      "Each demands a final feast while launching deadly attacks..."
     ],
     newFeatures: [
-      "🌀 PURE SURVIVAL: No more cooking—only combat remains",
-      "⚔️ BOSS BATTLE: Face all three Fates simultaneously",
-      "💀 ONE-HIT DEATH: Any contact means instant defeat",
-      "🎯 VICTORY CONDITION: Survive 60 seconds to claim freedom"
+      "🍳 COOKING UNDER ATTACK: Prepare meals while dodging the Fates",
+      "⚔️ THREE FATE FEASTS: Cook 6-item meals for Clotho, Lachesis, and Atropos",
+      "⏰ 60 SECONDS: Complete each feast within the time limit",
+      "🎯 ULTIMATE CHALLENGE: Use every cooking skill while under fire"
     ],
-    approach: "This is not cooking—this is the fight for your very soul.",
-    approach2: "Dodge their scissor strikes and web traps. Survival is victory."
+    approach: "This is the ultimate test—master cooking while avoiding death.",
+    approach2: "Use ALL equipment: oven, cutting board, saucepan, table, and altar."
   }
 };
 

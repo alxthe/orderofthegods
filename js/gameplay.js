@@ -404,7 +404,21 @@ function handleInteraction() {
   const player = game.player;
   const zone = player.currentZone;
   
+  // DEBUG: Log interaction attempts in Level 4
+  if (game.currentLevel === 4) {
+    console.log('🔧 ===== HANDLE INTERACTION CALLED =====');
+    console.log('🔧 Player position:', player.x, player.y);
+    console.log('🔧 Current zone:', zone);
+    console.log('🔧 Player carrying:', player.carrying);
+    console.log('🔧 Boss fight active:', game.bossFight.active);
+    console.log('🔧 Current riddle:', game.currentRiddle?.text);
+  }
+  
   if (!zone) {
+    if (game.currentLevel === 4) {
+      console.log('🔧 ❌ No zone detected - cannot interact');
+      console.log('🔧 Available zones should be: bin_[ingredient], table, counter, oven, cutting_board, saucepan');
+    }
     showToast("Nothing here to interact with");
     return;
   }
@@ -413,9 +427,20 @@ function handleInteraction() {
   if (zone.startsWith('bin_')) {
     const ingredient = zone.replace('bin_', '');
     
+    if (game.currentLevel === 4) {
+      console.log('🔧 ✅ At ingredient bin:', ingredient);
+      console.log('🔧 Player carrying check:', player.carrying);
+    }
+    
     if (player.carrying) {
+      if (game.currentLevel === 4) {
+        console.log('🔧 ❌ Hands full, cannot pick up');
+      }
       showToast("Hands full!");
     } else {
+      if (game.currentLevel === 4) {
+        console.log('🔧 ✅ Picking up ingredient:', ingredient);
+      }
       player.carrying = ingredient;
       showToast(`Picked up ${ingredient}`);
       console.log(`Picked up: ${ingredient}`);
@@ -885,7 +910,7 @@ function advanceToLevel4() {
   game.currentLevel = 4;
   game.levelScore = 0;
   game.level = 4; // Level 4 riddle difficulty
-  game.timePerRiddle = 90; // 90 seconds for Ultimate Feast
+  game.timePerRiddle = 60; // 60 seconds for Ultimate Feast
   
   console.log("🌀 Advanced to Level 4: Cooking Under Attack!");
   
@@ -1976,20 +2001,40 @@ function initializeLevel4CookingUnderAttack() {
     
     game.customerState = 'waiting';
     
-    // Step 3: Set 90-second timer
-    game.timer = 90; // 90 seconds for Ultimate Feast
-    game.timePerRiddle = 90;
+    // Step 3: Set 60-second timer
+    game.timer = 60; // 60 seconds for Ultimate Feast
+    game.timePerRiddle = 60;
     
     // Step 4: Clear plate and carrying but preserve riddle/customer
     game.plate = [];
     game.player.carrying = null;
     
-    // Step 5: Initialize boss fight AFTER cooking setup (modified version)
-    initializeBossFightForCooking();
-    
-    // Step 6: Reset timeout protection
+    // Step 5: Reset timeout protection BEFORE boss fight
     game.timeoutInProgress = false;
     game.processingNextRiddle = false;
+    
+    // Step 6: Initialize boss fight AFTER cooking setup (modified version)
+    initializeBossFightForCooking();
+    
+    // Step 7: CRITICAL - Ensure riddle is still set after boss fight init
+    if (!game.currentRiddle) {
+      console.error('❌ CRITICAL: Riddle was cleared during boss fight init!');
+      game.currentRiddle = ultimateFeastRiddle; // Restore it
+      console.log('✅ Riddle restored:', game.currentRiddle.text);
+    }
+    
+    // Step 8: Force enable controls for debugging
+    console.log('🎮 FORCING LEVEL 4 DEBUG STATE:');
+    console.log('  - Setting currentRiddle:', game.currentRiddle?.text);
+    console.log('  - Setting bossFight.active:', game.bossFight.active);
+    console.log('  - Setting showingInstructions:', false);
+    game.showingInstructions = false; // Force disable
+    
+    // Step 9: Final validation
+    const testAllowControls = !game.showingInstructions && 
+      (game.currentLevel !== 4 || !game.bossFight.active || 
+       (game.bossFight.active && game.currentRiddle));
+    console.log('🎮 TEST: allowCookingControls would be:', testAllowControls);
     
     console.log('✅ Level 4 Cooking Under Attack initialized!');
     console.log('🍳 Ultimate Feast riddle active:', game.currentRiddle?.text);
@@ -2000,6 +2045,9 @@ function initializeLevel4CookingUnderAttack() {
     console.log('🔥 Level for riddles:', game.level);
     console.log('🎯 Customer State:', game.customerState);
     console.log('📝 Riddle Type:', game.currentRiddle?.type);
+    console.log('🎛️ CONTROLS CHECK: currentRiddle exists?', !!game.currentRiddle);
+    console.log('🎛️ CONTROLS CHECK: boss fight active?', !!game.bossFight.active);
+    console.log('🎛️ CONTROLS CHECK: should allow cooking?', !!(game.bossFight.active && game.currentRiddle));
     
     showToast('🍳⚔️ COOK THE ULTIMATE FEAST WHILE DODGING THE FATES!');
     
