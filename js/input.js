@@ -16,6 +16,16 @@ const input = {
     // Keydown handler
     document.addEventListener('keydown', (e) => {
       const key = e.key.toLowerCase();
+      
+      // DEBUG: Log ALL E key presses in Level 4
+      if (key === 'e' && game.currentLevel === 4) {
+        console.log('🔑 BROWSER: E key keydown event detected');
+        console.log('  - Event key:', e.key);
+        console.log('  - Lowercase key:', key);
+        console.log('  - Current game state:', game.state);
+        console.log('  - Setting keys[e] to true');
+      }
+      
       this.keys[key] = true;
       
       // Prevent defaults for game keys
@@ -73,8 +83,22 @@ const input = {
   // Check if key was just pressed (single press)
   wasPressed(key) {
     const k = key.toLowerCase();
+    
+    // DEBUG: Log E key state in Level 4
+    if (k === 'e' && game.currentLevel === 4) {
+      console.log('🎮 INPUT DEBUG: E key check');
+      console.log('  - keys[e]:', this.keys[k]);
+      console.log('  - keyPressed[e]:', this.keyPressed[k]);
+      console.log('  - Will return:', this.keys[k] && !this.keyPressed[k]);
+    }
+    
     if (this.keys[k] && !this.keyPressed[k]) {
       this.keyPressed[k] = true;
+      
+      if (k === 'e' && game.currentLevel === 4) {
+        console.log('🎮 INPUT: E key wasPressed() returning TRUE');
+      }
+      
       return true;
     }
     return false;
@@ -105,5 +129,12 @@ const input = {
     }
     
     return { x, y };
+  },
+  
+  // Reset frame-based input state (should be called each frame)
+  resetFrameState() {
+    // Don't clear keyPressed on frame reset - only on actual keyup
+    // This is for single-press detection and should persist until keyup
+    this.clickPressed = false; // Reset click state each frame
   }
 };

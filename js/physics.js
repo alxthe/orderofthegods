@@ -2,11 +2,23 @@
 // ORDER OF THE GODS - PHYSICS & COLLISION DETECTION
 // =============================================================================
 
+// Calculate distance between two points
+function distance(x1, y1, x2, y2) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
 // Update player zone detection
 function updatePlayerZone() {
   const player = game.player;
   const prevZone = player.currentZone;
   player.currentZone = null;
+  
+  // DEBUG: Log zone detection in Level 4
+  if (game.currentLevel === 4 && Math.floor(Date.now() / 1000) % 3 === 0) {
+    console.log('🔍 Zone Detection - Player position:', player.x, player.y);
+  }
   
   // Check table zone (circular)
   const tableDist = distance(player.x, player.y, 
@@ -75,15 +87,28 @@ function updatePlayerZone() {
     }
     
     const dist = distance(player.x, player.y, pos.x, pos.y);
+    
+    // DEBUG: Log bin distances in Level 4
+    if (game.currentLevel === 4 && dist < 100) {
+      console.log(`🔍 Near ${ingredient}: distance=${dist.toFixed(1)}, radius=${KITCHEN.ZONES.BIN_RADIUS}, pos=(${pos.x},${pos.y})`);
+    }
+    
     if (dist < KITCHEN.ZONES.BIN_RADIUS) {
+      if (game.currentLevel === 4) {
+        console.log(`🔍 ✅ ZONE DETECTED: bin_${ingredient.toLowerCase()}`);
+      }
       player.currentZone = `bin_${ingredient.toLowerCase()}`;
       return;
     }
   }
   
   // Log zone changes for debugging
-  if (prevZone !== player.currentZone && game.debugMode) {
-    console.log(`Zone change: ${prevZone} → ${player.currentZone}`);
+  if (prevZone !== player.currentZone) {
+    if (game.currentLevel === 4) {
+      console.log(`🔍 ZONE CHANGE: ${prevZone} → ${player.currentZone}`);
+    } else if (game.debugMode) {
+      console.log(`Zone change: ${prevZone} → ${player.currentZone}`);
+    }
   }
 }
 

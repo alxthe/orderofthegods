@@ -200,7 +200,10 @@ const game = {
   },
   frameCount: 0,
   lastFPSTime: 0,
-  currentFPS: 60
+  currentFPS: 60,
+  
+  // Input debugging
+  ePressedThisFrame: false        // Track E key for Level 4 debugging
 };
 
 console.log("✅ Game state initialized");

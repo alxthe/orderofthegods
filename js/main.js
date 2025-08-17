@@ -76,14 +76,31 @@ function update(deltaTime) {
   // Update customer animation
   updateCustomerAnimation(deltaTime);
   
+  // Reset input frame state
+  input.resetFrameState();
+  
   // Handle input (allow cooking controls during Cooking Under Attack mode)
   const allowCookingControls = !game.showingInstructions && 
     (game.currentLevel !== 4 || !game.bossFight.active || 
      (game.bossFight.active && game.currentRiddle)); // Allow cooking during boss fight if there's a riddle
   
-  // DEBUG: Log cooking controls status for Level 4 - COMPREHENSIVE DEBUGGING
+  // DEBUG: Test ANY key input in Level 4
   if (game.currentLevel === 4) {
-    if (input.wasPressed('e')) {
+    // Test if ANY key is working
+    if (input.wasPressed('w') || input.wasPressed('a') || input.wasPressed('s') || input.wasPressed('d')) {
+      console.log('🎮 MOVEMENT KEY DETECTED in Level 4 - input system is working');
+    }
+    
+    // DIRECT TEST: Check E key state every frame (call it once and store result)
+    const ePressed = input.wasPressed('e');
+    game.ePressedThisFrame = ePressed; // Store for later use
+    
+    if (ePressed) {
+      console.log('🔥 DIRECT TEST: input.wasPressed("e") returned TRUE in Level 4!');
+    }
+    
+    // DEBUG: Log cooking controls status for Level 4 - COMPREHENSIVE DEBUGGING
+    if (ePressed) {
       console.log('🎛️ ===== E KEY PRESSED IN LEVEL 4 =====');
       console.log('🎛️ GAME STATE:');
       console.log('  - showingInstructions:', game.showingInstructions);
@@ -126,18 +143,31 @@ function update(deltaTime) {
     
     // Also log every few seconds to monitor state
     if (Math.floor(Date.now() / 3000) !== Math.floor((Date.now() - deltaTime) / 3000)) {
-      console.log('⏰ Level 4 Periodic Status:');
-      console.log('  Riddle:', !!game.currentRiddle, '|', game.currentRiddle?.text);
-      console.log('  Boss Fight:', game.bossFight.active, '| Instructions:', game.showingInstructions);
-      console.log('  Controls Allowed:', !game.showingInstructions && 
+      console.log('⏰ ===== LEVEL 4 PERIODIC STATUS =====');
+      console.log('  🎮 Game State:', game.state);
+      console.log('  🎯 Current Level:', game.currentLevel);
+      console.log('  📋 Riddle:', !!game.currentRiddle, '|', game.currentRiddle?.text);
+      console.log('  ⚔️ Boss Fight Active:', game.bossFight.active);
+      console.log('  📖 Instructions Showing:', game.showingInstructions);
+      console.log('  🎛️ Controls Allowed:', !game.showingInstructions && 
         (game.currentLevel !== 4 || !game.bossFight.active || 
          (game.bossFight.active && game.currentRiddle)));
+      console.log('  👤 Player Position:', game.player.x.toFixed(1), game.player.y.toFixed(1));
+      console.log('  🔍 Player Zone:', game.player.currentZone);
+      console.log('  🔑 Keys State - E:', !!input.keys?.e, 'W:', !!input.keys?.w);
+      console.log('⏰ =====================================');
     }
   }
      
   if (allowCookingControls) {
     // Cooking game controls (including Cooking Under Attack mode)
-    if (input.wasPressed('e')) {
+    // Use the stored E key result for Level 4, or fresh check for other levels
+    const eKeyPressed = game.currentLevel === 4 ? game.ePressedThisFrame : input.wasPressed('e');
+    
+    if (eKeyPressed) {
+      if (game.currentLevel === 4) {
+        console.log('🎮 MAIN.JS: E key detected, calling handleInteraction()');
+      }
       handleInteraction();
     }
     
