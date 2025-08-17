@@ -231,10 +231,13 @@ function nextRiddle() {
   if (game.currentLevel === 1 && game.currentCustomer?.id === 'medusa') {
     showToast("🐍 MEDUSA approaches! Beware her petrifying gaze!");
     setTimeout(() => {
-      activateSpecialPower('freeze', 2000); // 2 second freeze
+      activateSpecialPower('freeze', 3000); // 3 second freeze (increased from 2s)
       console.log("🐍 MEDUSA'S POWER: Player frozen!");
       AUDIO.playFreeze(); // Ice freezing sound
     }, 1500); // Delayed for warning
+    
+    // Set up repeating power system for Medusa
+    game.powerRepeatTimer = game.powerRepeatInterval; // Start repeat timer
   }
   
   // Level 2: Activate special powers when heroes arrive
@@ -246,25 +249,40 @@ function nextRiddle() {
       // Hercules causes vision blur immediately with warning
       showToast("🦸‍♂️ HERCULES approaches! Prepare for his mighty strength!");
       setTimeout(() => {
-        activateSpecialPower('blur', 4000); // Extended to 4 seconds
+        activateSpecialPower('blur', 4000); // 4 seconds
         console.log("💪 HERCULES' POWER: Vision blur activated!");
         AUDIO.playBlur(); // Woozy sound
       }, 1500); // Delayed for warning
+      
+      // Set up repeating power system for heroes
+      game.powerRepeatTimer = game.powerRepeatInterval; // Start repeat timer
+      game.lastActivatedPower = 'blur';
+      
     } else if (heroId === 'achilles') {
       // Achilles disrupts controls with warning
       showToast("⚔️ ACHILLES arrives! His fury will disrupt your controls!");
       setTimeout(() => {
-        activateSpecialPower('disrupt', 5000); // Extended to 5 seconds
+        activateSpecialPower('disrupt', 5000); // 5 seconds
         console.log("🏛️ ACHILLES' POWER: Controls disrupted!");
       }, 1500); // Delayed for warning
+      
+      // Set up repeating power system for heroes
+      game.powerRepeatTimer = game.powerRepeatInterval;
+      game.lastActivatedPower = 'disrupt';
+      
     } else if (heroId === 'cyclops') {
       // Cyclops darkens vision with warning
       showToast("👁️ CYCLOPS enters! His single eye will darken your world!");
       setTimeout(() => {
-        activateSpecialPower('darken', 4000); // Extended to 4 seconds
+        activateSpecialPower('darken', 4000); // 4 seconds
         console.log("🌑 CYCLOPS' POWER: Vision darkened!");
         AUDIO.playDarkness(); // Ominous sound
       }, 1500); // Delayed for warning
+      
+      // Set up repeating power system for heroes
+      game.powerRepeatTimer = game.powerRepeatInterval;
+      game.lastActivatedPower = 'darken';
+      
     } else {
       // Other heroes don't have powers but still announce
       showToast(`🦸 ${game.currentCustomer.name} arrives with heroic presence!`);
@@ -272,54 +290,82 @@ function nextRiddle() {
     }
   }
   
-  // Level 3: Activate god powers when they arrive
+  // Level 3: Activate god powers when they arrive - Enhanced for difficulty
   if (game.currentLevel === 3) {
     const godId = game.currentCustomer?.id;
     console.log(`⚡ Level 3 God arrived: ${godId}`);
     
     if (godId === 'hermes') {
-      // Hermes speeds everything up
+      // Hermes speeds everything up - Enhanced duration
       showToast("⚡ HERMES arrives! Time itself accelerates!");
       setTimeout(() => {
-        activateSpecialPower('speedup', 5000); // 5 seconds of speed
+        activateSpecialPower('speedup', 7000); // 7 seconds of speed (increased from 5s)
         console.log("💨 HERMES' POWER: Speed increased!");
         AUDIO.playSpeedup(); // Speed whoosh
       }, 1500);
+      
+      // Set up repeating god power system
+      game.powerRepeatTimer = game.powerRepeatInterval;
+      game.lastActivatedPower = 'speedup';
+      
     } else if (godId === 'poseidon') {
-      // Poseidon's waves push player around
+      // Poseidon's waves push player around - Enhanced duration
       showToast("🌊 POSEIDON rises! His waves will push you!");
       setTimeout(() => {
-        activateSpecialPower('wave', 6000); // 6 seconds of waves
+        activateSpecialPower('wave', 8000); // 8 seconds of waves (increased from 6s)
         console.log("🌊 POSEIDON'S POWER: Waves activated!");
         AUDIO.playWave(); // Ocean waves
       }, 1500);
+      
+      // Set up repeating god power system
+      game.powerRepeatTimer = game.powerRepeatInterval;
+      game.lastActivatedPower = 'wave';
+      
     } else if (godId === 'zeus') {
-      // Zeus' lightning blinds with flashes
+      // Zeus' lightning blinds with flashes - Enhanced duration
       showToast("⚡ ZEUS descends! Lightning will blind you!");
       setTimeout(() => {
-        activateSpecialPower('lightning', 5000); // 5 seconds of lightning
+        activateSpecialPower('lightning', 7000); // 7 seconds of lightning (increased from 5s)
         console.log("⚡ ZEUS' POWER: Lightning strikes!");
         AUDIO.playThunder(); // Thunder and lightning
       }, 1500);
+      
+      // Set up repeating god power system
+      game.powerRepeatTimer = game.powerRepeatInterval;
+      game.lastActivatedPower = 'lightning';
+      
     } else if (godId === 'hera') {
-      // Hera's judgment clouds reality
+      // Hera's judgment clouds reality - Enhanced duration
       showToast("👑 HERA judges! Reality bends to her will!");
       setTimeout(() => {
-        activateSpecialPower('judgment', 5000); // 5 seconds of judgment
+        activateSpecialPower('judgment', 7000); // 7 seconds of judgment (increased from 5s)
         console.log("👑 HERA'S POWER: Judgment activated!");
       }, 1500);
+      
+      // Set up repeating god power system
+      game.powerRepeatTimer = game.powerRepeatInterval;
+      game.lastActivatedPower = 'judgment';
+      
     } else if (godId === 'hades') {
-      // Hades brings the underworld
+      // Hades brings the underworld - Enhanced duration
       showToast("💀 HADES emerges! The underworld rises!");
       setTimeout(() => {
-        activateSpecialPower('underworld', 6000); // 6 seconds of underworld
+        activateSpecialPower('underworld', 8000); // 8 seconds of underworld (increased from 6s)
         console.log("💀 HADES' POWER: Underworld theme activated!");
       }, 1500);
+      
+      // Set up repeating god power system
+      game.powerRepeatTimer = game.powerRepeatInterval;
+      game.lastActivatedPower = 'underworld';
     }
   }
   
   // Clear plate
   game.plate = [];
+  
+  // Reset power repeat system for new riddle
+  game.powerRepeatTimer = 0;
+  game.lastActivatedPower = null;
   
   console.log(`New riddle: ${game.currentRiddle.text} (${game.currentRiddle.type}) - ${game.timer}s`);
   

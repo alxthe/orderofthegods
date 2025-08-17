@@ -596,182 +596,603 @@ function dismissInstructionScreen() {
 
 // Win screen - EPIC VICTORY CELEBRATION!
 function renderWinScreen() {
-  // Animated gradient background
   const time = Date.now() * 0.001;
-  const bgGrad = ctx.createRadialGradient(
-    canvas.width/2, canvas.height/2, 0,
-    canvas.width/2, canvas.height/2, canvas.width
-  );
-  bgGrad.addColorStop(0, `rgba(255, 215, 0, ${0.2 + Math.sin(time) * 0.1})`); // Pulsing gold center
-  bgGrad.addColorStop(0.3, 'rgba(139, 69, 19, 0.9)'); // Bronze
-  bgGrad.addColorStop(0.6, 'rgba(26, 13, 8, 0.95)'); // Dark brown
-  bgGrad.addColorStop(1, '#000000'); // Black
-  ctx.fillStyle = bgGrad;
+  
+  // EPIC STARFIELD BACKGROUND with divine lightning
+  ctx.fillStyle = '#000000';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   
-  // Animated golden particles (fireworks effect)
-  for (let i = 0; i < 50; i++) {
-    const angle = (time * 0.5 + i * 0.5) % (Math.PI * 2);
-    const radius = 100 + Math.sin(time * 2 + i) * 200;
-    const x = canvas.width/2 + Math.cos(angle) * radius;
-    const y = canvas.height/2 + Math.sin(angle) * radius;
-    const size = 2 + Math.sin(time * 3 + i) * 3;
+  // Animated starfield
+  for (let i = 0; i < 200; i++) {
+    const starX = (i * 137.5) % canvas.width; // Pseudo-random distribution
+    const starY = (i * 271.7) % canvas.height;
+    const twinkle = Math.sin(time * 2 + i * 0.5) * 0.5 + 0.5;
+    const size = 1 + (i % 3);
     
-    ctx.fillStyle = `rgba(255, 215, 0, ${0.5 + Math.sin(time * 2 + i) * 0.5})`;
+    ctx.fillStyle = `rgba(255, 255, 255, ${twinkle * 0.8})`;
     ctx.beginPath();
-    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.arc(starX, starY, size, 0, Math.PI * 2);
     ctx.fill();
   }
   
-  // Broken collar animation at top
-  const collarY = canvas.height * 0.15;
-  ctx.strokeStyle = '#8B4513';
-  ctx.lineWidth = 8;
+  // Divine lightning strikes in background
+  if (Math.sin(time * 0.7) > 0.8) {
+    for (let i = 0; i < 3; i++) {
+      const lightningX = canvas.width * (0.2 + i * 0.3);
+      ctx.strokeStyle = `rgba(255, 255, 255, ${0.3 + Math.random() * 0.4})`;
+      ctx.lineWidth = 2 + Math.random() * 3;
+      ctx.beginPath();
+      ctx.moveTo(lightningX, 0);
+      ctx.lineTo(lightningX + (Math.random() - 0.5) * 100, canvas.height * 0.3);
+      ctx.lineTo(lightningX + (Math.random() - 0.5) * 100, canvas.height * 0.6);
+      ctx.lineTo(lightningX + (Math.random() - 0.5) * 100, canvas.height);
+      ctx.stroke();
+    }
+  }
   
-  // Left half of collar
-  ctx.save();
-  ctx.translate(canvas.width/2 - 50, collarY);
-  ctx.rotate(-0.2 + Math.sin(time * 2) * 0.1); // Swaying
+  // EPIC GOLDEN AURORA effect
+  const auroraGrad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height * 0.6);
+  auroraGrad.addColorStop(0, `rgba(255, 215, 0, ${0.1 + Math.sin(time * 0.5) * 0.05})`);
+  auroraGrad.addColorStop(0.3, `rgba(255, 140, 0, ${0.2 + Math.sin(time * 0.7) * 0.1})`);
+  auroraGrad.addColorStop(0.6, `rgba(255, 69, 0, ${0.1 + Math.sin(time * 0.9) * 0.05})`);
+  auroraGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = auroraGrad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height * 0.6);
+  
+  // DIVINE PORTAL/GATEWAY behind title
+  const portalCenterX = canvas.width / 2;
+  const portalCenterY = canvas.height * 0.35;
+  const portalRadius = 150 + Math.sin(time * 1.5) * 30;
+  
+  // Portal outer ring
+  const portalGrad = ctx.createRadialGradient(
+    portalCenterX, portalCenterY, 0,
+    portalCenterX, portalCenterY, portalRadius
+  );
+  portalGrad.addColorStop(0, 'rgba(255, 215, 0, 0.8)');
+  portalGrad.addColorStop(0.3, 'rgba(255, 140, 0, 0.6)');
+  portalGrad.addColorStop(0.7, 'rgba(255, 69, 0, 0.3)');
+  portalGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = portalGrad;
   ctx.beginPath();
-  ctx.arc(0, 0, 80, Math.PI * 0.5, Math.PI * 1.5);
-  ctx.stroke();
+  ctx.arc(portalCenterX, portalCenterY, portalRadius, 0, Math.PI * 2);
+  ctx.fill();
   
-  // Crack marks
-  ctx.strokeStyle = '#FFD700';
-  ctx.lineWidth = 2;
-  for (let i = 0; i < 5; i++) {
+  // Portal inner swirl
+  ctx.save();
+  ctx.translate(portalCenterX, portalCenterY);
+  ctx.rotate(time * 0.5);
+  for (let i = 0; i < 8; i++) {
+    const angle = (i / 8) * Math.PI * 2;
+    const spiralRadius = 50 + i * 10;
+    ctx.strokeStyle = `rgba(255, 215, 0, ${0.3 + Math.sin(time * 2 + i) * 0.2})`;
+    ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(-20 + i * 10, -10);
-    ctx.lineTo(-15 + i * 10, 10);
+    ctx.arc(0, 0, spiralRadius, angle, angle + Math.PI * 0.5);
     ctx.stroke();
   }
   ctx.restore();
   
-  // Right half of collar
-  ctx.save();
-  ctx.translate(canvas.width/2 + 50, collarY);
-  ctx.rotate(0.2 - Math.sin(time * 2) * 0.1); // Opposite sway
-  ctx.strokeStyle = '#8B4513';
-  ctx.lineWidth = 8;
-  ctx.beginPath();
-  ctx.arc(0, 0, 80, -Math.PI * 0.5, Math.PI * 0.5);
-  ctx.stroke();
-  
-  // Crack marks
-  ctx.strokeStyle = '#FFD700';
-  ctx.lineWidth = 2;
-  for (let i = 0; i < 5; i++) {
-    ctx.beginPath();
-    ctx.moveTo(-20 + i * 10, -10);
-    ctx.lineTo(-15 + i * 10, 10);
-    ctx.stroke();
+  // EPIC FIREWORK EXPLOSIONS
+  for (let i = 0; i < 8; i++) {
+    const explosionTime = (time * 2 + i * 2) % 6; // Cycle every 6 seconds
+    if (explosionTime < 1) { // First second of explosion
+      const centerX = canvas.width * (0.1 + (i % 4) * 0.25);
+      const centerY = canvas.height * (0.1 + Math.floor(i / 4) * 0.3);
+      
+      // Multiple explosion rings
+      for (let ring = 0; ring < 3; ring++) {
+        const ringRadius = explosionTime * 150 + ring * 30;
+        const alpha = (1 - explosionTime) * (0.8 - ring * 0.2);
+        
+        // Explosion sparks
+        for (let spark = 0; spark < 16; spark++) {
+          const sparkAngle = (spark / 16) * Math.PI * 2;
+          const sparkX = centerX + Math.cos(sparkAngle) * ringRadius;
+          const sparkY = centerY + Math.sin(sparkAngle) * ringRadius;
+          
+          ctx.fillStyle = `rgba(255, ${200 - ring * 50}, 0, ${alpha})`;
+          ctx.beginPath();
+          ctx.arc(sparkX, sparkY, 3, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Trailing sparkles
+          const trailX = centerX + Math.cos(sparkAngle) * (ringRadius * 0.8);
+          const trailY = centerY + Math.sin(sparkAngle) * (ringRadius * 0.8);
+          ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.5})`;
+          ctx.beginPath();
+          ctx.arc(trailX, trailY, 1, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
   }
-  ctx.restore();
   
-  // Main title with pulsing effect
-  const titleScale = 1 + Math.sin(time * 3) * 0.1;
+  // CASCADING GOLDEN PARTICLES
+  for (let i = 0; i < 120; i++) {
+    const particleLife = (time * 3 + i * 0.1) % 4; // 4 second lifecycle
+    if (particleLife < 3) { // Active for 3 seconds
+      const startX = canvas.width * (0.2 + (i % 3) * 0.3);
+      const startY = -50;
+      
+      const x = startX + Math.sin(time + i * 0.5) * 100;
+      const y = startY + particleLife * 200 + Math.sin(time * 2 + i) * 30;
+      const size = 2 + Math.sin(time * 4 + i) * 2;
+      const alpha = Math.max(0, 1 - particleLife / 3);
+      
+      // Main particle
+      ctx.fillStyle = `rgba(255, 215, 0, ${alpha})`;
+      ctx.beginPath();
+      ctx.arc(x, y, size, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Particle trail
+      ctx.strokeStyle = `rgba(255, 140, 0, ${alpha * 0.5})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x - Math.sin(time + i * 0.5) * 20, y - 30);
+      ctx.stroke();
+    }
+  }
+  
+  // DRAMATIC COLLAR DESTRUCTION SEQUENCE
+  const collarY = canvas.height * 0.12;
+  const destructionProgress = Math.min(1, time * 0.2); // Gradual destruction over 5 seconds
+  
+  // Collar fragments flying apart
+  for (let i = 0; i < 12; i++) {
+    const fragmentAngle = (i / 12) * Math.PI * 2;
+    const fragmentSpeed = destructionProgress * 200;
+    const fragmentX = canvas.width/2 + Math.cos(fragmentAngle) * fragmentSpeed;
+    const fragmentY = collarY + Math.sin(fragmentAngle) * fragmentSpeed * 0.5;
+    const fragmentSize = 15 - destructionProgress * 10;
+    
+    if (fragmentSize > 2) {
+      // Collar fragment
+      ctx.save();
+      ctx.translate(fragmentX, fragmentY);
+      ctx.rotate(fragmentAngle + time * 2);
+      
+      ctx.fillStyle = `rgba(139, 69, 19, ${1 - destructionProgress * 0.7})`;
+      ctx.fillRect(-fragmentSize/2, -3, fragmentSize, 6);
+      
+      // Golden crack on fragment
+      ctx.strokeStyle = `rgba(255, 215, 0, ${1 - destructionProgress * 0.5})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-fragmentSize/3, -2);
+      ctx.lineTo(fragmentSize/3, 2);
+      ctx.stroke();
+      
+      ctx.restore();
+      
+      // Fragment trail
+      ctx.strokeStyle = `rgba(255, 140, 0, ${0.5 - destructionProgress * 0.3})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(fragmentX, fragmentY);
+      ctx.lineTo(fragmentX - Math.cos(fragmentAngle) * 30, fragmentY - Math.sin(fragmentAngle) * 15);
+      ctx.stroke();
+    }
+  }
+  
+  // Central explosion where collar was
+  if (destructionProgress > 0.3) {
+    const explosionSize = (destructionProgress - 0.3) * 150;
+    const explosionAlpha = Math.max(0, 1 - (destructionProgress - 0.3) * 2);
+    
+    // Explosion flash
+    const explosionGrad = ctx.createRadialGradient(
+      canvas.width/2, collarY, 0,
+      canvas.width/2, collarY, explosionSize
+    );
+    explosionGrad.addColorStop(0, `rgba(255, 255, 255, ${explosionAlpha * 0.8})`);
+    explosionGrad.addColorStop(0.3, `rgba(255, 215, 0, ${explosionAlpha * 0.6})`);
+    explosionGrad.addColorStop(0.7, `rgba(255, 140, 0, ${explosionAlpha * 0.3})`);
+    explosionGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    
+    ctx.fillStyle = explosionGrad;
+    ctx.beginPath();
+    ctx.arc(canvas.width/2, collarY, explosionSize, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Explosion rays
+    for (let i = 0; i < 16; i++) {
+      const rayAngle = (i / 16) * Math.PI * 2;
+      const rayLength = explosionSize * 1.5;
+      
+      ctx.strokeStyle = `rgba(255, 255, 255, ${explosionAlpha * 0.5})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(canvas.width/2, collarY);
+      ctx.lineTo(
+        canvas.width/2 + Math.cos(rayAngle) * rayLength,
+        collarY + Math.sin(rayAngle) * rayLength
+      );
+      ctx.stroke();
+    }
+  }
+  
+  // "CHAINS BROKEN!" text rising from destruction
+  if (destructionProgress > 0.5) {
+    const textRise = (destructionProgress - 0.5) * 200;
+    const textAlpha = Math.min(1, (destructionProgress - 0.5) * 4);
+    
+    ctx.save();
+    ctx.translate(canvas.width/2, collarY - textRise);
+    ctx.scale(1 + Math.sin(time * 3) * 0.1, 1 + Math.sin(time * 3) * 0.1);
+    
+    ctx.fillStyle = `rgba(255, 215, 0, ${textAlpha})`;
+    ctx.font = 'bold 28px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.strokeStyle = `rgba(0, 0, 0, ${textAlpha * 0.8})`;
+    ctx.lineWidth = 2;
+    
+    ctx.strokeText('⛓️💥 CHAINS BROKEN! 💥⛓️', 0, 0);
+    ctx.fillText('⛓️💥 CHAINS BROKEN! 💥⛓️', 0, 0);
+    
+    ctx.restore();
+  }
+  
+  // EPIC TITLE WITH DIVINE ENERGY
+  const titleY = canvas.height * 0.35;
+  const titleScale = 1 + Math.sin(time * 3) * 0.15;
+  
+  // Title energy rings expanding outward
+  for (let ring = 0; ring < 3; ring++) {
+    const ringRadius = 50 + ring * 40 + Math.sin(time * 2 + ring) * 20;
+    const ringAlpha = 0.3 - ring * 0.1 + Math.sin(time * 4) * 0.1;
+    
+    ctx.strokeStyle = `rgba(255, 215, 0, ${ringAlpha})`;
+    ctx.lineWidth = 3 - ring;
+    ctx.setLineDash([10, 5]);
+    ctx.beginPath();
+    ctx.arc(canvas.width/2, titleY, ringRadius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  
   ctx.save();
-  ctx.translate(canvas.width/2, canvas.height * 0.35);
+  ctx.translate(canvas.width/2, titleY);
   ctx.scale(titleScale, titleScale);
   
-  // Golden glow effect
-  ctx.shadowColor = '#FFD700';
-  ctx.shadowBlur = 30 + Math.sin(time * 4) * 10;
+  // Multiple layered glow effects
+  for (let layer = 0; layer < 3; layer++) {
+    ctx.shadowColor = '#FFD700';
+    ctx.shadowBlur = 50 + layer * 20 + Math.sin(time * 5) * 15;
+    
+    // Title text with gradient effect
+    const titleGrad = ctx.createLinearGradient(-200, -50, 200, 50);
+    titleGrad.addColorStop(0, '#FFD700');
+    titleGrad.addColorStop(0.3, '#FFFFFF');
+    titleGrad.addColorStop(0.7, '#FFD700');
+    titleGrad.addColorStop(1, '#FFA500');
+    
+    ctx.fillStyle = titleGrad;
+    ctx.font = 'bold 80px Cinzel, serif';
+    ctx.textAlign = 'center';
+    
+    // Multiple text renders for intensity
+    ctx.globalAlpha = 0.3 + layer * 0.2;
+    ctx.fillText('FREEDOM!', 0, 0);
+  }
   
-  ctx.fillStyle = '#FFD700';
-  ctx.font = 'bold 72px Cinzel, serif';
+  ctx.shadowBlur = 0;
+  ctx.globalAlpha = 1;
+  ctx.restore();
+  
+  // MYTHOLOGICAL GODS APPEARING TO CONGRATULATE
+  if (time > 3) { // After 3 seconds, gods appear
+    const godAppearance = Math.min(1, (time - 3) * 0.5);
+    
+    // Zeus appears on the left
+    const zeusX = canvas.width * 0.15;
+    const zeusY = canvas.height * 0.45;
+    ctx.save();
+    ctx.translate(zeusX, zeusY + Math.sin(time * 0.5) * 10);
+    ctx.scale(godAppearance, godAppearance);
+    
+    // Zeus silhouette with lightning
+    ctx.fillStyle = `rgba(255, 255, 255, ${godAppearance * 0.8})`;
+    ctx.font = 'bold 60px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('⚡', 0, 0);
+    
+    // Lightning bolts around Zeus
+    if (Math.sin(time * 3) > 0.5) {
+      for (let i = 0; i < 3; i++) {
+        const boltAngle = (i / 3) * Math.PI * 2;
+        const boltLength = 40;
+        ctx.strokeStyle = `rgba(255, 255, 255, ${godAppearance * 0.6})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(boltAngle) * boltLength, Math.sin(boltAngle) * boltLength);
+        ctx.stroke();
+      }
+    }
+    
+    // Zeus speech
+    ctx.fillStyle = `rgba(255, 215, 0, ${godAppearance})`;
+    ctx.font = 'bold 18px Cinzel, serif';
+    ctx.fillText('WELL DONE,', 0, -80);
+    ctx.fillText('HERO!', 0, -60);
+    
+    ctx.restore();
+    
+    // Athena appears on the right
+    const athenaX = canvas.width * 0.85;
+    const athenaY = canvas.height * 0.45;
+    ctx.save();
+    ctx.translate(athenaX, athenaY + Math.sin(time * 0.7 + 1) * 8);
+    ctx.scale(godAppearance, godAppearance);
+    
+    // Athena with wisdom
+    ctx.fillStyle = `rgba(255, 215, 0, ${godAppearance * 0.8})`;
+    ctx.font = 'bold 60px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🦉', 0, 0);
+    
+    // Wisdom glow
+    const wisdomGlow = ctx.createRadialGradient(0, 0, 0, 0, 0, 60);
+    wisdomGlow.addColorStop(0, `rgba(255, 215, 0, ${godAppearance * 0.3})`);
+    wisdomGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = wisdomGlow;
+    ctx.beginPath();
+    ctx.arc(0, 0, 60, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Athena speech
+    ctx.fillStyle = `rgba(255, 215, 0, ${godAppearance})`;
+    ctx.font = 'bold 18px Cinzel, serif';
+    ctx.fillText('WISDOM', 0, -80);
+    ctx.fillText('TRIUMPHS!', 0, -60);
+    
+    ctx.restore();
+  }
+  
+  // ENHANCED SUBTITLE with divine blessing
+  ctx.save();
+  ctx.translate(canvas.width/2, canvas.height * 0.45);
+  const subtitleScale = 1 + Math.sin(time * 2) * 0.05;
+  ctx.scale(subtitleScale, subtitleScale);
+  
+  // Subtitle glow
+  ctx.shadowColor = '#FFA500';
+  ctx.shadowBlur = 15 + Math.sin(time * 3) * 5;
+  
+  ctx.fillStyle = '#FFA500';
+  ctx.font = 'bold 36px Cinzel, serif';
   ctx.textAlign = 'center';
-  ctx.fillText('FREEDOM!', 0, 0);
+  ctx.fillText('🏛️ CHAMPION OF OLYMPUS 🏛️', 0, 0);
   
   ctx.shadowBlur = 0;
   ctx.restore();
   
-  // Epic subtitle
-  ctx.fillStyle = '#FFA500';
-  ctx.font = 'bold 36px Cinzel, serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('You Have Broken The Chains of Fate!', canvas.width/2, canvas.height * 0.45);
+  // EPIC STORY SEQUENCE with typewriter effect
+  const storyLines = [
+    '⚱️ The iron collar shatters into stardust...',
+    '🏛️ The gods themselves applaud your triumph...',
+    '🌟 Mount Olympus opens its gates to welcome you...',
+    '👑 You ascend as a legend among mortals...',
+    '🚀 Your name echoes through eternity!'
+  ];
   
-  // Story text
+  const storyStartTime = time - 2; // Start story after 2 seconds
   ctx.fillStyle = '#E6D2A3';
-  ctx.font = '24px Crimson Text, serif';
-  ctx.fillText('The collar shatters into golden dust...', canvas.width/2, canvas.height * 0.52);
-  ctx.fillText('The Fates bow in defeat, their prophecy undone.', canvas.width/2, canvas.height * 0.56);
-  ctx.fillText('You walk free from Tartarus, a legend born!', canvas.width/2, canvas.height * 0.60);
+  ctx.font = '22px Crimson Text, serif';
+  ctx.textAlign = 'center';
   
-  // Stats box with ornate border
-  const statsY = canvas.height * 0.68;
-  const statsWidth = 400;
-  const statsHeight = 120;
-  const statsX = canvas.width/2 - statsWidth/2;
+  storyLines.forEach((line, index) => {
+    const lineStartTime = storyStartTime - index * 1.5;
+    if (lineStartTime > 0) {
+      const lineProgress = Math.min(1, lineStartTime * 0.8);
+      const revealedChars = Math.floor(line.length * lineProgress);
+      const visibleText = line.substring(0, revealedChars);
+      
+      if (revealedChars > 0) {
+        const lineY = canvas.height * 0.52 + index * 25;
+        ctx.fillStyle = `rgba(230, 210, 163, ${Math.min(1, lineProgress * 2)})`;
+        ctx.fillText(visibleText, canvas.width/2, lineY);
+        
+        // Cursor effect for currently typing line
+        if (revealedChars < line.length && Math.sin(time * 8) > 0) {
+          ctx.fillText('|', canvas.width/2 + ctx.measureText(visibleText).width/2 + 5, lineY);
+        }
+      }
+    }
+  });
   
-  // Ornate border
-  ctx.strokeStyle = '#FFD700';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(statsX, statsY, statsWidth, statsHeight);
-  
-  // Inner glow
-  ctx.strokeStyle = 'rgba(255, 215, 0, 0.3)';
-  ctx.lineWidth = 6;
-  ctx.strokeRect(statsX - 3, statsY - 3, statsWidth + 6, statsHeight + 6);
-  
-  // Stats title
-  ctx.fillStyle = '#FFD700';
-  ctx.font = 'bold 20px Cinzel, serif';
-  ctx.fillText('⚔️ LEGENDARY ACHIEVEMENTS ⚔️', canvas.width/2, statsY + 25);
-  
-  // Calculate stats
-  const survivalTime = game.bossFight?.survivalTimer ? Math.floor(game.bossFight.survivalTimer / 1000) : 60;
-  
-  ctx.fillStyle = '#FFF';
-  ctx.font = '18px Crimson Text, serif';
-  ctx.fillText(`⭐ Total Dishes Served: ${game.score}`, canvas.width/2, statsY + 50);
-  ctx.fillText(`⏱️ Survived The Fates: ${survivalTime} seconds`, canvas.width/2, statsY + 75);
-  ctx.fillText(`🏛️ Trials Conquered: All 4 Levels`, canvas.width/2, statsY + 100);
-  
-  // Greek decorations
-  const decorY = canvas.height * 0.85;
-  ctx.fillStyle = '#CD853F';
-  ctx.font = '32px serif';
-  ctx.fillText('⚡ 🏛️ ⚱️ 🔱 ✨ 🗡️ 🏛️ ⚡', canvas.width/2, decorY);
-  
-  // Play again prompt with pulsing
-  const promptScale = 0.9 + Math.sin(time * 2) * 0.1;
-  ctx.save();
-  ctx.translate(canvas.width/2, canvas.height * 0.92);
-  ctx.scale(promptScale, promptScale);
-  
-  ctx.fillStyle = '#FFD700';
-  ctx.font = 'bold 22px Cinzel, serif';
-  ctx.fillText('Press F5 to Begin a New Legend', 0, 0);
-  
-  ctx.restore();
-  
-  // Corner laurel wreaths
-  const wreathSize = 60;
-  ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
-  ctx.font = `${wreathSize}px serif`;
-  ctx.textAlign = 'left';
-  ctx.fillText('🌿', 20, wreathSize);
-  ctx.textAlign = 'right';
-  ctx.fillText('🌿', canvas.width - 20, wreathSize);
-  ctx.textAlign = 'left';
-  ctx.fillText('🌿', 20, canvas.height - 20);
-  ctx.textAlign = 'right';
-  ctx.fillText('🌿', canvas.width - 20, canvas.height - 20);
-  
-  // Floating text effects
-  for (let i = 0; i < 3; i++) {
-    const floatY = 50 + Math.sin(time + i * 2) * 30;
-    const floatX = 100 + i * (canvas.width - 200) / 3;
+  // EPIC STATS SCROLL with multiple phases
+  if (time > 8) { // Stats appear after 8 seconds
+    const statsAppearance = Math.min(1, (time - 8) * 0.7);
+    const statsY = canvas.height * 0.70;
+    const statsWidth = 500;
+    const statsHeight = 150;
+    const statsX = canvas.width/2 - statsWidth/2;
     
-    ctx.fillStyle = `rgba(255, 215, 0, ${0.3 + Math.sin(time + i) * 0.2})`;
-    ctx.font = '16px Cinzel, serif';
+    // Magical scroll background
+    ctx.save();
+    ctx.globalAlpha = statsAppearance;
+    
+    // Scroll parchment effect
+    const scrollGrad = ctx.createLinearGradient(statsX, statsY, statsX, statsY + statsHeight);
+    scrollGrad.addColorStop(0, 'rgba(245, 222, 179, 0.95)');
+    scrollGrad.addColorStop(0.5, 'rgba(238, 203, 173, 0.98)');
+    scrollGrad.addColorStop(1, 'rgba(222, 184, 135, 0.95)');
+    ctx.fillStyle = scrollGrad;
+    ctx.fillRect(statsX, statsY, statsWidth, statsHeight);
+    
+    // Ornate multiple borders
+    for (let border = 0; border < 3; border++) {
+      ctx.strokeStyle = `rgba(255, 215, 0, ${0.8 - border * 0.2})`;
+      ctx.lineWidth = 4 - border;
+      ctx.strokeRect(statsX - border * 3, statsY - border * 3, 
+                    statsWidth + border * 6, statsHeight + border * 6);
+    }
+    
+    // Ancient scroll decorations
+    ctx.fillStyle = 'rgba(139, 69, 19, 0.8)';
+    ctx.font = '24px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('📜', statsX - 15, statsY + 20);
+    ctx.fillText('📜', statsX + statsWidth + 15, statsY + 20);
+    ctx.fillText('📜', statsX - 15, statsY + statsHeight - 10);
+    ctx.fillText('📜', statsX + statsWidth + 15, statsY + statsHeight - 10);
+    
+    // Stats title with divine energy
+    ctx.save();
+    ctx.translate(canvas.width/2, statsY + 30);
+    ctx.scale(1 + Math.sin(time * 4) * 0.05, 1 + Math.sin(time * 4) * 0.05);
+    
+    ctx.shadowColor = '#FFD700';
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = '#8B0000';
+    ctx.font = 'bold 24px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🏆 HALL OF LEGENDS ENTRY 🏆', 0, 0);
+    
+    ctx.shadowBlur = 0;
+    ctx.restore();
+    
+    // Enhanced stats with epic descriptions
+    const survivalTime = game.bossFight?.survivalTimer ? Math.floor(game.bossFight.survivalTimer / 1000) : 60;
+    const completionTime = Math.floor(time);
+    
+    ctx.fillStyle = '#8B0000';
+    ctx.font = 'bold 16px Crimson Text, serif';
     ctx.textAlign = 'center';
     
-    const messages = ['HERO', 'LEGEND', 'FREE'];
-    ctx.fillText(messages[i], floatX, floatY);
+    // Stats with dramatic flair
+    const statsLines = [
+      `🍽️ Dishes Mastered: ${game.score} Divine Creations`,
+      `⚔️ Fates Conquered: ${survivalTime}s of Perfect Survival`,
+      `🏛️ Trials Completed: All 4 Realms of Mount Olympus`,
+      `⏱️ Total Quest Time: ${Math.floor(completionTime / 60)}m ${completionTime % 60}s of Glory`,
+      `👑 Final Rank: ETERNAL CHAMPION`
+    ];
+    
+    statsLines.forEach((line, index) => {
+      const lineY = statsY + 55 + index * 18;
+      ctx.fillText(line, canvas.width/2, lineY);
+    });
+    
+    ctx.restore();
   }
+  
+  // DIVINE BLESSING EFFECTS flying across screen
+  if (time > 10) {
+    for (let i = 0; i < 6; i++) {
+      const blessingLife = (time * 0.8 + i * 2) % 8; // 8 second cycle
+      if (blessingLife < 6) { // Active for 6 seconds
+        const blessingX = -100 + (blessingLife / 6) * (canvas.width + 200);
+        const blessingY = canvas.height * 0.2 + Math.sin(time + i) * 50;
+        const blessingAlpha = Math.sin((blessingLife / 6) * Math.PI); // Fade in and out
+        
+        ctx.save();
+        ctx.globalAlpha = blessingAlpha * 0.8;
+        ctx.translate(blessingX, blessingY);
+        ctx.scale(1.5, 1.5);
+        
+        const blessings = ['✨', '🌟', '⭐', '💫', '🔆', '🌠'];
+        ctx.font = '32px serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#FFD700';
+        ctx.fillText(blessings[i], 0, 0);
+        
+        // Trail effect
+        ctx.fillStyle = `rgba(255, 215, 0, ${blessingAlpha * 0.3})`;
+        ctx.fillText(blessings[i], -20, 0);
+        ctx.fillText(blessings[i], -40, 0);
+        
+        ctx.restore();
+      }
+    }
+  }
+  
+  // EPIC CALL TO ACTION with interactive elements
+  if (time > 12) {
+    const ctaY = canvas.height * 0.90;
+    const ctaAlpha = Math.min(1, (time - 12) * 0.5);
+    
+    // Glowing platform for text
+    const platformGrad = ctx.createRadialGradient(
+      canvas.width/2, ctaY, 0,
+      canvas.width/2, ctaY, 200
+    );
+    platformGrad.addColorStop(0, `rgba(255, 215, 0, ${ctaAlpha * 0.3})`);
+    platformGrad.addColorStop(0.7, `rgba(255, 140, 0, ${ctaAlpha * 0.2})`);
+    platformGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    
+    ctx.fillStyle = platformGrad;
+    ctx.beginPath();
+    ctx.arc(canvas.width/2, ctaY, 200, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Pulsing call to action
+    const ctaScale = 1 + Math.sin(time * 3) * 0.15;
+    ctx.save();
+    ctx.translate(canvas.width/2, ctaY);
+    ctx.scale(ctaScale, ctaScale);
+    ctx.globalAlpha = ctaAlpha;
+    
+    // Multiple glow layers
+    for (let glow = 0; glow < 3; glow++) {
+      ctx.shadowColor = '#FFD700';
+      ctx.shadowBlur = 20 + glow * 10;
+      
+      ctx.fillStyle = `rgba(255, 215, 0, ${1 - glow * 0.3})`;
+      ctx.font = 'bold 28px Cinzel, serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🎮 Press F5 to Forge a New Legend! 🎮', 0, 0);
+    }
+    
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = `rgba(255, 165, 0, ${ctaAlpha})`;
+    ctx.font = 'italic 18px Crimson Text, serif';
+    ctx.fillText('Your story becomes myth... but new adventures await!', 0, 30);
+    
+    ctx.restore();
+  }
+  
+  // ETERNAL CONSTELLATION forming in corners
+  const constellationPoints = [
+    [50, 50], [canvas.width - 50, 50], [50, canvas.height - 50], [canvas.width - 50, canvas.height - 50]
+  ];
+  
+  constellationPoints.forEach((point, cornerIndex) => {
+    if (time > 5 + cornerIndex) {
+      const starFormation = Math.min(1, (time - 5 - cornerIndex) * 0.3);
+      
+      // Constellation stars
+      for (let star = 0; star < 5; star++) {
+        const starAngle = (star / 5) * Math.PI * 2;
+        const starRadius = 30 * starFormation;
+        const starX = point[0] + Math.cos(starAngle) * starRadius;
+        const starY = point[1] + Math.sin(starAngle) * starRadius;
+        
+        ctx.fillStyle = `rgba(255, 255, 255, ${starFormation * (0.6 + Math.sin(time * 2 + star) * 0.4)})`;
+        ctx.beginPath();
+        ctx.arc(starX, starY, 2 + Math.sin(time * 3 + star) * 1, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Connect stars with lines
+        if (star > 0) {
+          const prevAngle = ((star - 1) / 5) * Math.PI * 2;
+          const prevX = point[0] + Math.cos(prevAngle) * starRadius;
+          const prevY = point[1] + Math.sin(prevAngle) * starRadius;
+          
+          ctx.strokeStyle = `rgba(255, 215, 0, ${starFormation * 0.3})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(prevX, prevY);
+          ctx.lineTo(starX, starY);
+          ctx.stroke();
+        }
+      }
+    }
+  });
 }
 
 // Pause overlay

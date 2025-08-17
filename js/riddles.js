@@ -21,6 +21,15 @@ const RIDDLES = [
     sandwich: ["bread", "tomato", "bread"]},
   { id: "l1_8", text: "3 cheese", type: "COUNT", level: 1,
     counts: { cheese: 3 }},
+  // More 3-ingredient Level 1 combinations for challenge
+  { id: "l1_9", text: "1 bread + 1 tomato + 1 cheese", type: "COUNT", level: 1,
+    counts: { bread: 1, tomato: 1, cheese: 1 }},
+  { id: "l1_10", text: "1 meat + 1 egg + 1 pepper", type: "COUNT", level: 1,
+    counts: { meat: 1, egg: 1, pepper: 1 }},
+  { id: "l1_11", text: "2 bread + 1 cheese + 1 tomato", type: "COUNT", level: 1,
+    counts: { bread: 2, cheese: 1, tomato: 1 }},
+  { id: "l1_12", text: "1 bread + 2 tomato + 1 meat", type: "COUNT", level: 1,
+    counts: { bread: 1, tomato: 2, meat: 1 }},
   
   // LEVEL 2 - Divine EXCLUDE riddles (18 seconds)
   { id: "l2_1", text: "1 tomato + 1 meat (NO egg)", type: "EXCLUDE", level: 2,
@@ -39,6 +48,17 @@ const RIDDLES = [
     counts: { bread: 3, tomato: 1 }, excludes: ["cheese"]},
   { id: "l2_8", text: "4 DIFFERENT items (no repeats)", type: "UNIQUE", level: 2,
     totalCount: 4, unique: true},
+  // More EXCLUDE and TOTALCOUNT riddles for Level 2 challenge
+  { id: "l2_25", text: "2 bread + 2 cheese (NO meat)", type: "EXCLUDE", level: 2,
+    counts: { bread: 2, cheese: 2 }, excludes: ["meat"]},
+  { id: "l2_26", text: "EXACTLY 6 items total", type: "TOTALCOUNT", level: 2,
+    totalCount: 6},
+  { id: "l2_27", text: "1 tomato + 1 pepper + 1 egg (NO cheese)", type: "EXCLUDE", level: 2,
+    counts: { tomato: 1, pepper: 1, egg: 1 }, excludes: ["cheese"]},
+  { id: "l2_28", text: "5 DIFFERENT items (all unique)", type: "UNIQUE", level: 2,
+    totalCount: 5, unique: true},
+  { id: "l2_29", text: "3 bread + 1 meat (NO tomato, NO cheese)", type: "EXCLUDE", level: 2,
+    counts: { bread: 3, meat: 1 }, excludes: ["tomato", "cheese"]},
   
   // LEVEL 2 - OLIVE OIL RIDDLES (Heroes love their olive oil!)
   { id: "l2_9", text: "1 bread + 1 oliveoil", type: "COUNT", level: 2,
@@ -86,17 +106,17 @@ const RIDDLES = [
   
   // LEVEL 3 - MILK & YOGURT RIDDLES (Complex divine challenges!)
   { id: "l3_9", text: "2 milk + 1 yogurt + 1 cheese", type: "COUNT", level: 3,
-    counts: { milk: 2, yogurt: 1, cheese: 1 }, timeBonus: 25},
+    counts: { milk: 2, yogurt: 1, cheese: 1 }, timeBonus: 50}, // Increased from 25s - saucepan complexity!
   { id: "l3_10", text: "EXACTLY 6 items: must include milk AND yogurt", type: "COUNT", level: 3,
-    counts: { milk: 1, yogurt: 1 }, totalCount: 6, timeBonus: 30},
+    counts: { milk: 1, yogurt: 1 }, totalCount: 6, timeBonus: 55}, // Increased from 30s
   { id: "l3_11", text: "3 yogurt + 2 olives (NO milk)", type: "EXCLUDE", level: 3,
-    counts: { yogurt: 3, olives: 2 }, excludes: ["milk"], timeBonus: 25},
+    counts: { yogurt: 3, olives: 2 }, excludes: ["milk"], timeBonus: 50}, // Increased from 25s
   { id: "l3_12", text: "SANDWICH: bread + yogurt + oliveoil + olives + bread", type: "SANDWICH", level: 3,
-    sandwich: ["bread", "yogurt", "oliveoil", "olives", "bread"], timeBonus: 35},
+    sandwich: ["bread", "yogurt", "oliveoil", "olives", "bread"], timeBonus: 55}, // Increased from 35s
   { id: "l3_13", text: "1 milk + 1 yogurt + 1 of each: bread, cheese, meat, tomato", type: "COUNT", level: 3,
-    counts: { milk: 1, yogurt: 1, bread: 1, cheese: 1, meat: 1, tomato: 1 }, timeBonus: 40},
+    counts: { milk: 1, yogurt: 1, bread: 1, cheese: 1, meat: 1, tomato: 1 }, timeBonus: 55}, // Increased from 40s
   { id: "l3_14", text: "6 DIFFERENT items including BOTH milk and yogurt", type: "UNIQUE", level: 3,
-    totalCount: 6, unique: true, required: ["milk", "yogurt"], timeBonus: 45}
+    totalCount: 6, unique: true, required: ["milk", "yogurt"], timeBonus: 55}
 ];
 
 // ADVANCED COOKING/CUTTING RIDDLES
@@ -108,7 +128,7 @@ const ADVANCED_RIDDLES = [
     level: 1,
     type: "COOKING",
     required: ["cut_tomato"],
-    timeBonus: 10
+    timeBonus: 35 // Increased from 10s - cutting takes time!
   },
   {
     id: 'cut_cheese_simple',
@@ -116,7 +136,7 @@ const ADVANCED_RIDDLES = [
     level: 1,
     type: "COOKING", 
     required: ["cut_cheese"],
-    timeBonus: 10
+    timeBonus: 35 // Increased from 10s
   },
   {
     id: 'cook_meat_basic',
@@ -124,7 +144,7 @@ const ADVANCED_RIDDLES = [
     level: 1,
     type: "COOKING",
     required: ["cooked_meat"],
-    timeBonus: 15
+    timeBonus: 40 // Increased from 15s - cooking takes longer!
   },
   {
     id: 'cook_egg_simple',
@@ -132,7 +152,7 @@ const ADVANCED_RIDDLES = [
     level: 1,
     type: "COOKING",
     required: ["cooked_egg"],
-    timeBonus: 15
+    timeBonus: 40 // Increased from 15s
   },
   
   // Level 2 - Simple combos
@@ -142,7 +162,7 @@ const ADVANCED_RIDDLES = [
     level: 2,
     type: "COOKING",
     required: ["cooked_meat", "bread"],
-    timeBonus: 20
+    timeBonus: 45 // Increased from 20s - cooking + assembly takes time
   },
   {
     id: 'cut_tomato_cheese',
@@ -150,7 +170,7 @@ const ADVANCED_RIDDLES = [
     level: 2,
     type: "COOKING",
     required: ["cut_tomato", "cheese"],
-    timeBonus: 15
+    timeBonus: 40 // Increased from 15s
   },
   {
     id: 'cut_pepper_simple',
@@ -158,7 +178,7 @@ const ADVANCED_RIDDLES = [
     level: 2,
     type: "COOKING",
     required: ["cut_pepper"],
-    timeBonus: 10
+    timeBonus: 35 // Increased from 10s
   },
   {
     id: 'cook_bacon_basic',
@@ -166,7 +186,7 @@ const ADVANCED_RIDDLES = [
     level: 2,
     type: "COOKING",
     required: ["cooked_bacon"],
-    timeBonus: 15
+    timeBonus: 40 // Increased from 15s
   },
   
   // Level 2 - Olive Oil Advanced Combinations
@@ -176,7 +196,7 @@ const ADVANCED_RIDDLES = [
     level: 2,
     type: "COOKING", 
     required: ["oliveoil", "cut_tomato"],
-    timeBonus: 20
+    timeBonus: 45 // Increased from 20s
   },
   {
     id: 'cooked_meat_oliveoil',
@@ -184,7 +204,7 @@ const ADVANCED_RIDDLES = [
     level: 2,
     type: "COOKING",
     required: ["cooked_meat", "oliveoil"],
-    timeBonus: 20
+    timeBonus: 50 // Increased from 20s
   },
   {
     id: 'oliveoil_bread_cheese',
@@ -192,7 +212,7 @@ const ADVANCED_RIDDLES = [
     level: 2,
     type: "COOKING",
     required: ["oliveoil", "bread", "cut_cheese"],
-    timeBonus: 25
+    timeBonus: 50 // Increased from 25s
   },
   
   // Level 2 - Olive Advanced Combinations
@@ -202,7 +222,7 @@ const ADVANCED_RIDDLES = [
     level: 2,
     type: "COOKING",
     required: ["olives", "cut_tomato"],
-    timeBonus: 20
+    timeBonus: 45 // Increased from 20s
   },
   {
     id: 'olives_cooked_meat',
@@ -210,7 +230,7 @@ const ADVANCED_RIDDLES = [
     level: 2,
     type: "COOKING",
     required: ["olives", "cooked_meat"],
-    timeBonus: 20
+    timeBonus: 50 // Increased from 20s
   },
   {
     id: 'olives_oliveoil_bread',
@@ -218,7 +238,7 @@ const ADVANCED_RIDDLES = [
     level: 2,
     type: "COOKING",
     required: ["olives", "oliveoil", "bread"],
-    timeBonus: 25
+    timeBonus: 50 // Increased from 25s
   },
   {
     id: 'olives_avocado_combo',
@@ -226,7 +246,7 @@ const ADVANCED_RIDDLES = [
     level: 2,
     type: "COOKING",
     required: ["olives", "avocado", "cut_cheese"],
-    timeBonus: 25
+    timeBonus: 50 // Increased from 25s
   },
   
   // Level 3 - Milk & Yogurt Advanced Combinations (Saucepan required!)

@@ -183,6 +183,65 @@ function updateSpecialPowers(deltaTime) {
     }
   }
   
+  // ENHANCED DIFFICULTY: Repeating Power System
+  if (game.currentRiddle && game.powerRepeatTimer > 0 && game.lastActivatedPower) {
+    game.powerRepeatTimer -= deltaTime;
+    
+    // Time to repeat the power for enhanced difficulty
+    if (game.powerRepeatTimer <= 0) {
+      // Reset timer with slight variation (15-19 seconds)
+      game.powerRepeatTimer = game.powerRepeatInterval + (Math.random() * 4000 - 2000);
+      
+      // Only repeat if not already active to avoid overlapping
+      if (!game.specialPowerActive) {
+        const powerToRepeat = game.lastActivatedPower;
+        
+        // Determine duration based on level and power type
+        let duration = 3000; // Default 3s
+        if (game.currentLevel === 1) {
+          duration = 3000; // Medusa freeze: 3s
+        } else if (game.currentLevel === 2) {
+          duration = 4000; // Hero powers: 4-5s
+          if (powerToRepeat === 'disrupt') duration = 5000;
+        } else if (game.currentLevel === 3) {
+          duration = 7000; // God powers: 7-8s
+          if (powerToRepeat === 'wave' || powerToRepeat === 'underworld') duration = 8000;
+        }
+        
+        // Reactivate the power with appropriate warning
+        const powerNames = {
+          'freeze': '🐍 MEDUSA strikes again!',
+          'blur': '💪 HERCULES shows his strength!',
+          'disrupt': '⚔️ ACHILLES\' fury returns!',
+          'darken': '👁️ CYCLOPS watches once more!',
+          'speedup': '⚡ HERMES accelerates time!',
+          'wave': '🌊 POSEIDON\'s waves surge!',
+          'lightning': '⚡ ZEUS strikes again!',
+          'judgment': '👑 HERA judges you again!',
+          'underworld': '💀 HADES\' realm expands!'
+        };
+        
+        showToast(powerNames[powerToRepeat] || `${powerToRepeat} power repeats!`);
+        console.log(`🔄 REPEATING POWER: ${powerToRepeat} (${duration}ms)`);
+        
+        // Activate the repeated power
+        setTimeout(() => {
+          activateSpecialPower(powerToRepeat, duration);
+          
+          // Play appropriate sound
+          if (powerToRepeat === 'freeze') AUDIO.playFreeze();
+          else if (powerToRepeat === 'blur') AUDIO.playBlur();
+          else if (powerToRepeat === 'disrupt') AUDIO.playBlur(); // Achilles uses same as Hercules
+          else if (powerToRepeat === 'darken') AUDIO.playDarkness();
+          else if (powerToRepeat === 'speedup') AUDIO.playSpeedup();
+          else if (powerToRepeat === 'wave') AUDIO.playWave();
+          else if (powerToRepeat === 'lightning') AUDIO.playThunder();
+          else if (powerToRepeat === 'underworld') AUDIO.playDarkness(); // Hades uses darkness sound
+        }, 1000); // 1 second warning delay
+      }
+    }
+  }
+  
   // Clear special power flag when all effects are done
   if (!game.frozen && !game.blurred && !game.disrupted && !game.darkened &&
       !game.speedup && !game.wave && !game.lightning && !game.judgment && !game.underworld) {

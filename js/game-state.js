@@ -85,6 +85,11 @@ const game = {
   underworld: false,          // Hades - inverted colors and death theme
   underworldTimer: 0,
   
+  // Repeating Power System for Enhanced Difficulty
+  powerRepeatTimer: 0,        // Timer for when to activate next power
+  powerRepeatInterval: 17000, // Repeat powers every 17 seconds (15-20s range)
+  lastActivatedPower: null,   // Track last power to avoid repetition
+  
   // God Relationship System - Character Arcs
   godRelationships: {
     // Trial 1 - Tartarus Creatures

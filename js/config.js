@@ -71,16 +71,16 @@ const CONFIG = {
   MAX_PLATE_SIZE_LEVEL_2: 6, // Maximum ingredients on plate for Level 2+
   MAX_CARRY: 1,              // Can only carry one ingredient
   
-  // Timing
-  LEVEL_1_TIME: 26,          // Level 1: Gracious time
-  LEVEL_2_TIME: 20,          // Level 2: Special powers level
-  LEVEL_3_TIME: 15,          // Level 3: Gods only, very hard
-  LEVEL_4_TIME: 12,          // Level 4: Fates boss battle
+  // Timing - Rebalanced for Better Progression
+  LEVEL_1_TIME: 20,          // Level 1: Challenging but learnable (was 26s)
+  LEVEL_2_TIME: 16,          // Level 2: Moderate with hero powers (was 20s)
+  LEVEL_3_TIME: 15,          // Level 3: Hard with frequent god powers
+  LEVEL_4_TIME: 12,          // Level 4: Epic boss battle
   
-  // Progression
-  LEVEL_2_SCORE: 10,         // Score needed for level 2
-  LEVEL_3_SCORE: 20,         // Score needed for level 3
-  LEVEL_4_SCORE: 30,         // Score needed for level 4 (Fates)
+  // Progression - Slower advancement for more practice
+  LEVEL_2_SCORE: 15,         // Score needed for level 2 (was 10)
+  LEVEL_3_SCORE: 25,         // Score needed for level 3 (was 20)
+  LEVEL_4_SCORE: 35,         // Score needed for level 4 (was 30)
   WIN_SCORE: 40,             // Score needed to win (after Fates)
   
   COOKING_TIME: 3000,        // Cooking duration in milliseconds
