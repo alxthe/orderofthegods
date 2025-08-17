@@ -56,6 +56,11 @@ const game = {
   storyPanel: null,           // Current story panel content
   storyTimeout: null,         // Track setTimeout ID for story panels
   
+  // Level Instruction Screens
+  showingInstructions: false, // Whether instruction screen is displayed
+  instructionLevel: null,     // Which level's instructions to show (2, 3, or 4)
+  instructionTimeout: null,   // Track setTimeout ID for instruction screens
+  
   // Special Power Effects
   frozen: false,              // Player frozen by Medusa
   freezeTimer: 0,             // Time remaining frozen (ms)
@@ -119,6 +124,7 @@ const game = {
   
   // Anti-scrambling protection
   processingNextRiddle: false, // Prevent multiple nextRiddle() calls
+  nextRiddleTimeout: null,     // Track timeout IDs to prevent race conditions
   
   // Boss Fight System (Level 4)
   bossFight: {

@@ -179,10 +179,12 @@ function shuffleCustomers() {
 function nextRiddle() {
   // ANTI-SCRAMBLING: Prevent multiple calls from overlapping
   if (game.processingNextRiddle) {
-    console.log("🚫 Blocked duplicate nextRiddle() call - preventing scrambling!");
+    console.warn("🚫 SCRAMBLING BLOCKED: Duplicate nextRiddle() call prevented!");
+    console.trace(); // Show call stack to help debug
     return;
   }
   game.processingNextRiddle = true;
+  console.log("🎯 nextRiddle() starting - Level:", game.currentLevel);
   
   // Get riddles for current level
   const levelRiddles = RIDDLES.filter(r => r.level === game.level);
@@ -323,6 +325,7 @@ function nextRiddle() {
   
   // Reset processing flag
   game.processingNextRiddle = false;
+  console.log("✅ nextRiddle() completed successfully");
 }
 
 // Pickup/place mechanics
@@ -630,18 +633,38 @@ function handleDelivery() {
     
     // Check for level advancement
     if (game.score >= CONFIG.LEVEL_4_SCORE && game.currentLevel < 4) {
+      // Clear any pending nextRiddle timeout before advancing
+      if (game.nextRiddleTimeout) {
+        clearTimeout(game.nextRiddleTimeout);
+        game.nextRiddleTimeout = null;
+      }
       // Advance to Level 4: The Fates
       advanceToLevel4();
       return;
     } else if (game.score >= CONFIG.LEVEL_3_SCORE && game.currentLevel < 3) {
+      // Clear any pending nextRiddle timeout before advancing
+      if (game.nextRiddleTimeout) {
+        clearTimeout(game.nextRiddleTimeout);
+        game.nextRiddleTimeout = null;
+      }
       // Advance to Level 3: Gods Only
       advanceToLevel3();
       return;
     } else if (game.score >= CONFIG.LEVEL_2_SCORE && game.currentLevel < 2) {
+      // Clear any pending nextRiddle timeout before advancing
+      if (game.nextRiddleTimeout) {
+        clearTimeout(game.nextRiddleTimeout);
+        game.nextRiddleTimeout = null;
+      }
       // Advance to Level 2: Heroes with Powers
       advanceToLevel2();
       return;
     } else if (game.score >= CONFIG.WIN_SCORE) {
+      // Clear any pending nextRiddle timeout before winning
+      if (game.nextRiddleTimeout) {
+        clearTimeout(game.nextRiddleTimeout);
+        game.nextRiddleTimeout = null;
+      }
       // Won the game after defeating the Fates!
       game.state = 'won';
       console.log("GAME WON! You've defeated the Fates!");
@@ -653,7 +676,10 @@ function handleDelivery() {
     // Customer walks out, then next riddle
     game.customerState = 'walking_out';
     AUDIO.playCustomerHappy(); // Happy they got their food!
-    setTimeout(() => nextRiddle(), 2500); // Give time for walking animation
+    game.nextRiddleTimeout = setTimeout(() => {
+      game.nextRiddleTimeout = null; // Clear the timeout reference
+      nextRiddle();
+    }, 2500); // Give time for walking animation
   } else {
     // Failure - restart the level!
     game.customerMessage = randomChoice(game.currentCustomer.failure);
@@ -701,35 +727,34 @@ function advanceToLevel2() {
   game.level = 2; // Update riddle difficulty
   game.timePerRiddle = CONFIG.LEVEL_2_TIME;
   
-  showToast("⚔️ LEVEL 2: Heroes with special powers!");
   console.log("⚔️ Advanced to Level 2: Heroes with Powers");
   console.log("🏛️ Level 2 Features: Athens background, 5 heroes with special powers");
   console.log("🦸‍♂️ Heroes: Hercules (blur), Achilles (disrupt), Cyclops (darken), Pegasus, Satyr");
   
-  // Re-shuffle customers for new level (heroes)
-  game.shuffledCustomers = shuffleCustomers();
-  game.customerIndex = 0;
-  game.processingNextRiddle = false;
+  // Show epic instruction screen
+  game.showingInstructions = true;
+  game.instructionLevel = 2;
   
-  console.log("🦸 Shuffled heroes for Level 2:", game.shuffledCustomers.map(h => h.name));
-  
-  // Show transition story
-  game.storyPanel = {
-    title: "Level 2: The Heroic Tests",
-    text: "The heroes arrive with their legendary powers! Hercules' strength blurs your vision, Achilles' fury disrupts your controls, and Cyclops darkens the world. Can you serve them despite their chaos?"
-  };
-  game.showingStory = true;
-  
-  // Clear any existing story timeout
+  // Clear any existing timeouts to prevent race conditions
   if (game.storyTimeout) {
     clearTimeout(game.storyTimeout);
+    game.storyTimeout = null;
+  }
+  if (game.instructionTimeout) {
+    clearTimeout(game.instructionTimeout);
+    game.instructionTimeout = null;
+  }
+  if (game.nextRiddleTimeout) {
+    clearTimeout(game.nextRiddleTimeout);
+    game.nextRiddleTimeout = null;
   }
   
-  // Set new timeout and store the ID
-  game.storyTimeout = setTimeout(() => {
-    game.storyTimeout = null;
-    nextRiddle();
-  }, 3000);
+  // Auto-dismiss after 6 seconds
+  game.instructionTimeout = setTimeout(() => {
+    if (game.showingInstructions) {
+      dismissInstructionScreen();
+    }
+  }, 6000);
 }
 
 // Advance to Level 3: Gods Only (Very Hard)
@@ -739,31 +764,32 @@ function advanceToLevel3() {
   game.level = 3; // Update riddle difficulty
   game.timePerRiddle = CONFIG.LEVEL_3_TIME;
   
-  showToast("⚡ LEVEL 3: The Gods demand perfection!");
   console.log("⚡ Advanced to Level 3: Gods Only");
   
-  // Re-shuffle customers for new level (gods only)
-  game.shuffledCustomers = shuffleCustomers();
-  game.customerIndex = 0;
-  game.processingNextRiddle = false;
+  // Show epic instruction screen
+  game.showingInstructions = true;
+  game.instructionLevel = 3;
   
-  // Show transition story
-  game.storyPanel = {
-    title: "Level 3: Divine Trials",
-    text: "The gods themselves have arrived! Zeus crackles with lightning, Hades brings the chill of death, and Hera watches with royal judgment. Only perfect service will satisfy their divine expectations!"
-  };
-  game.showingStory = true;
-  
-  // Clear any existing story timeout
+  // Clear any existing timeouts to prevent race conditions
   if (game.storyTimeout) {
     clearTimeout(game.storyTimeout);
+    game.storyTimeout = null;
+  }
+  if (game.instructionTimeout) {
+    clearTimeout(game.instructionTimeout);
+    game.instructionTimeout = null;
+  }
+  if (game.nextRiddleTimeout) {
+    clearTimeout(game.nextRiddleTimeout);
+    game.nextRiddleTimeout = null;
   }
   
-  // Set new timeout and store the ID
-  game.storyTimeout = setTimeout(() => {
-    game.storyTimeout = null;
-    nextRiddle();
-  }, 3000);
+  // Auto-dismiss after 6 seconds
+  game.instructionTimeout = setTimeout(() => {
+    if (game.showingInstructions) {
+      dismissInstructionScreen();
+    }
+  }, 6000);
 }
 
 // Advance to Level 4: The Fates (Boss Battle)
@@ -773,7 +799,6 @@ function advanceToLevel4() {
   game.level = 3; // Keep max riddle difficulty
   game.timePerRiddle = CONFIG.LEVEL_4_TIME;
   
-  showToast("🌀 LEVEL 4: THE FATES ARRIVE!");
   console.log("🌀 Advanced to Level 4: The Fates Boss Battle");
   
   // NO MORE COOKING! This is pure boss fight
@@ -784,24 +809,30 @@ function advanceToLevel4() {
   game.plate = [];
   game.player.carrying = null;
   
-  // Show transition story
-  game.storyPanel = {
-    title: "Level 4: The Final Battle",
-    text: "The Fates emerge from the loom of destiny! No more cooking - this is a fight for your very existence! Dodge their scissors and escape their binding strings. Survive to claim your freedom!"
-  };
-  game.showingStory = true;
+  // Show epic instruction screen
+  game.showingInstructions = true;
+  game.instructionLevel = 4;
   
-  // Clear any existing story timeout
+  // Clear any existing timeouts to prevent race conditions
   if (game.storyTimeout) {
     clearTimeout(game.storyTimeout);
+    game.storyTimeout = null;
+  }
+  if (game.instructionTimeout) {
+    clearTimeout(game.instructionTimeout);
+    game.instructionTimeout = null;
+  }
+  if (game.nextRiddleTimeout) {
+    clearTimeout(game.nextRiddleTimeout);
+    game.nextRiddleTimeout = null;
   }
   
-  // Set new timeout and store the ID
-  game.storyTimeout = setTimeout(() => {
-    game.storyTimeout = null;
-    // Initialize boss fight instead of riddle!
-    initializeBossFight();
-  }, 3000);
+  // Auto-dismiss after 6 seconds
+  game.instructionTimeout = setTimeout(() => {
+    if (game.showingInstructions) {
+      dismissInstructionScreen();
+    }
+  }, 6000);
 }
 
 // Restart current level after failure
@@ -877,6 +908,11 @@ function restartLevel() {
     if (currentLevelNum === 4) {
       initializeBossFight();
     } else {
+      // Clear any pending nextRiddle timeouts before calling
+      if (game.nextRiddleTimeout) {
+        clearTimeout(game.nextRiddleTimeout);
+        game.nextRiddleTimeout = null;
+      }
       nextRiddle();
     }
   }, 3000);
@@ -977,10 +1013,14 @@ function startGame() {
   game.player.carrying = null;
   game.processingNextRiddle = false; // Reset anti-scrambling flag
   
-  // Clear any existing story timeouts
+  // Clear any existing timeouts
   if (game.storyTimeout) {
     clearTimeout(game.storyTimeout);
     game.storyTimeout = null;
+  }
+  if (game.nextRiddleTimeout) {
+    clearTimeout(game.nextRiddleTimeout);
+    game.nextRiddleTimeout = null;
   }
   
   // Clear story panel state

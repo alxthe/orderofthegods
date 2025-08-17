@@ -94,8 +94,8 @@ function renderCustomers() {
 
 // Ancient speech scroll helper
 function renderSpeechBubble(x, y, text) {
-  const scrollWidth = Math.max(220, text.length * 9);
-  const scrollHeight = 45;
+  const scrollWidth = Math.max(240, text.length * 10); // Increased for larger text
+  const scrollHeight = 50; // Increased to accommodate larger text
   
   // Parchment scroll background
   ctx.fillStyle = 'rgba(245, 222, 179, 0.95)'; // Wheat/parchment with transparency
@@ -110,9 +110,9 @@ function renderSpeechBubble(x, y, text) {
   ctx.fillStyle = 'rgba(139, 69, 19, 0.2)';
   ctx.fillRect(x - scrollWidth/2 + 2, y - scrollHeight/2 + 2, scrollWidth - 4, scrollHeight - 4);
   
-  // Ancient text with serif font
+  // Ancient text with serif font - increased size for better readability
   ctx.fillStyle = '#2F4F4F'; // Dark slate gray
-  ctx.font = 'bold 12px Crimson Text, serif';
+  ctx.font = 'bold 16px Crimson Text, serif';
   ctx.textAlign = 'center';
   ctx.fillText(text, x, y + 4);
   
@@ -187,11 +187,11 @@ function renderUI() {
     renderStoryPanel();
   }
   
-  // Toast messages (positioned below table)
+  // Toast messages (positioned right under the divine table)
   if (game.toastMessage && game.toastTimer > 0) {
-    // Position below table area
-    const tableY = Math.max(420, canvas.height * 0.45);
-    const toastY = tableY + 180; // Below the table
+    // Position just below the divine preparation table
+    const tableY = Math.max(420, canvas.height * 0.45); // Same as table position
+    const toastY = tableY + 150; // Right below the table with some spacing
     
     ctx.fillStyle = '#FFD700';
     ctx.font = 'bold 20px Cinzel, serif';
@@ -387,6 +387,11 @@ function renderDeveloperButton() {
     
     // Trigger new customer for the new level (except Level 4 boss fight)
     if (game.currentLevel !== oldLevel && game.state === 'playing' && game.currentLevel !== 4) {
+      // Clear any pending timeouts before calling nextRiddle
+      if (game.nextRiddleTimeout) {
+        clearTimeout(game.nextRiddleTimeout);
+        game.nextRiddleTimeout = null;
+      }
       game.shuffledCustomers = shuffleCustomers();
       game.customerIndex = 0;
       nextRiddle();
@@ -460,6 +465,132 @@ function renderMenu() {
   // Check for enter key to start
   if (input.wasPressed('enter')) {
     startGame();
+  }
+}
+
+// Level Instruction Screen - Epic full-screen overlays
+function renderInstructionScreen() {
+  if (!game.showingInstructions || !game.instructionLevel) return;
+  
+  const instructions = LEVEL_INSTRUCTIONS[game.instructionLevel];
+  if (!instructions) return;
+  
+  // Same elegant background as main menu
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  bgGrad.addColorStop(0, '#2C1810'); // Dark brown
+  bgGrad.addColorStop(0.6, '#1A0F08'); // Nearly black
+  bgGrad.addColorStop(1, '#000000'); // Black
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Subtle stone texture
+  ctx.fillStyle = 'rgba(139, 69, 19, 0.1)';
+  for (let i = 0; i < 30; i++) {
+    const x = Math.random() * canvas.width;
+    const y = Math.random() * canvas.height;
+    ctx.fillRect(x, y, 2, 2);
+  }
+  
+  // Main title - level location
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 48px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+  ctx.shadowBlur = 8;
+  ctx.fillText(instructions.title, canvas.width/2, canvas.height * 0.12);
+  ctx.shadowBlur = 0;
+  
+  // Subtitle
+  ctx.fillStyle = '#CD853F';
+  ctx.font = '24px Cinzel, serif';
+  ctx.fillText(instructions.subtitle, canvas.width/2, canvas.height * 0.18);
+  
+  // Story section
+  ctx.fillStyle = '#E6D2A3';
+  ctx.font = '18px Crimson Text, serif';
+  ctx.textAlign = 'center';
+  instructions.story.forEach((line, index) => {
+    ctx.fillText(line, canvas.width/2, canvas.height * 0.25 + (index * 22));
+  });
+  
+  // New Features section header
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 22px Cinzel, serif';
+  ctx.fillText('🆕 NEW CHALLENGES AWAIT', canvas.width/2, canvas.height * 0.5);
+  
+  // New Features list
+  ctx.fillStyle = '#FFA500'; // Orange for features
+  ctx.font = '16px Crimson Text, serif';
+  ctx.textAlign = 'center';
+  instructions.newFeatures.forEach((feature, index) => {
+    ctx.fillText(feature, canvas.width/2, canvas.height * 0.54 + (index * 20));
+  });
+  
+  // Approach section header
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 20px Cinzel, serif';
+  ctx.fillText('⚔️ TACTICAL GUIDANCE', canvas.width/2, canvas.height * 0.72);
+  
+  // Approach text
+  ctx.fillStyle = '#E6D2A3';
+  ctx.font = 'italic 18px Crimson Text, serif';
+  ctx.fillText(instructions.approach, canvas.width/2, canvas.height * 0.76);
+  ctx.fillText(instructions.approach2, canvas.width/2, canvas.height * 0.79);
+  
+  // Call to action - with pulsing effect
+  const pulse = 0.9 + Math.sin(Date.now() * 0.003) * 0.1;
+  ctx.save();
+  ctx.translate(canvas.width/2, canvas.height * 0.88);
+  ctx.scale(pulse, pulse);
+  
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 28px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Press ENTER to Continue Your Journey', 0, 0);
+  
+  ctx.restore();
+  
+  // Handle input for manual dismissal
+  if (input.wasPressed('enter') || input.wasPressed('space') || input.wasClicked()) {
+    dismissInstructionScreen();
+  }
+}
+
+// Dismiss instruction screen and continue to level
+function dismissInstructionScreen() {
+  game.showingInstructions = false;
+  const level = game.instructionLevel;
+  game.instructionLevel = null;
+  
+  // Clear ALL pending timeouts to prevent race conditions
+  if (game.instructionTimeout) {
+    clearTimeout(game.instructionTimeout);
+    game.instructionTimeout = null;
+  }
+  if (game.nextRiddleTimeout) {
+    clearTimeout(game.nextRiddleTimeout);
+    game.nextRiddleTimeout = null;
+  }
+  
+  // Play level up sound
+  AUDIO.playLevelUp();
+  
+  // Continue to the appropriate level initialization
+  if (level === 2) {
+    // Initialize Level 2 
+    game.shuffledCustomers = shuffleCustomers();
+    game.customerIndex = 0;
+    game.processingNextRiddle = false;
+    nextRiddle();
+  } else if (level === 3) {
+    // Initialize Level 3
+    game.shuffledCustomers = shuffleCustomers();
+    game.customerIndex = 0;
+    game.processingNextRiddle = false;
+    nextRiddle();
+  } else if (level === 4) {
+    // Initialize Level 4 boss fight
+    initializeBossFight();
   }
 }
 

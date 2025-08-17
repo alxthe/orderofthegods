@@ -21,6 +21,12 @@ function render() {
     renderPlayer();
     renderUI();
     renderSpecialPowerEffects(); // Special power visual effects
+    
+    // Render instruction screen overlay if showing
+    if (game.showingInstructions) {
+      renderInstructionScreen();
+    }
+    
     if (game.state === 'paused') {
       renderPauseOverlay();
     }

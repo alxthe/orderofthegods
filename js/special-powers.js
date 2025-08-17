@@ -224,14 +224,7 @@ function renderSpecialPowerEffects() {
     ctx.drawImage(canvas, offsetX, offsetY);
     ctx.restore();
     
-    // Show HERCULES power indicator
-    ctx.fillStyle = 'rgba(255, 165, 0, 0.9)';
-    ctx.font = 'bold 28px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.strokeStyle = 'rgba(139, 69, 19, 0.8)';
-    ctx.lineWidth = 3;
-    ctx.strokeText('💪 HERCULES\' STRENGTH OVERWHELMS YOU!', canvas.width / 2, 80);
-    ctx.fillText('💪 HERCULES\' STRENGTH OVERWHELMS YOU!', canvas.width / 2, 80);
+    // Visual effect only - message shown via toast below table
   }
   
   if (game.darkened) {
@@ -267,14 +260,7 @@ function renderSpecialPowerEffects() {
     ctx.lineWidth = 8;
     ctx.strokeRect(0, 0, canvas.width, canvas.height);
     
-    // Show ACHILLES fury indicator
-    ctx.font = 'bold 26px Cinzel, serif';
-    ctx.fillStyle = 'rgba(255, 50, 50, 0.9)';
-    ctx.textAlign = 'center';
-    ctx.strokeStyle = 'black';
-    ctx.lineWidth = 3;
-    ctx.strokeText('⚔️ ACHILLES\' FURY! CONTROLS REVERSED! ⚔️', canvas.width / 2, 100);
-    ctx.fillText('⚔️ ACHILLES\' FURY! CONTROLS REVERSED! ⚔️', canvas.width / 2, 100);
+    // Visual effect only - message shown via toast below table
     
     // Floating arrows showing reversed controls
     const time = Date.now() / 1000;
@@ -309,11 +295,7 @@ function renderSpecialPowerEffects() {
     }
     ctx.restore();
     
-    // Show Hermes message
-    ctx.fillStyle = 'rgba(255, 215, 0, 0.9)';
-    ctx.font = 'bold 24px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('⚡ TIME ACCELERATES! ⚡', canvas.width / 2, 60);
+    // Visual effect only - message shown via toast below table
   }
   
   if (game.wave) {
@@ -372,11 +354,7 @@ function renderSpecialPowerEffects() {
       ctx.shadowBlur = 0;
     }
     
-    // Show Zeus message
-    ctx.fillStyle = 'rgba(255, 255, 0, 0.9)';
-    ctx.font = 'bold 24px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('⚡ ZEUS\' LIGHTNING STRIKES! ⚡', canvas.width / 2, 100);
+    // Visual effect only - message shown via toast below table
   }
   
   if (game.judgment) {
@@ -398,11 +376,7 @@ function renderSpecialPowerEffects() {
     }
     ctx.restore();
     
-    // Show Hera message
-    ctx.fillStyle = 'rgba(218, 112, 214, 0.9)';
-    ctx.font = 'bold 24px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('👑 HERA\'S JUDGMENT CLOUDS YOUR MIND! 👑', canvas.width / 2, 80);
+    // Visual effect only - message shown via toast below table
   }
   
   if (game.underworld) {

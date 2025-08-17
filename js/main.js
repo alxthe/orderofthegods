@@ -53,7 +53,8 @@ function update(deltaTime) {
       
       // Customer walks out, then immediate next riddle - NO complex logic
       game.customerState = 'walking_out';
-      setTimeout(() => {
+      game.nextRiddleTimeout = setTimeout(() => {
+        game.nextRiddleTimeout = null; // Clear the timeout reference
         nextRiddle(); // Use the single, consistent nextRiddle function
       }, 2500);
     }
@@ -65,9 +66,9 @@ function update(deltaTime) {
   // Update customer animation
   updateCustomerAnimation(deltaTime);
   
-  // Handle input (disable cooking controls during boss fight)
-  if (game.currentLevel !== 4 || !game.bossFight.active) {
-    // Normal cooking game controls
+  // Handle input (disable cooking controls during boss fight and instruction screens)
+  if (!game.showingInstructions && (game.currentLevel !== 4 || !game.bossFight.active)) {
+    // Normal cooking game controls (only when not showing instructions)
     if (input.wasPressed('e')) {
       handleInteraction();
     }
@@ -88,7 +89,7 @@ function update(deltaTime) {
       handleOvenRetrieve();
     }
   }
-  // During boss fight, only movement (WASD) is allowed - handled in physics.js
+  // During boss fight or instruction screens, only movement (WASD) is allowed - handled in physics.js
   
   // ESC key pause handling is done in input.js to avoid conflicts
   
@@ -103,10 +104,14 @@ function update(deltaTime) {
     game.showingStory = false;
     game.storyPanel = null;
     
-    // Clear the auto-dismissal timeout if user manually dismisses
+    // Clear ALL timeouts if user manually dismisses to prevent race conditions
     if (game.storyTimeout) {
       clearTimeout(game.storyTimeout);
       game.storyTimeout = null;
+    }
+    if (game.nextRiddleTimeout) {
+      clearTimeout(game.nextRiddleTimeout);
+      game.nextRiddleTimeout = null;
     }
     
     // Immediately proceed to next riddle when user dismisses story
