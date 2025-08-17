@@ -370,30 +370,135 @@ function renderTimer() {
   ctx.shadowBlur = 0;
 }
 
-// Render current riddle (contained within header)
+// Render current riddle with special handling for Level 4 cooking challenges
 function renderRiddle() {
-  const riddleY = 72; // Moved up to fit within 120px header
+  if (!game.currentRiddle) return;
   
-  // Riddle background - ancient parchment (smaller to fit in header)
+  // Level 4 gets special detailed cooking display
+  if (game.currentLevel === 4 && game.currentRiddle.type === "ULTIMATE_FEAST") {
+    renderLevel4CookingChallenge();
+    return;
+  }
+  
+  // Regular riddle display for Levels 1-3
+  const riddleY = 72;
+  
+  // Riddle background - ancient parchment
   const riddleWidth = Math.min(canvas.width - 40, Math.max(400, game.currentRiddle.text.length * 15));
-  const riddleHeight = 32; // Slightly smaller to fit better
+  const riddleHeight = 32;
   
   ctx.fillStyle = 'rgba(245, 222, 179, 0.95)'; // Parchment
   ctx.fillRect(canvas.width/2 - riddleWidth/2, riddleY, riddleWidth, riddleHeight);
   
   // Parchment border
   ctx.strokeStyle = '#8B4513';
-  ctx.lineWidth = 2; // Thinner border
+  ctx.lineWidth = 2;
   ctx.strokeRect(canvas.width/2 - riddleWidth/2, riddleY, riddleWidth, riddleHeight);
   
   // Riddle text
   ctx.fillStyle = '#2F4F4F'; // Dark slate gray
-  ctx.font = 'bold 22px Cinzel, serif'; // Slightly smaller to fit better in header
+  ctx.font = 'bold 22px Cinzel, serif';
   ctx.textAlign = 'center';
   ctx.strokeStyle = '#000';
   ctx.lineWidth = 1;
   ctx.strokeText(game.currentRiddle.text, canvas.width/2, riddleY + 22);
   ctx.fillText(game.currentRiddle.text, canvas.width/2, riddleY + 22);
+}
+
+// Render detailed Level 4 cooking challenge display
+function renderLevel4CookingChallenge() {
+  const riddle = game.currentRiddle;
+  if (!riddle || riddle.type !== "ULTIMATE_FEAST") return;
+  
+  // Position at top-center, larger and more prominent
+  const panelX = canvas.width/2 - 300;
+  const panelY = 20;
+  const panelWidth = 600;
+  const panelHeight = 180;
+  
+  // Dark background with golden border for visibility
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+  ctx.fillRect(panelX, panelY, panelWidth, panelHeight);
+  
+  // Golden border
+  ctx.strokeStyle = '#FFD700';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(panelX, panelY, panelWidth, panelHeight);
+  
+  // Inner golden line
+  ctx.strokeStyle = '#DAA520';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(panelX + 3, panelY + 3, panelWidth - 6, panelHeight - 6);
+  
+  // Title
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 24px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+  ctx.shadowBlur = 4;
+  
+  ctx.fillText(riddle.text, canvas.width/2, panelY + 30);
+  
+  // Subtitle
+  ctx.fillStyle = '#FFA500';
+  ctx.font = 'bold 16px Cinzel, serif';
+  ctx.fillText(`🍳⚔️ COOK WHILE DODGING THE FATES! ⚔️🍳`, canvas.width/2, panelY + 55);
+  
+  // Required ingredients list
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 14px Cinzel, serif';
+  ctx.textAlign = 'left';
+  
+  let ingredientsText = "REQUIRED: ";
+  riddle.required.forEach((ingredient, index) => {
+    if (index > 0) ingredientsText += ", ";
+    // Make cooking instructions more clear
+    if (ingredient.startsWith('cooked_')) {
+      ingredientsText += `COOK ${ingredient.replace('cooked_', '')}`;
+    } else if (ingredient.startsWith('cut_')) {
+      ingredientsText += `SLICE ${ingredient.replace('cut_', '')}`;
+    } else if (ingredient === 'yogurt') {
+      ingredientsText += `YOGURT (saucepan)`;
+    } else {
+      ingredientsText += ingredient;
+    }
+  });
+  
+  // Wrap text for better display
+  const words = ingredientsText.split(' ');
+  let line = '';
+  let y = panelY + 85;
+  const lineHeight = 18;
+  const maxWidth = panelWidth - 40;
+  
+  for (let i = 0; i < words.length; i++) {
+    const testLine = line + words[i] + ' ';
+    const metrics = ctx.measureText(testLine);
+    
+    if (metrics.width > maxWidth && line !== '') {
+      ctx.fillText(line, panelX + 20, y);
+      line = words[i] + ' ';
+      y += lineHeight;
+    } else {
+      line = testLine;
+    }
+  }
+  ctx.fillText(line, panelX + 20, y);
+  
+  // Total count at bottom
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 16px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(`TOTAL: ${riddle.totalCount} ITEMS`, canvas.width/2, panelY + panelHeight - 20);
+  
+  // Equipment reminder
+  ctx.fillStyle = '#FFA500';
+  ctx.font = 'bold 12px Cinzel, serif';
+  ctx.fillText('USE: Oven (V), Cutting Board (E), Saucepan (E), Table (E), Altar (Enter)', canvas.width/2, panelY + panelHeight - 5);
+  
+  // Reset shadow
+  ctx.shadowBlur = 0;
+  ctx.shadowColor = 'transparent';
 }
 
 // Render story panel
