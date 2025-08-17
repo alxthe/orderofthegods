@@ -498,30 +498,57 @@ function renderFatesPreparationArea() {
   }
 }
 
-// Render Clean Minimalistic Table
+// Render Table using table.png asset
 function renderTable() {
   const table = KITCHEN.POSITIONS.TABLE;
+  const tableImg = ASSETS.ui.table;
   
-  // Clean table dimensions
-  const tableWidth = 280;
-  const tableHeight = 160;
+  let tableWidth = 300;
+  let tableHeight = 200;
   
-  // Simple wooden table surface
-  const tableGrad = ctx.createLinearGradient(
-    table.x, table.y - tableHeight/2,
-    table.x, table.y + tableHeight/2
-  );
-  tableGrad.addColorStop(0, '#8B4513'); // Saddle brown
-  tableGrad.addColorStop(0.5, '#A0522D'); // Sienna
-  tableGrad.addColorStop(1, '#654321'); // Dark brown
-  
-  ctx.fillStyle = tableGrad;
-  ctx.fillRect(table.x - tableWidth/2, table.y - tableHeight/2, tableWidth, tableHeight);
-  
-  // Simple border
-  ctx.strokeStyle = 'rgba(101, 67, 33, 0.8)';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(table.x - tableWidth/2, table.y - tableHeight/2, tableWidth, tableHeight);
+  if (tableImg && ASSETS.loaded) {
+    // Use table.png asset with proper aspect ratio
+    const tableAspectRatio = tableImg.width / tableImg.height;
+    
+    if (tableAspectRatio > 1) {
+      // Wider than tall - fit width, adjust height
+      tableWidth = 300;
+      tableHeight = 300 / tableAspectRatio;
+    } else {
+      // Taller than wide or square - fit height, adjust width
+      tableHeight = 200;
+      tableWidth = 200 * tableAspectRatio;
+    }
+    
+    // Ensure high quality table rendering
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    
+    ctx.drawImage(
+      tableImg,
+      table.x - tableWidth/2,
+      table.y - tableHeight/2,
+      tableWidth,
+      tableHeight
+    );
+  } else {
+    // Fallback to simple table if image fails
+    const tableGrad = ctx.createLinearGradient(
+      table.x, table.y - tableHeight/2,
+      table.x, table.y + tableHeight/2
+    );
+    tableGrad.addColorStop(0, '#8B4513'); // Saddle brown
+    tableGrad.addColorStop(0.5, '#A0522D'); // Sienna
+    tableGrad.addColorStop(1, '#654321'); // Dark brown
+    
+    ctx.fillStyle = tableGrad;
+    ctx.fillRect(table.x - tableWidth/2, table.y - tableHeight/2, tableWidth, tableHeight);
+    
+    // Simple border
+    ctx.strokeStyle = 'rgba(101, 67, 33, 0.8)';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(table.x - tableWidth/2, table.y - tableHeight/2, tableWidth, tableHeight);
+  }
   
   // Clean interaction glow when player is near
   if (game.player.currentZone === 'table') {
@@ -835,28 +862,57 @@ function renderSlotIngredient(slotX, slotY, ingredient) {
   }
 }
 
-// Render Clean Minimalistic Altar
+// Render Altar using altar.png asset
 function renderDeliveryAltar() {
   const counter = KITCHEN.POSITIONS.COUNTER;
-  const altarWidth = 260;
-  const altarHeight = 50;
+  const altarImg = ASSETS.ui.altar;
   
-  // Simple stone altar
-  const altarGrad = ctx.createLinearGradient(
-    counter.x, counter.y - altarHeight/2,
-    counter.x, counter.y + altarHeight/2
-  );
-  altarGrad.addColorStop(0, '#A0522D'); // Sienna
-  altarGrad.addColorStop(0.5, '#8B4513'); // Saddle brown
-  altarGrad.addColorStop(1, '#654321'); // Dark brown
+  let altarWidth = 280;
+  let altarHeight = 60;
   
-  ctx.fillStyle = altarGrad;
-  ctx.fillRect(counter.x - altarWidth/2, counter.y - altarHeight/2, altarWidth, altarHeight);
-  
-  // Simple border
-  ctx.strokeStyle = 'rgba(101, 67, 33, 0.8)';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(counter.x - altarWidth/2, counter.y - altarHeight/2, altarWidth, altarHeight);
+  if (altarImg && ASSETS.loaded) {
+    // Use altar.png asset with proper aspect ratio
+    const altarAspectRatio = altarImg.width / altarImg.height;
+    
+    if (altarAspectRatio > 1) {
+      // Wider than tall - fit width, adjust height
+      altarWidth = 280;
+      altarHeight = 280 / altarAspectRatio;
+    } else {
+      // Taller than wide or square - fit height, adjust width
+      altarHeight = 60;
+      altarWidth = 60 * altarAspectRatio;
+    }
+    
+    // Ensure high quality altar rendering
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    
+    ctx.drawImage(
+      altarImg,
+      counter.x - altarWidth/2,
+      counter.y - altarHeight/2,
+      altarWidth,
+      altarHeight
+    );
+  } else {
+    // Fallback to simple altar if image fails
+    const altarGrad = ctx.createLinearGradient(
+      counter.x, counter.y - altarHeight/2,
+      counter.x, counter.y + altarHeight/2
+    );
+    altarGrad.addColorStop(0, '#A0522D'); // Sienna
+    altarGrad.addColorStop(0.5, '#8B4513'); // Saddle brown
+    altarGrad.addColorStop(1, '#654321'); // Dark brown
+    
+    ctx.fillStyle = altarGrad;
+    ctx.fillRect(counter.x - altarWidth/2, counter.y - altarHeight/2, altarWidth, altarHeight);
+    
+    // Simple border
+    ctx.strokeStyle = 'rgba(101, 67, 33, 0.8)';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(counter.x - altarWidth/2, counter.y - altarHeight/2, altarWidth, altarHeight);
+  }
   
   // Clean glow when player is near
   if (game.player.currentZone === 'counter') {

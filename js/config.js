@@ -152,6 +152,8 @@ const ASSET_FILES = {
   ui: {
     plate: null, // Removed plate asset
     crate: 'assets/backgrounds & tools/crate.png',
+    table: 'assets/backgrounds & tools/table.png',
+    altar: 'assets/backgrounds & tools/altar.png', // Added altar.png
     frontpage: 'assets/frontpage.png'
   },
   kitchen: {

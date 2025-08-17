@@ -127,29 +127,19 @@ function renderSpeechBubble(x, y, text) {
   ctx.stroke();
 }
 
-// Render Clean Minimalistic UI - Greek-Inspired
+// Render Headerless UI - Elements directly on background
 function renderUI() {
-  // Clean minimalistic header
-  const headerGrad = ctx.createLinearGradient(0, 0, canvas.width, 100);
-  headerGrad.addColorStop(0, 'rgba(139, 69, 19, 0.6)'); // Subtle brown
-  headerGrad.addColorStop(1, 'rgba(101, 67, 33, 0.7)'); // Darker brown
-  ctx.fillStyle = headerGrad;
-  ctx.fillRect(0, 0, canvas.width, 100);
+  // No header - UI elements float directly on background
   
-  // Simple clean border
-  ctx.strokeStyle = 'rgba(218, 165, 32, 0.4)';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(0, 0, canvas.width, 100);
+  // Level progress display (top-right)
+  renderFloatingLevelProgress();
   
-  // Clean level progress display
-  renderCleanLevelProgress();
-  
-  // Clean timer
+  // Timer (top-left)
   if (game.currentRiddle) {
-    renderTimer();
+    renderFloatingTimer();
   }
   
-  // Clean riddle display
+  // Riddle display (center-top)
   if (game.currentRiddle) {
     renderRiddle();
   }
@@ -237,19 +227,34 @@ function renderHeaderOrnaments(time) {
   });
 }
 
-// Render clean level progress
-function renderCleanLevelProgress() {
-  // Simple level progress
-  ctx.fillStyle = 'rgba(255, 215, 0, 0.9)';
-  ctx.font = 'bold 20px Cinzel, serif';
-  ctx.textAlign = 'right';
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+// Render floating level progress (top-right)
+function renderFloatingLevelProgress() {
+  // Floating level progress with dark background for readability
+  const bgWidth = 200;
+  const bgHeight = 60;
+  const x = canvas.width - bgWidth - 20;
+  const y = 20;
+  
+  // Semi-transparent background
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+  ctx.fillRect(x, y, bgWidth, bgHeight);
+  
+  // Simple border
+  ctx.strokeStyle = 'rgba(255, 215, 0, 0.5)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x, y, bgWidth, bgHeight);
+  
+  // Level progress text
+  ctx.fillStyle = 'rgba(255, 215, 0, 0.95)';
+  ctx.font = 'bold 16px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
   ctx.shadowBlur = 3;
   
   const progressText = `Level ${game.currentLevel}: ${game.score}/${getNextLevelScore()}`;
-  ctx.fillText(progressText, canvas.width - 20, 35);
+  ctx.fillText(progressText, x + bgWidth/2, y + 25);
   
-  // Simple level type
+  // Level type
   let levelName;
   if (game.currentLevel === 1) levelName = "Gracious Time";
   else if (game.currentLevel === 2) levelName = "Heroes' Powers";
@@ -257,9 +262,52 @@ function renderCleanLevelProgress() {
   else if (game.currentLevel === 4) levelName = "THE FATES";
   else levelName = "Unknown";
   
-  ctx.fillStyle = 'rgba(218, 165, 32, 0.8)';
-  ctx.font = 'bold 14px Cinzel, serif';
-  ctx.fillText(levelName, canvas.width - 20, 55);
+  ctx.fillStyle = 'rgba(218, 165, 32, 0.9)';
+  ctx.font = 'bold 12px Cinzel, serif';
+  ctx.fillText(levelName, x + bgWidth/2, y + 45);
+  
+  // Reset shadow
+  ctx.shadowBlur = 0;
+  ctx.shadowColor = 'transparent';
+}
+
+// Render floating timer (top-left)
+function renderFloatingTimer() {
+  // Skip timer during Level 4 boss fight
+  if (game.currentLevel === 4 && game.bossFight.active) {
+    return;
+  }
+  
+  // Floating timer with dark background
+  const bgWidth = 120;
+  const bgHeight = 50;
+  const x = 20;
+  const y = 20;
+  
+  // Semi-transparent background
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+  ctx.fillRect(x, y, bgWidth, bgHeight);
+  
+  // Border
+  ctx.strokeStyle = 'rgba(255, 215, 0, 0.5)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x, y, bgWidth, bgHeight);
+  
+  // Timer text
+  const timeLeft = Math.max(0, Math.ceil(game.timer));
+  let timerColor = 'rgba(255, 215, 0, 0.95)';
+  
+  // Warning colors
+  if (timeLeft <= 3) timerColor = 'rgba(255, 69, 0, 0.95)'; // Red
+  else if (timeLeft <= 5) timerColor = 'rgba(255, 165, 0, 0.95)'; // Orange
+  
+  ctx.fillStyle = timerColor;
+  ctx.font = 'bold 18px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+  ctx.shadowBlur = 3;
+  
+  ctx.fillText(`⏰ ${timeLeft}s`, x + bgWidth/2, y + 32);
   
   // Reset shadow
   ctx.shadowBlur = 0;
@@ -470,11 +518,11 @@ function renderDebugPanel() {
   ctx.fillText('Press ~ to close', panelX + panelWidth/2, panelY + panelHeight - 15);
 }
 
-// Cinematic Greek Main Menu - Polished and Professional
+// Minimalist Main Menu - Clean and Simple
 function renderMenu() {
   const time = Date.now() * 0.001;
   
-  // Soft background overlay to reduce fire intensity
+  // Render background image
   const frontpageImg = ASSETS.ui.frontpage;
   
   if (frontpageImg && ASSETS.loaded) {
@@ -500,44 +548,27 @@ function renderMenu() {
       drawY = (canvas.height - drawHeight) / 2;
     }
     
-    // Draw the frontpage image with subtle overlay
+    // Draw the frontpage image
     ctx.drawImage(frontpageImg, drawX, drawY, drawWidth, drawHeight);
     
-    // Soft dramatic overlay to tone down fire
-    const overlayGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    overlayGrad.addColorStop(0, 'rgba(0, 0, 0, 0.3)');
-    overlayGrad.addColorStop(0.4, 'rgba(26, 15, 8, 0.4)');
-    overlayGrad.addColorStop(1, 'rgba(0, 0, 0, 0.5)');
-    ctx.fillStyle = overlayGrad;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
   } else {
-    // Fallback cinematic background
+    // Simple fallback gradient
     const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    bgGrad.addColorStop(0, '#2C1810');
-    bgGrad.addColorStop(0.6, '#1A0F08');
-    bgGrad.addColorStop(1, '#000000');
+    bgGrad.addColorStop(0, '#3D2914');
+    bgGrad.addColorStop(0.5, '#2C1810');
+    bgGrad.addColorStop(1, '#1A0F08');
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
   
-  // Elegant Greek decorative border frame
-  renderCinematicFrame();
-  
-  // Professional text layout with perfect spacing
+  // Minimalist layout
   ctx.textAlign = 'center';
   
-  // 1. MAIN TITLE - Elegant and Bold
-  renderMainTitle(time);
+  // Main title only
+  renderMinimalistTitle(time);
   
-  // 2. SUBTITLE - Refined styling
-  renderSubtitle();
-  
-  // 3. STORY TEXT - Enhanced readability
-  renderStoryText();
-  
-  // 4. PROFESSIONAL UI BUTTONS
-  renderMenuButtons(time);
+  // Simple buttons
+  renderMinimalistButtons(time);
   
   // Reset all effects
   ctx.shadowBlur = 0;
@@ -555,106 +586,123 @@ function renderMenu() {
   }
 }
 
-// Render elegant cinematic frame with Greek motifs
-function renderCinematicFrame() {
-  const borderWidth = 40;
-  const cornerSize = 80;
+// Render minimalist title - just the big text
+function renderMinimalistTitle(time) {
+  const titleY = canvas.height * 0.4;
+  const glow = 0.95 + 0.05 * Math.sin(time * 1.5);
   
-  // Subtle outer frame
-  ctx.strokeStyle = 'rgba(218, 165, 32, 0.6)';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(15, 15, canvas.width - 30, canvas.height - 30);
-  
-  // Inner refined frame
-  ctx.strokeStyle = 'rgba(255, 215, 0, 0.4)';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(25, 25, canvas.width - 50, canvas.height - 50);
-  
-  // Elegant corner ornaments
-  const corners = [
-    { x: 35, y: 35 },
-    { x: canvas.width - 35, y: 35 },
-    { x: 35, y: canvas.height - 35 },
-    { x: canvas.width - 35, y: canvas.height - 35 }
-  ];
-  
-  ctx.strokeStyle = 'rgba(218, 165, 32, 0.5)';
-  ctx.lineWidth = 2;
-  
-  corners.forEach(corner => {
-    // Simple Greek corner flourish
-    ctx.beginPath();
-    ctx.moveTo(corner.x - 15, corner.y);
-    ctx.lineTo(corner.x + 15, corner.y);
-    ctx.moveTo(corner.x, corner.y - 15);
-    ctx.lineTo(corner.x, corner.y + 15);
-    ctx.stroke();
-  });
-}
-
-// Render main title with elegant styling
-function renderMainTitle(time) {
-  const titleY = canvas.height * 0.18;
-  const glow = 0.8 + 0.1 * Math.sin(time * 1.5);
-  
-  // Elegant title with refined glow
-  ctx.font = 'bold 72px Cinzel, serif';
+  // Big, bold title
+  ctx.font = 'bold 96px Cinzel, serif';
   ctx.fillStyle = `rgba(255, 215, 0, ${glow})`;
   ctx.strokeStyle = 'rgba(139, 69, 19, 0.8)';
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 4;
   ctx.shadowColor = 'rgba(255, 215, 0, 0.4)';
   ctx.shadowBlur = 15;
   
   ctx.strokeText('ORDER OF THE GODS', canvas.width/2, titleY);
   ctx.fillText('ORDER OF THE GODS', canvas.width/2, titleY);
+}
+
+// Render minimalist buttons - just the essential ones
+function renderMinimalistButtons(time) {
+  const enterY = canvas.height * 0.65;
+  const heroesY = enterY + 60;
   
-  // Subtle underline decoration
-  ctx.strokeStyle = 'rgba(218, 165, 32, 0.6)';
+  // Simple Enter button
+  ctx.font = 'bold 24px Cinzel, serif';
+  ctx.fillStyle = 'rgba(255, 215, 0, 0.9)';
+  ctx.strokeStyle = 'rgba(139, 69, 19, 0.7)';
   ctx.lineWidth = 2;
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+  ctx.shadowBlur = 6;
+  
+  ctx.strokeText('PRESS ENTER TO BEGIN YOUR TRIAL', canvas.width/2, enterY);
+  ctx.fillText('PRESS ENTER TO BEGIN YOUR TRIAL', canvas.width/2, enterY);
+  
+  // Simple Heroes button
+  ctx.font = 'bold 20px Cinzel, serif';
+  ctx.fillStyle = 'rgba(218, 165, 32, 0.8)';
+  ctx.strokeStyle = 'rgba(101, 67, 33, 0.7)';
+  ctx.lineWidth = 1.5;
+  ctx.shadowBlur = 4;
+  
+  ctx.strokeText('PRESS H FOR HALL OF HEROES', canvas.width/2, heroesY);
+  ctx.fillText('PRESS H FOR HALL OF HEROES', canvas.width/2, heroesY);
+}
+
+// Render beautiful majestic title
+function renderBeautifulTitle(time) {
+  const titleY = canvas.height * 0.2;
+  const glow = 0.9 + 0.05 * Math.sin(time * 1.2);
+  
+  // Majestic title with perfect glow
+  ctx.font = 'bold 84px Cinzel, serif';
+  ctx.fillStyle = `rgba(255, 215, 0, ${glow})`;
+  ctx.strokeStyle = 'rgba(139, 69, 19, 0.9)';
+  ctx.lineWidth = 4;
+  ctx.shadowColor = 'rgba(255, 215, 0, 0.6)';
+  ctx.shadowBlur = 20;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+  
+  ctx.strokeText('ORDER OF THE GODS', canvas.width/2, titleY);
+  ctx.fillText('ORDER OF THE GODS', canvas.width/2, titleY);
+  
+  // Beautiful golden underline with gradient
+  const lineGrad = ctx.createLinearGradient(canvas.width/2 - 300, titleY + 20, canvas.width/2 + 300, titleY + 20);
+  lineGrad.addColorStop(0, 'rgba(255, 215, 0, 0)');
+  lineGrad.addColorStop(0.2, 'rgba(255, 215, 0, 0.8)');
+  lineGrad.addColorStop(0.5, 'rgba(255, 215, 0, 1)');
+  lineGrad.addColorStop(0.8, 'rgba(255, 215, 0, 0.8)');
+  lineGrad.addColorStop(1, 'rgba(255, 215, 0, 0)');
+  
+  ctx.strokeStyle = lineGrad;
+  ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(canvas.width/2 - 250, titleY + 15);
-  ctx.lineTo(canvas.width/2 + 250, titleY + 15);
+  ctx.moveTo(canvas.width/2 - 300, titleY + 20);
+  ctx.lineTo(canvas.width/2 + 300, titleY + 20);
   ctx.stroke();
 }
 
-// Render subtitle with balanced styling
-function renderSubtitle() {
-  const subtitleY = canvas.height * 0.18 + 80;
+// Render elegant subtitle
+function renderElegantSubtitle() {
+  const subtitleY = canvas.height * 0.2 + 90;
   
-  ctx.font = 'bold 32px Cinzel, serif';
-  ctx.fillStyle = 'rgba(218, 165, 32, 0.9)';
-  ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
+  ctx.font = 'bold 36px Cinzel, serif';
+  ctx.fillStyle = 'rgba(218, 165, 32, 0.95)';
+  ctx.strokeStyle = 'rgba(139, 69, 19, 0.7)';
   ctx.lineWidth = 2;
-  ctx.shadowBlur = 8;
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+  ctx.shadowBlur = 12;
+  ctx.shadowColor = 'rgba(218, 165, 32, 0.4)';
   
   ctx.strokeText('DUNGEON OF MOUNT OLYMPUS', canvas.width/2, subtitleY);
   ctx.fillText('DUNGEON OF MOUNT OLYMPUS', canvas.width/2, subtitleY);
 }
 
-// Render story text with improved readability
-function renderStoryText() {
-  const storyStartY = canvas.height * 0.35;
+// Render beautiful story text with perfect readability
+function renderBeautifulStoryText() {
+  const storyStartY = canvas.height * 0.4;
   
-  // Story background for better readability
+  // Elegant story background with soft gradient
   const storyBg = ctx.createRadialGradient(
-    canvas.width/2, storyStartY + 100, 0,
-    canvas.width/2, storyStartY + 100, 400
+    canvas.width/2, storyStartY + 120, 0,
+    canvas.width/2, storyStartY + 120, 450
   );
-  storyBg.addColorStop(0, 'rgba(0, 0, 0, 0.4)');
+  storyBg.addColorStop(0, 'rgba(0, 0, 0, 0.6)');
+  storyBg.addColorStop(0.4, 'rgba(0, 0, 0, 0.3)');
   storyBg.addColorStop(1, 'rgba(0, 0, 0, 0)');
   ctx.fillStyle = storyBg;
   ctx.beginPath();
-  ctx.arc(canvas.width/2, storyStartY + 100, 400, 0, Math.PI * 2);
+  ctx.arc(canvas.width/2, storyStartY + 120, 450, 0, Math.PI * 2);
   ctx.fill();
   
-  // Refined story text
-  ctx.font = '22px Crimson Text, serif';
-  ctx.fillStyle = 'rgba(230, 210, 163, 0.95)';
-  ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)';
+  // Beautiful story text with perfect contrast
+  ctx.font = '24px Crimson Text, serif';
+  ctx.fillStyle = 'rgba(245, 225, 185, 0.98)';
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
   ctx.lineWidth = 1;
-  ctx.shadowBlur = 4;
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+  ctx.shadowBlur = 6;
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
   
   const storyLines = [
     'Collared by the Fates themselves, you stand in the Tartarus Feast Hall—',
@@ -668,7 +716,7 @@ function renderStoryText() {
   ];
   
   let storyY = storyStartY;
-  const lineHeight = 30;
+  const lineHeight = 32;
   
   storyLines.forEach(line => {
     if (line.trim()) {
@@ -679,59 +727,74 @@ function renderStoryText() {
   });
 }
 
-// Render professional menu buttons
-function renderMenuButtons(time) {
-  const enterY = canvas.height * 0.72;
-  const heroesY = enterY + 60;
-  const pulse = 0.9 + 0.1 * Math.sin(time * 2);
+// Render stylish menu buttons
+function renderStylishMenuButtons(time) {
+  const enterY = canvas.height * 0.75;
+  const heroesY = enterY + 70;
+  const pulse = 0.95 + 0.05 * Math.sin(time * 1.8);
   
-  // Main action button with professional styling
-  renderMenuButton(
+  // Stunning main action button
+  renderStylishButton(
     'PRESS ENTER TO BEGIN YOUR TRIAL',
     canvas.width/2, enterY,
-    320, 45,
+    380, 55,
     `rgba(255, 215, 0, ${pulse})`,
-    'rgba(139, 69, 19, 0.8)',
-    'bold 24px Cinzel, serif'
+    'rgba(139, 69, 19, 0.9)',
+    'bold 26px Cinzel, serif',
+    true
   );
   
-  // Secondary button
-  renderMenuButton(
+  // Elegant secondary button
+  renderStylishButton(
     'PRESS H FOR HALL OF HEROES',
     canvas.width/2, heroesY,
-    280, 35,
-    'rgba(218, 165, 32, 0.8)',
-    'rgba(101, 67, 33, 0.7)',
-    'bold 18px Cinzel, serif'
+    320, 45,
+    'rgba(218, 165, 32, 0.9)',
+    'rgba(101, 67, 33, 0.8)',
+    'bold 20px Cinzel, serif',
+    false
   );
 }
 
-// Render individual menu button with consistent styling
-function renderMenuButton(text, x, y, width, height, fillColor, strokeColor, font) {
-  // Button background
+// Render stylish button with beautiful design
+function renderStylishButton(text, x, y, width, height, fillColor, strokeColor, font, isPrimary) {
+  // Beautiful button background with depth
   const buttonGrad = ctx.createLinearGradient(x - width/2, y - height/2, x - width/2, y + height/2);
-  buttonGrad.addColorStop(0, 'rgba(139, 69, 19, 0.2)');
-  buttonGrad.addColorStop(0.5, 'rgba(160, 82, 45, 0.3)');
-  buttonGrad.addColorStop(1, 'rgba(101, 67, 33, 0.4)');
+  if (isPrimary) {
+    buttonGrad.addColorStop(0, 'rgba(139, 69, 19, 0.4)');
+    buttonGrad.addColorStop(0.5, 'rgba(160, 82, 45, 0.5)');
+    buttonGrad.addColorStop(1, 'rgba(101, 67, 33, 0.6)');
+  } else {
+    buttonGrad.addColorStop(0, 'rgba(139, 69, 19, 0.3)');
+    buttonGrad.addColorStop(0.5, 'rgba(160, 82, 45, 0.4)');
+    buttonGrad.addColorStop(1, 'rgba(101, 67, 33, 0.5)');
+  }
   
   ctx.fillStyle = buttonGrad;
   ctx.fillRect(x - width/2, y - height/2, width, height);
   
-  // Button border
+  // Elegant border with subtle glow
   ctx.strokeStyle = strokeColor;
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 3;
+  ctx.shadowColor = strokeColor;
+  ctx.shadowBlur = isPrimary ? 8 : 4;
   ctx.strokeRect(x - width/2, y - height/2, width, height);
   
-  // Button text
+  // Inner highlight
+  ctx.strokeStyle = 'rgba(255, 215, 0, 0.3)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x - width/2 + 2, y - height/2 + 2, width - 4, height - 4);
+  
+  // Beautiful button text
   ctx.font = font;
   ctx.fillStyle = fillColor;
-  ctx.shadowBlur = 6;
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-  ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
-  ctx.lineWidth = 1;
+  ctx.shadowBlur = 8;
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.9)';
+  ctx.lineWidth = 1.5;
   
-  ctx.strokeText(text, x, y + 6);
-  ctx.fillText(text, x, y + 6);
+  ctx.strokeText(text, x, y + 8);
+  ctx.fillText(text, x, y + 8);
 }
 
 // Level Instruction Screen - Epic full-screen overlays
