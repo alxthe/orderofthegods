@@ -289,6 +289,111 @@ const ADVANCED_RIDDLES = [
     type: "COOKING",
     required: ["bread", "yogurt", "cut_tomato", "olives", "bread"],
     timeBonus: 45
+  },
+
+  // LEVEL 4 - EPIC FATES ORDERS (Cook Under Attack!)
+  {
+    id: 'l4_ultimate_feast',
+    text: "THE ULTIMATE OLYMPIAN BANQUET",
+    level: 4,
+    type: "ULTIMATE_FEAST",
+    required: ["cooked_meat", "cut_cheese", "cut_tomato", "yogurt", "oliveoil", "olives", "bread", "cut_avocado", "cooked_bacon"],
+    totalCount: 9,
+    description: "Create the ultimate Greek feast while dodging the Fates!",
+    requirements: [
+      "• COOKED meat + SLICED cheese + SLICED tomato",
+      "• YOGURT (from saucepan) + olive oil + olives", 
+      "• Bread + SLICED avocado + COOKED bacon",
+      "• TOTAL: 9 items using ALL cooking systems"
+    ],
+    timeLimit: 90,
+    customer: "The Fates"
+  },
+
+  {
+    id: 'l4_clothos_thread',
+    text: "CLOTHO'S THREAD OF LIFE",
+    level: 4,
+    type: "ULTIMATE_FEAST",
+    required: ["bread", "cooked_meat", "cut_avocado", "yogurt", "cut_pepper", "oliveoil", "cooked_egg", "cut_cheese"],
+    totalCount: 8,
+    description: "The Spinner demands her life-giving feast!",
+    requirements: [
+      "• Bread + COOKED meat + SLICED avocado + YOGURT",
+      "• SLICED pepper + olive oil + COOKED egg + SLICED cheese",
+      "• TOTAL: 8 items using oven, cutting board & saucepan"
+    ],
+    timeLimit: 90,
+    customer: "Clotho"
+  },
+
+  {
+    id: 'l4_lachesis_measure',
+    text: "LACHESIS' MEASURED PORTION", 
+    level: 4,
+    type: "ULTIMATE_FEAST",
+    required: ["cooked_bacon", "cut_tomato", "bread", "yogurt", "olives", "cut_cheese", "cooked_meat"],
+    totalCount: 7,
+    description: "The Allotter requires her precise measurements!",
+    requirements: [
+      "• COOKED bacon + SLICED tomato + bread + YOGURT",
+      "• Olives + SLICED cheese + COOKED meat",
+      "• TOTAL: 7 items with exact cooking techniques"
+    ],
+    timeLimit: 90,
+    customer: "Lachesis"
+  },
+
+  {
+    id: 'l4_atropos_final',
+    text: "ATROPOS' FINAL CUT",
+    level: 4,
+    type: "ULTIMATE_FEAST", 
+    required: ["cooked_egg", "cut_avocado", "cut_pepper", "oliveoil", "cooked_bacon", "yogurt", "cut_tomato", "bread", "olives"],
+    totalCount: 9,
+    description: "The Inevitable's last feast before the shears fall!",
+    requirements: [
+      "• COOKED egg + SLICED avocado + SLICED pepper",
+      "• Olive oil + COOKED bacon + YOGURT", 
+      "• SLICED tomato + bread + olives",
+      "• TOTAL: 9 items - master every technique!"
+    ],
+    timeLimit: 90,
+    customer: "Atropos"
+  },
+
+  {
+    id: 'l4_divine_trinity',
+    text: "DIVINE TRINITY OF FATE",
+    level: 4,
+    type: "ULTIMATE_FEAST",
+    required: ["bread", "bread", "bread", "cooked_meat", "cut_cheese", "cut_tomato", "yogurt", "cooked_bacon", "oliveoil"],
+    totalCount: 9,
+    description: "Three loaves for the three sisters of destiny!",
+    requirements: [
+      "• 3 bread (trinity) + COOKED meat + SLICED cheese",
+      "• SLICED tomato + YOGURT + COOKED bacon + olive oil", 
+      "• TOTAL: 9 items honoring the three Fates"
+    ],
+    timeLimit: 90,
+    customer: "The Fates"
+  },
+
+  {
+    id: 'l4_loom_of_destiny',
+    text: "FEAST FROM THE LOOM OF DESTINY",
+    level: 4,
+    type: "ULTIMATE_FEAST",
+    required: ["cooked_egg", "cooked_meat", "cut_cheese", "cut_avocado", "yogurt", "oliveoil", "olives", "cut_pepper"],
+    totalCount: 8,
+    description: "Woven from the threads of mortal cooking mastery!",
+    requirements: [
+      "• COOKED egg + COOKED meat + SLICED cheese + SLICED avocado",
+      "• YOGURT + olive oil + olives + SLICED pepper",
+      "• TOTAL: 8 items perfectly woven together"
+    ],
+    timeLimit: 90,
+    customer: "The Fates"
   }
 ];
 
@@ -364,20 +469,24 @@ const GODS = [
     timeout: ["Death waits for none.", "The underworld calls.", "Time itself dies here."]}
 ];
 
-// Level 4: The Fates (Boss Battle) 
+// Level 4: The Fates (Boss Battle) - Individual and Collective Responses
 const FATES = [
-  { id: "clotho", name: "The Fates",
-    success: ["The thread is spun correctly.", "Fate accepts your offering.", "The loom approves."],
-    failure: ["The thread tangles!", "Fate rejects this!", "The pattern breaks!"],
-    timeout: ["Time unravels!", "The thread is cut!", "Destiny waits for none!"]},
-  { id: "lachesis", name: "The Fates",
-    success: ["The measure is perfect.", "Your portion is granted.", "The length is accepted."],
-    failure: ["The measure is wrong!", "Your portion denied!", "The length insufficient!"],
-    timeout: ["Time's measure expires!", "The portion is lost!", "No second chances!"]},
-  { id: "atropos", name: "The Fates",
-    success: ["The shears are stayed.", "Death is postponed.", "The end is delayed."],
-    failure: ["The shears approach!", "Your thread weakens!", "The end draws near!"],
-    timeout: ["SNIP! Too late!", "The thread is CUT!", "Your fate is SEALED!"]}
+  { id: "clotho", name: "Clotho",
+    success: ["The thread of life is perfectly spun!", "Your cooking gives life meaning!", "The Thread of Life nourishes well!"],
+    failure: ["This thread snaps with poor technique!", "Life-giving food requires skill!", "Your thread tangles uselessly!"],
+    timeout: ["The thread of life grows short!", "Time spins away from you!", "Life's thread is severed!"]},
+  { id: "lachesis", name: "Lachesis", 
+    success: ["The measure is precisely what was asked!", "Your portion is perfectly allotted!", "Measured to perfection!"],
+    failure: ["Wrong measurements ruin destiny!", "Your portion is poorly allotted!", "The measure falls short!"],
+    timeout: ["Time's measure has been exceeded!", "Your allotted time expires!", "The portion is lost forever!"]},
+  { id: "atropos", name: "Atropos",
+    success: ["The final cut is masterfully made!", "Death is satisfied with this feast!", "The shears are stayed - well done!"],
+    failure: ["Poor cutting technique angers the Inevitable!", "This feast hastens your doom!", "The shears approach for such failure!"],
+    timeout: ["SNIP! Your time is CUT short!", "The final cut comes too soon!", "Death waits for no chef!"]},
+  { id: "fates", name: "The Fates",
+    success: ["All three sisters approve!", "The loom of destiny accepts your offering!", "Fate itself smiles upon your skill!"],
+    failure: ["The three sisters are displeased!", "The loom rejects such poor work!", "Destiny frowns on your technique!"],
+    timeout: ["The Fates grow impatient!", "Destiny will not be delayed!", "Time itself abandons you!"]}
 ];
 
 // Merge advanced riddles with main riddles

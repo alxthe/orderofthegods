@@ -19,7 +19,7 @@ const input = {
       this.keys[key] = true;
       
       // Prevent defaults for game keys
-      if (['w','a','s','d','e','q','x','v','enter','escape','l'].includes(key)) {
+      if (['w','a','s','d','e','q','x','v','enter','escape'].includes(key)) {
         e.preventDefault();
       }
       
@@ -35,16 +35,13 @@ const input = {
         e.preventDefault(); // Ensure browser doesn't interfere
       }
       
-      // Debug keys
+      // Debug panel toggle
       if (key === '`' || key === '~') {
-        game.debugMode = !game.debugMode;
-        console.log('Debug mode:', game.debugMode);
+        game.debugPanel.active = !game.debugPanel.active;
+        console.log('Debug panel:', game.debugPanel.active ? 'OPEN' : 'CLOSED');
       }
       
-      if (key === 'f1' && game.debugMode) {
-        game.showHitboxes = !game.showHitboxes;
-        console.log('Show hitboxes:', game.showHitboxes);
-      }
+
     });
     
     // Keyup handler

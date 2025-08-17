@@ -158,6 +158,14 @@ const game = {
     survivalGoal: 60000 // Survive for 60 seconds to win!
   },
   
+  // Level Music System
+  levelMusic: {
+    currentMusic: null,    // Current Audio object playing
+    currentLevel: 0,       // Which level music is playing
+    volume: 0.3,           // Music volume (lower than boss music)
+    enabled: true          // Whether level music is enabled
+  },
+  
   // Leaderboard Tracking Data
   gameStartTime: null,           // When the current playthrough started
   totalDeaths: 0,                // Number of player deaths this playthrough
@@ -187,7 +195,9 @@ const game = {
   
   // Debug
   debugMode: false,
-  showHitboxes: false,
+  debugPanel: {                   // Debug panel system
+    active: false                 // Whether debug panel is shown
+  },
   frameCount: 0,
   lastFPSTime: 0,
   currentFPS: 60

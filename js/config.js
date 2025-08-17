@@ -186,6 +186,16 @@ const ASSET_FILES = {
     lachesis: 'assets/level 4 (boss fight)/lachesis.png',
     atropos: 'assets/level 4 (boss fight)/atropos.png',
     bensonboone: 'assets/level 4 (boss fight)/bensonboone.png'
+  },
+  music: {
+    // Level 1 - Tartarus (1 song)
+    level1: ['assets/level 1/level1song1.mp3'],
+    // Level 2 - Heroes (2 songs - will randomize)
+    level2: ['assets/level 2/level2song1.mp3', 'assets/level 2/level2song2.mp3'],
+    // Level 3 - Gods (1 song)
+    level3: ['assets/level 3/level3song1.mp3'],
+    // Level 4 - Boss Fight (already handled in boss.music)
+    level4: ['assets/level 4 (boss fight)/mythological magical.mp3']
   }
 };
 

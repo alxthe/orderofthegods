@@ -32,6 +32,11 @@ function render() {
     renderUI();
     renderSpecialPowerEffects(); // Special power visual effects
     
+    // Level 4: Also render boss UI alongside normal UI
+    if (game.currentLevel === 4 && game.bossFight.active) {
+      renderBossUICompact();
+    }
+    
     // Render instruction screen overlay if showing
     if (game.showingInstructions) {
       renderInstructionScreen();
@@ -44,9 +49,7 @@ function render() {
     renderWinScreen();
   }
   
-  if (game.debugMode) {
-    renderDebug();
-  }
+
 }
 
 // Render kitchen layout
@@ -89,27 +92,25 @@ function renderKitchen() {
     renderFallbackBackground();
   }
   
-  // Render kitchen elements (except for Level 4 - The Fates)
-  if (game.currentLevel !== 4) {
-    renderIngredientCrates();
-    renderTable();
-    renderTrashBin();
-    renderOven();
-    renderCuttingBoard();
-    // Level 3+ only: Render saucepan
-    if (game.currentLevel >= 3) {
-      renderSaucepan();
-    }
-    renderKitchenLabels();
-  } else {
-    // Level 4: Boss Fight Arena - No cooking elements!
-    renderBossFightArena();
+  // Render kitchen elements - INCLUDING Level 4 for Cooking Under Attack!
+  renderIngredientCrates();
+  renderTable();
+  renderTrashBin();
+  renderOven();
+  renderCuttingBoard();
+  // Level 3+ only: Render saucepan
+  if (game.currentLevel >= 3) {
+    renderSaucepan();
+  }
+  renderKitchenLabels();
+  
+  // Level 4: Also render boss fight elements
+  if (game.currentLevel === 4 && game.bossFight.active) {
+    renderBossFightElements();
   }
   
-  // Render delivery altar (except in Level 4 boss fight)
-  if (game.currentLevel !== 4) {
-    renderDeliveryAltar();
-  }
+  // Render delivery altar - INCLUDING Level 4!
+  renderDeliveryAltar();
 }
 
 // Fallback background when images don't load
@@ -265,8 +266,7 @@ function renderIngredientCrates() {
       ctx.stroke();
     }
     
-    // Ancient-style label with parchment appearance
-    renderCrateLabel(pos, ingredient, crateHeight);
+    // No crate labels for minimalistic design
     
     // Interaction feedback
     if (game.player.currentZone === `bin_${ingredient.toLowerCase()}`) {
@@ -326,27 +326,14 @@ function renderCrateLabel(pos, ingredient, crateHeight = 90) {
   ctx.fillText(ingredient.toUpperCase(), pos.x, labelY + 16);
 }
 
-// Render crate interaction feedback
+// Render clean crate interaction feedback
 function renderCrateInteraction(pos, ingredient) {
-  // Just add a subtle text glow effect
-  ctx.fillStyle = '#FFD700';
-  ctx.font = 'bold 14px Cinzel, serif';
-  ctx.textAlign = 'center';
-  ctx.shadowColor = '#FFD700';
-  ctx.shadowBlur = 10;
-  ctx.fillText(`Press E for ${ingredient}`, pos.x, pos.y + 60);
-  ctx.shadowBlur = 0;
-  
-  // Divine particles effect
-  for (let i = 0; i < 5; i++) {
-    const angle = (Date.now() * 0.01 + i) % (Math.PI * 2);
-    const radius = 50 + Math.sin(Date.now() * 0.01 + i) * 10;
-    const sparkleX = pos.x + Math.cos(angle) * radius;
-    const sparkleY = pos.y + Math.sin(angle) * radius;
-    
-    ctx.fillStyle = '#FFD700';
-    ctx.fillRect(sparkleX - 1, sparkleY - 1, 2, 2);
-  }
+  // Just a subtle golden ring around crate
+  ctx.strokeStyle = 'rgba(255, 215, 0, 0.6)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y, 50, 0, Math.PI * 2);
+  ctx.stroke();
 }
 
 // Render mystical ingredient sources for Level 4 (The Fates)
@@ -511,55 +498,180 @@ function renderFatesPreparationArea() {
   }
 }
 
-// Render the main preparation table
+// Render Clean Minimalistic Table
 function renderTable() {
   const table = KITCHEN.POSITIONS.TABLE;
   
-  // Table title label
-  ctx.fillStyle = '#FFD700';
-  ctx.font = 'bold 18px Cinzel, serif';
-  ctx.textAlign = 'center';
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-  ctx.shadowBlur = 4;
-  ctx.fillText('DIVINE PREPARATION', table.x, table.y - 120);
-  ctx.shadowColor = 'transparent';
-  ctx.shadowBlur = 0;
+  // Clean table dimensions
+  const tableWidth = 280;
+  const tableHeight = 160;
   
-  // Larger, more impressive mythological table
-  const tableWidth = 320;
-  const tableHeight = 200;
+  // Simple wooden table surface
+  const tableGrad = ctx.createLinearGradient(
+    table.x, table.y - tableHeight/2,
+    table.x, table.y + tableHeight/2
+  );
+  tableGrad.addColorStop(0, '#8B4513'); // Saddle brown
+  tableGrad.addColorStop(0.5, '#A0522D'); // Sienna
+  tableGrad.addColorStop(1, '#654321'); // Dark brown
   
-  // Shadow for depth
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-  ctx.shadowBlur = 15;
-  ctx.shadowOffsetX = 5;
-  ctx.shadowOffsetY = 5;
-  
-  // Main table surface - ancient wood
-  const tableGrad = ctx.createRadialGradient(table.x, table.y, 0, table.x, table.y, 200);
-  tableGrad.addColorStop(0, '#8B4513'); // Saddle brown center
-  tableGrad.addColorStop(0.3, '#A0522D'); // Sienna
-  tableGrad.addColorStop(0.6, '#654321'); // Dark brown
-  tableGrad.addColorStop(1, '#4A2C1A'); // Very dark brown edge
   ctx.fillStyle = tableGrad;
   ctx.fillRect(table.x - tableWidth/2, table.y - tableHeight/2, tableWidth, tableHeight);
   
-  // Reset shadow
-  ctx.shadowColor = 'transparent';
-  ctx.shadowBlur = 0;
-  ctx.shadowOffsetX = 0;
-  ctx.shadowOffsetY = 0;
+  // Simple border
+  ctx.strokeStyle = 'rgba(101, 67, 33, 0.8)';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(table.x - tableWidth/2, table.y - tableHeight/2, tableWidth, tableHeight);
   
-  // Simple wood grain texture
-  renderWoodGrain(table, tableWidth, tableHeight);
-  
-  // Interactive glow when player is near
+  // Clean interaction glow when player is near
   if (game.player.currentZone === 'table') {
-    renderTableInteraction(table, tableWidth, tableHeight);
+    renderCleanTableInteraction(table, tableWidth, tableHeight);
   }
   
-  // Render ingredient slots on table
+  // Render ingredient slots
   renderTableSlots(table);
+}
+
+// Clean table interaction
+function renderCleanTableInteraction(table, tableWidth, tableHeight) {
+  // Simple glow effect
+  const glowGrad = ctx.createRadialGradient(table.x, table.y, 50, table.x, table.y, 120);
+  glowGrad.addColorStop(0, 'rgba(255, 215, 0, 0.2)');
+  glowGrad.addColorStop(1, 'rgba(255, 215, 0, 0)');
+  ctx.fillStyle = glowGrad;
+  ctx.beginPath();
+  ctx.arc(table.x, table.y, 120, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// Render luxurious marble texture with golden veins
+function renderMarbleTexture(table, width, height) {
+  // Golden veins running through the marble
+  ctx.strokeStyle = 'rgba(255, 215, 0, 0.4)';
+  ctx.lineWidth = 2;
+  
+  for (let i = 0; i < 8; i++) {
+    ctx.beginPath();
+    ctx.moveTo(table.x - width/2 + (i * 40), table.y - height/2);
+    ctx.quadraticCurveTo(
+      table.x - width/2 + (i * 40) + 30,
+      table.y + (i % 2 === 0 ? -20 : 20),
+      table.x - width/2 + (i * 40) + 20,
+      table.y + height/2
+    );
+    ctx.stroke();
+  }
+  
+  // Horizontal marble lines
+  ctx.strokeStyle = 'rgba(255, 215, 0, 0.2)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 5; i++) {
+    const y = table.y - height/2 + (i * height/4);
+    ctx.beginPath();
+    ctx.moveTo(table.x - width/2 + 20, y);
+    ctx.lineTo(table.x + width/2 - 20, y);
+    ctx.stroke();
+  }
+}
+
+// Render ornate corner decorations
+function renderCornerOrnaments(table, width, height) {
+  const ornamentSize = 25;
+  ctx.fillStyle = '#DAA520';
+  ctx.font = 'bold 20px Cinzel, serif';
+  ctx.textAlign = 'center';
+  
+  // Corner positions
+  const corners = [
+    { x: table.x - width/2 + 15, y: table.y - height/2 + 20 }, // Top-left
+    { x: table.x + width/2 - 15, y: table.y - height/2 + 20 }, // Top-right
+    { x: table.x - width/2 + 15, y: table.y + height/2 - 10 }, // Bottom-left
+    { x: table.x + width/2 - 15, y: table.y + height/2 - 10 }  // Bottom-right
+  ];
+  
+  const ornaments = ['⚡', '🏛️', '🍇', '🏺'];
+  
+  corners.forEach((corner, i) => {
+    // Golden circle background
+    ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
+    ctx.beginPath();
+    ctx.arc(corner.x, corner.y, ornamentSize/2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Ornament symbol
+    ctx.fillStyle = '#DAA520';
+    ctx.fillText(ornaments[i], corner.x, corner.y + 6);
+  });
+}
+
+// Render divine feast engravings
+function renderFeastEngravings(table, width, height, time) {
+  // Central divine feast symbol - rotating laurel wreath
+  const centerSize = 40;
+  const rotation = time * 0.3;
+  
+  ctx.save();
+  ctx.translate(table.x, table.y);
+  ctx.rotate(rotation);
+  
+  // Laurel wreath base
+  ctx.strokeStyle = 'rgba(218, 165, 32, 0.6)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(0, 0, centerSize/2, 0, Math.PI * 2);
+  ctx.stroke();
+  
+  // Laurel leaves around the wreath
+  for (let i = 0; i < 12; i++) {
+    const angle = (i * Math.PI * 2) / 12;
+    const leafX = Math.cos(angle) * (centerSize/2);
+    const leafY = Math.sin(angle) * (centerSize/2);
+    
+    ctx.fillStyle = 'rgba(218, 165, 32, 0.5)';
+    ctx.beginPath();
+    ctx.ellipse(leafX, leafY, 4, 2, angle, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  ctx.restore();
+  
+  // Divine nectar goblets on edges
+  renderGobletEngravings(table, width, height, time);
+}
+
+// Render decorative goblet engravings
+function renderGobletEngravings(table, width, height, time) {
+  const gobletPositions = [
+    { x: table.x - width/3, y: table.y - height/3 },
+    { x: table.x + width/3, y: table.y - height/3 },
+    { x: table.x - width/3, y: table.y + height/3 },
+    { x: table.x + width/3, y: table.y + height/3 }
+  ];
+  
+  ctx.strokeStyle = 'rgba(184, 134, 11, 0.4)';
+  ctx.lineWidth = 2;
+  
+  gobletPositions.forEach((pos, i) => {
+    const shimmer = 0.3 + 0.2 * Math.sin(time * 2 + i);
+    ctx.strokeStyle = `rgba(184, 134, 11, ${shimmer})`;
+    
+    // Goblet stem
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y + 10);
+    ctx.lineTo(pos.x, pos.y - 5);
+    ctx.stroke();
+    
+    // Goblet base
+    ctx.beginPath();
+    ctx.moveTo(pos.x - 8, pos.y + 10);
+    ctx.lineTo(pos.x + 8, pos.y + 10);
+    ctx.stroke();
+    
+    // Goblet bowl
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y - 8, 6, 0, Math.PI * 2);
+    ctx.stroke();
+  });
 }
 
 // Render wood grain texture
@@ -588,11 +700,7 @@ function renderTableInteraction(table, tableWidth, tableHeight) {
   ctx.fillStyle = glowGrad;
   ctx.fillRect(table.x - tableWidth/2 - 20, table.y - tableHeight/2 - 20, tableWidth + 40, tableHeight + 40);
   
-  // Show interaction hint
-  ctx.fillStyle = '#FFD700';
-  ctx.font = 'bold 16px Cinzel, serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('Press E to place ingredient', table.x, table.y + tableHeight/2 + 30);
+  // No interaction text for minimalistic design
 }
 
 // Render ingredient slots on the table
@@ -727,44 +835,186 @@ function renderSlotIngredient(slotX, slotY, ingredient) {
   }
 }
 
-// Render delivery altar
+// Render Clean Minimalistic Altar
 function renderDeliveryAltar() {
   const counter = KITCHEN.POSITIONS.COUNTER;
-  const altarWidth = 300;
+  const altarWidth = 260;
   const altarHeight = 50;
   
-  // Stone altar base with gradient
-  const altarGrad = ctx.createLinearGradient(counter.x - altarWidth/2, counter.y - altarHeight/2,
-                                            counter.x - altarWidth/2, counter.y + altarHeight/2);
+  // Simple stone altar
+  const altarGrad = ctx.createLinearGradient(
+    counter.x, counter.y - altarHeight/2,
+    counter.x, counter.y + altarHeight/2
+  );
   altarGrad.addColorStop(0, '#A0522D'); // Sienna
   altarGrad.addColorStop(0.5, '#8B4513'); // Saddle brown
   altarGrad.addColorStop(1, '#654321'); // Dark brown
+  
   ctx.fillStyle = altarGrad;
   ctx.fillRect(counter.x - altarWidth/2, counter.y - altarHeight/2, altarWidth, altarHeight);
   
-  // Ancient carved border
-  ctx.strokeStyle = '#654321';
-  ctx.lineWidth = 4;
+  // Simple border
+  ctx.strokeStyle = 'rgba(101, 67, 33, 0.8)';
+  ctx.lineWidth = 3;
   ctx.strokeRect(counter.x - altarWidth/2, counter.y - altarHeight/2, altarWidth, altarHeight);
   
-  // Inner carved design
-  ctx.strokeStyle = '#D2691E'; // Chocolate
+  // Clean glow when player is near
+  if (game.player.currentZone === 'counter') {
+    renderCleanAltarInteraction(counter, altarWidth, altarHeight);
+  }
+}
+
+// Clean altar interaction
+function renderCleanAltarInteraction(counter, altarWidth, altarHeight) {
+  // Simple glow effect
+  const glowGrad = ctx.createRadialGradient(counter.x, counter.y, 60, counter.x, counter.y, 140);
+  glowGrad.addColorStop(0, 'rgba(255, 215, 0, 0.2)');
+  glowGrad.addColorStop(1, 'rgba(255, 215, 0, 0)');
+  ctx.fillStyle = glowGrad;
+  ctx.beginPath();
+  ctx.arc(counter.x, counter.y, 140, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// Render Greek key pattern border
+function renderGreekKeyPattern(counter, width, height) {
+  ctx.strokeStyle = '#DAA520';
   ctx.lineWidth = 2;
-  ctx.strokeRect(counter.x - altarWidth/2 + 4, counter.y - altarHeight/2 + 4, 
-                altarWidth - 8, altarHeight - 8);
   
-  // Ancient symbols/decorations on altar
-  ctx.fillStyle = '#DAA520'; // Dark goldenrod
+  const patternSize = 12;
+  const steps = Math.floor(width / patternSize);
+  
+  // Top border
+  for (let i = 0; i < steps; i++) {
+    const x = counter.x - width/2 + (i * patternSize);
+    const y = counter.y - height/2 + 3;
+    
+    ctx.strokeRect(x, y, patternSize/2, patternSize/4);
+    ctx.strokeRect(x + patternSize/2, y, patternSize/4, patternSize/2);
+  }
+  
+  // Bottom border
+  for (let i = 0; i < steps; i++) {
+    const x = counter.x - width/2 + (i * patternSize);
+    const y = counter.y + height/2 - 6;
+    
+    ctx.strokeRect(x, y, patternSize/2, patternSize/4);
+    ctx.strokeRect(x + patternSize/2, y - patternSize/4, patternSize/4, patternSize/2);
+  }
+}
+
+// Render sacred glowing runes
+function renderSacredRunes(counter, width, time) {
+  const runes = ['Α', 'Ω', 'Ψ', 'Φ', 'Θ']; // Alpha, Omega, Psi, Phi, Theta
+  const glowIntensity = 0.3 + 0.2 * Math.sin(time * 2);
+  
+  ctx.fillStyle = `rgba(255, 215, 0, ${glowIntensity})`;
+  ctx.shadowColor = '#FFD700';
+  ctx.shadowBlur = 8 + 4 * Math.sin(time * 3);
   ctx.font = 'bold 16px Cinzel, serif';
   ctx.textAlign = 'center';
-  ctx.fillText('⚱', counter.x - 80, counter.y + 6);  // Left urn
-  ctx.fillText('🏛', counter.x, counter.y + 6);        // Center temple
-  ctx.fillText('⚱', counter.x + 80, counter.y + 6);   // Right urn
   
-  // Divine glow when player is near
-  if (game.player.currentZone === 'counter') {
-    renderAltarInteraction(counter, altarWidth, altarHeight);
+  for (let i = 0; i < runes.length; i++) {
+    const x = counter.x - width/2 + 30 + (i * (width - 60) / 4);
+    const y = counter.y + 8;
+    const runeGlow = 0.5 + 0.3 * Math.sin(time * 2 + i);
+    
+    ctx.fillStyle = `rgba(255, 215, 0, ${runeGlow})`;
+    ctx.fillText(runes[i], x, y);
   }
+  
+  ctx.shadowBlur = 0;
+}
+
+// Render divine brazier with eternal flame
+function renderDivineBrazier(counter, time) {
+  const brazierWidth = 40;
+  const brazierHeight = 20;
+  
+  // Brazier base
+  const brazierGrad = ctx.createLinearGradient(
+    counter.x - brazierWidth/2, counter.y - 15,
+    counter.x + brazierWidth/2, counter.y + 5
+  );
+  brazierGrad.addColorStop(0, '#B8860B');
+  brazierGrad.addColorStop(0.5, '#FFD700');
+  brazierGrad.addColorStop(1, '#DAA520');
+  
+  ctx.fillStyle = brazierGrad;
+  ctx.fillRect(counter.x - brazierWidth/2, counter.y - 15, brazierWidth, brazierHeight);
+  
+  // Ornate brazier rim
+  ctx.strokeStyle = '#FFD700';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(counter.x - brazierWidth/2, counter.y - 15, brazierWidth, brazierHeight);
+  
+  // Eternal flame particles
+  for (let i = 0; i < 6; i++) {
+    const angle = (time * 2 + i) % (Math.PI * 2);
+    const flameX = counter.x + Math.cos(angle) * 3;
+    const flameY = counter.y - 20 - Math.abs(Math.sin(time * 3 + i)) * 8;
+    const intensity = 0.4 + 0.4 * Math.sin(time * 4 + i);
+    
+    ctx.fillStyle = `rgba(255, ${140 + Math.sin(time + i) * 60}, 0, ${intensity})`;
+    ctx.beginPath();
+    ctx.arc(flameX, flameY, 2 + Math.sin(time * 2 + i), 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+// Render intricate Greek carvings
+function renderGreekCarvings(counter, width, height) {
+  ctx.strokeStyle = 'rgba(184, 134, 11, 0.6)';
+  ctx.lineWidth = 1;
+  
+  // Left side: Greek column design
+  const leftX = counter.x - width/2 + 10;
+  for (let i = 0; i < 3; i++) {
+    const y = counter.y - height/2 + 15 + (i * 15);
+    ctx.beginPath();
+    ctx.moveTo(leftX, y);
+    ctx.lineTo(leftX + 20, y);
+    ctx.moveTo(leftX + 5, y - 5);
+    ctx.lineTo(leftX + 5, y + 5);
+    ctx.moveTo(leftX + 15, y - 5);
+    ctx.lineTo(leftX + 15, y + 5);
+    ctx.stroke();
+  }
+  
+  // Right side: Greek laurel wreath design
+  const rightX = counter.x + width/2 - 30;
+  ctx.beginPath();
+  ctx.arc(rightX + 10, counter.y, 12, 0, Math.PI * 2);
+  ctx.stroke();
+  
+  // Laurel leaves
+  for (let i = 0; i < 8; i++) {
+    const angle = (i * Math.PI * 2) / 8;
+    const leafX = rightX + 10 + Math.cos(angle) * 10;
+    const leafY = counter.y + Math.sin(angle) * 10;
+    
+    ctx.beginPath();
+    ctx.ellipse(leafX, leafY, 3, 1.5, angle, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+}
+
+// Render eternal divine glow
+function renderEternalGlow(counter, width, height, time) {
+  const glowRadius = 180 + 20 * Math.sin(time * 0.5);
+  const glowGrad = ctx.createRadialGradient(
+    counter.x, counter.y, 0,
+    counter.x, counter.y, glowRadius
+  );
+  glowGrad.addColorStop(0, 'rgba(255, 215, 0, 0.1)');
+  glowGrad.addColorStop(0.3, 'rgba(255, 215, 0, 0.05)');
+  glowGrad.addColorStop(0.7, 'rgba(255, 215, 0, 0.02)');
+  glowGrad.addColorStop(1, 'rgba(255, 215, 0, 0)');
+  
+  ctx.fillStyle = glowGrad;
+  ctx.beginPath();
+  ctx.arc(counter.x, counter.y, glowRadius, 0, Math.PI * 2);
+  ctx.fill();
 }
 
 // Render altar interaction effects
@@ -781,57 +1031,200 @@ function renderAltarInteraction(counter, altarWidth, altarHeight) {
   ctx.shadowBlur = 0;
   
   // Divine particles around altar
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 8; i++) {
     const angle = (Date.now() * 0.003 + i) % (Math.PI * 2);
-    const radius = 180 + Math.sin(Date.now() * 0.005 + i) * 15;
+    const radius = 200 + Math.sin(Date.now() * 0.005 + i) * 20;
     const particleX = counter.x + Math.cos(angle) * radius;
     const particleY = counter.y + Math.sin(angle) * radius;
+    const intensity = 0.6 + 0.3 * Math.sin(Date.now() * 0.008 + i);
     
-    ctx.fillStyle = 'rgba(255, 215, 0, 0.8)';
+    ctx.fillStyle = `rgba(255, 215, 0, ${intensity})`;
     ctx.beginPath();
-    ctx.arc(particleX, particleY, 3, 0, Math.PI * 2);
+    ctx.arc(particleX, particleY, 4, 0, Math.PI * 2);
     ctx.fill();
+  }
+  
+  // No altar interaction text for minimalistic design
+}
+
+// Render Ancient Greek Urn - Sacred Disposal Vessel
+function renderTrashBin() {
+  const trash = KITCHEN.POSITIONS.TRASH;
+  const urnWidth = 60;
+  const urnHeight = 70;
+  const time = Date.now() * 0.001;
+  
+  // Ancient stone urn base gradient
+  const urnGrad = ctx.createLinearGradient(
+    trash.x, trash.y - urnHeight/2,
+    trash.x, trash.y + urnHeight/2
+  );
+  urnGrad.addColorStop(0, '#D2B48C'); // Tan stone top
+  urnGrad.addColorStop(0.3, '#CD853F'); // Peru
+  urnGrad.addColorStop(0.6, '#A0522D'); // Sienna
+  urnGrad.addColorStop(1, '#8B4513'); // Saddle brown base
+  
+  // Urn body - classical amphora shape
+  ctx.fillStyle = urnGrad;
+  
+  // Main urn body (wider at top, narrower at bottom)
+  ctx.beginPath();
+  ctx.moveTo(trash.x - urnWidth/2, trash.y - urnHeight/2 + 10);
+  ctx.quadraticCurveTo(trash.x - urnWidth/2 - 5, trash.y, trash.x - urnWidth/3, trash.y + urnHeight/2);
+  ctx.lineTo(trash.x + urnWidth/3, trash.y + urnHeight/2);
+  ctx.quadraticCurveTo(trash.x + urnWidth/2 + 5, trash.y, trash.x + urnWidth/2, trash.y - urnHeight/2 + 10);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Urn neck
+  ctx.fillStyle = '#D2B48C';
+  ctx.fillRect(trash.x - urnWidth/3, trash.y - urnHeight/2, urnWidth * 2/3, 15);
+  
+  // Urn rim
+  ctx.fillStyle = '#B8860B';
+  ctx.fillRect(trash.x - urnWidth/2 + 5, trash.y - urnHeight/2 - 5, urnWidth - 10, 8);
+  
+  // Ancient Greek carvings on the urn
+  renderUrnCarvings(trash, urnWidth, urnHeight, time);
+  
+  // Urn handles (classical style)
+  renderUrnHandles(trash, urnWidth, urnHeight);
+  
+  // Stone texture and weathering
+  renderStoneTexture(trash, urnWidth, urnHeight);
+  
+  // Divine glow when player is near
+  if (game.player.currentZone === 'trash') {
+    renderUrnInteraction(trash, urnWidth, urnHeight);
+  }
+  
+  // Subtle shadow for depth
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+  ctx.beginPath();
+  ctx.ellipse(trash.x, trash.y + urnHeight/2 + 5, urnWidth/2, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// Render ancient Greek carvings on the urn
+function renderUrnCarvings(trash, width, height, time) {
+  // Greek wave pattern around the middle
+  ctx.strokeStyle = 'rgba(184, 134, 11, 0.6)';
+  ctx.lineWidth = 2;
+  
+  const waveY = trash.y - 5;
+  const wavePoints = 8;
+  
+  ctx.beginPath();
+  for (let i = 0; i <= wavePoints; i++) {
+    const angle = (i * Math.PI * 2) / wavePoints;
+    const x = trash.x - width/3 + (i * (width * 2/3) / wavePoints);
+    const y = waveY + Math.sin(angle) * 4;
+    
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  
+  // Greek spiral motifs
+  const spiralPositions = [
+    { x: trash.x - width/4, y: trash.y + 10 },
+    { x: trash.x + width/4, y: trash.y + 10 }
+  ];
+  
+  spiralPositions.forEach((pos, i) => {
+    const pulseIntensity = 0.4 + 0.2 * Math.sin(time * 2 + i);
+    ctx.strokeStyle = `rgba(184, 134, 11, ${pulseIntensity})`;
+    ctx.lineWidth = 1.5;
+    
+    // Draw spiral
+    ctx.beginPath();
+    for (let angle = 0; angle < Math.PI * 4; angle += 0.2) {
+      const radius = angle * 1.5;
+      const x = pos.x + Math.cos(angle) * radius;
+      const y = pos.y + Math.sin(angle) * radius;
+      
+      if (angle === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  });
+  
+  // Greek letter inscriptions
+  ctx.fillStyle = 'rgba(139, 69, 19, 0.7)';
+  ctx.font = 'bold 12px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('ΧΑΟΣ', trash.x, trash.y + height/3); // CHAOS in Greek
+}
+
+// Render classical urn handles
+function renderUrnHandles(trash, width, height) {
+  const handleColor = '#8B4513';
+  ctx.strokeStyle = handleColor;
+  ctx.lineWidth = 4;
+  
+  // Left handle
+  ctx.beginPath();
+  ctx.arc(trash.x - width/2 - 5, trash.y - height/4, 10, Math.PI/4, Math.PI * 3/4);
+  ctx.stroke();
+  
+  // Right handle
+  ctx.beginPath();
+  ctx.arc(trash.x + width/2 + 5, trash.y - height/4, 10, Math.PI/4, Math.PI * 3/4);
+  ctx.stroke();
+  
+  // Handle attachment points
+  ctx.fillStyle = handleColor;
+  ctx.beginPath();
+  ctx.arc(trash.x - width/2, trash.y - height/4 + 8, 3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(trash.x + width/2, trash.y - height/4 + 8, 3, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// Render stone texture and weathering
+function renderStoneTexture(trash, width, height) {
+  // Weathering marks and stone texture
+  ctx.strokeStyle = 'rgba(160, 82, 45, 0.3)';
+  ctx.lineWidth = 1;
+  
+  // Vertical weathering lines
+  for (let i = 0; i < 5; i++) {
+    const x = trash.x - width/3 + (i * width * 2/3 / 4);
+    ctx.beginPath();
+    ctx.moveTo(x, trash.y - height/2 + 15);
+    ctx.lineTo(x, trash.y + height/2 - 10);
+    ctx.stroke();
+  }
+  
+  // Horizontal age rings
+  ctx.strokeStyle = 'rgba(139, 69, 19, 0.2)';
+  for (let i = 0; i < 3; i++) {
+    const y = trash.y - height/4 + (i * height/6);
+    ctx.beginPath();
+    ctx.moveTo(trash.x - width/3, y);
+    ctx.lineTo(trash.x + width/3, y);
+    ctx.stroke();
   }
 }
 
-// Render trash bin
-function renderTrashBin() {
-  const trash = KITCHEN.POSITIONS.TRASH;
-  const trashSize = 50;
+// Render urn interaction effects
+function renderUrnInteraction(trash, width, height) {
+  // Golden divine aura around the ancient urn
+  const glowGrad = ctx.createRadialGradient(
+    trash.x, trash.y, 0,
+    trash.x, trash.y, width
+  );
+  glowGrad.addColorStop(0, 'rgba(255, 215, 0, 0.3)');
+  glowGrad.addColorStop(0.5, 'rgba(255, 215, 0, 0.15)');
+  glowGrad.addColorStop(1, 'rgba(255, 215, 0, 0)');
   
-  // Trash bin body (dark gray)
-  ctx.fillStyle = '#404040';
-  ctx.fillRect(trash.x - trashSize/2, trash.y - trashSize/2, trashSize, trashSize);
-  
-  // Trash bin lid (lighter gray)
-  ctx.fillStyle = '#606060';
-  ctx.fillRect(trash.x - trashSize/2 - 5, trash.y - trashSize/2 - 8, trashSize + 10, 15);
-  
-  // Trash bin border
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(trash.x - trashSize/2, trash.y - trashSize/2, trashSize, trashSize);
-  ctx.strokeRect(trash.x - trashSize/2 - 5, trash.y - trashSize/2 - 8, trashSize + 10, 15);
-  
-  // Trash icon/lines
-  ctx.strokeStyle = '#888';
-  ctx.lineWidth = 2;
+  ctx.fillStyle = glowGrad;
   ctx.beginPath();
-  ctx.moveTo(trash.x - 15, trash.y - 10);
-  ctx.lineTo(trash.x - 15, trash.y + 15);
-  ctx.moveTo(trash.x, trash.y - 10);
-  ctx.lineTo(trash.x, trash.y + 15);
-  ctx.moveTo(trash.x + 15, trash.y - 10);
-  ctx.lineTo(trash.x + 15, trash.y + 15);
-  ctx.stroke();
+  ctx.arc(trash.x, trash.y, width, 0, Math.PI * 2);
+  ctx.fill();
   
-  // Highlight if player is near
-  if (game.player.currentZone === 'trash') {
-    ctx.strokeStyle = '#FFD700';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(trash.x - trashSize/2 - 5, trash.y - trashSize/2 - 5, 
-                  trashSize + 10, trashSize + 10);
-  }
+  // No urn interaction text for minimalistic design
 }
 
 // Render divine oven
@@ -976,18 +1369,9 @@ function renderKitchenLabels() {
   const cuttingBoard = KITCHEN.POSITIONS.CUTTING_BOARD;
   const saucepan = KITCHEN.POSITIONS.SAUCEPAN;
   
-  // Labels
-  ctx.fillStyle = '#FFF';
-  ctx.font = 'bold 14px Arial';
+  // NO LABELS - only show cooking status when actively cooking
+  ctx.font = '10px Cinzel, serif';
   ctx.textAlign = 'center';
-  // Table label removed (already has title above)
-  ctx.fillText('DIVINE ALTAR', counter.x, counter.y - 35);
-  ctx.fillText('TRASH', trash.x, trash.y + 40);
-  
-  // Cooking station labels
-  ctx.fillStyle = '#FFD700'; // Gold for divine stations
-  ctx.font = 'bold 12px Cinzel, serif';
-  ctx.fillText('DIVINE OVEN', oven.x, oven.y + 55);
   
   // Oven status
   if (game.cookingItem) {
@@ -1014,9 +1398,7 @@ function renderKitchenLabels() {
     }
   }
   
-  ctx.fillStyle = '#FFD700'; // Gold for divine stations
-  ctx.font = 'bold 12px Cinzel, serif';
-  ctx.fillText('CUTTING BOARD', cuttingBoard.x, cuttingBoard.y + 55);
+  // No cutting board label
   
   // Cutting status
   if (game.cuttingItem) {
@@ -1047,11 +1429,8 @@ function renderKitchenLabels() {
     ctx.fillText('Press E to slice', cuttingBoard.x, cuttingBoard.y + 70);
   }
   
-  // Saucepan station (Level 3+)
+  // Saucepan station (Level 3+) - no label
   if (game.currentLevel >= 3) {
-    ctx.fillStyle = '#FFD700'; // Gold for divine stations
-    ctx.font = 'bold 12px Cinzel, serif';
-    ctx.fillText('DIVINE SAUCEPAN', saucepan.x, saucepan.y + 55);
     
     // Saucepan status
     if (game.saucepanItem) {
@@ -1141,7 +1520,7 @@ function renderPlayer() {
   }
   
   // Debug zone indicator
-  if (game.debugMode && player.currentZone) {
+  if (game.debugPanel && game.debugPanel.active && player.currentZone) {
     ctx.fillStyle = '#0F0';
     ctx.font = '12px Arial';
     ctx.textAlign = 'center';
@@ -1229,7 +1608,7 @@ function renderCarriedItem(player) {
 // BOSS FIGHT RENDERING (LEVEL 4)
 // =====================================================
 
-// Render the boss fight arena
+// Render the boss fight arena (OLD - pure boss fight)
 function renderBossFightArena() {
   if (!game.bossFight.active) return;
   
@@ -1249,6 +1628,23 @@ function renderBossFightArena() {
   
   // Render boss UI
   renderBossUI();
+  
+  // Render Benson Boone in the corner!
+  renderBensonBoone();
+}
+
+// Render boss fight elements over cooking kitchen (NEW - cooking under attack)
+function renderBossFightElements() {
+  if (!game.bossFight.active) return;
+  
+  // Render string traps
+  renderStringTraps();
+  
+  // Render The Fates
+  renderFatesBosses();
+  
+  // Render attacks (scissors, projectiles)
+  renderBossAttacks();
   
   // Render Benson Boone in the corner!
   renderBensonBoone();
@@ -1836,6 +2232,60 @@ function renderEpicHallOfHeroes() {
   ctx.shadowBlur = 8;
   ctx.fillText('🎉 WELCOME TO IMMORTALITY! 🎉', canvas.width/2, 50);
   ctx.shadowBlur = 0;
+}
+
+// Compact boss UI for Cooking Under Attack mode
+function renderBossUICompact() {
+  if (!game.bossFight.active) return;
+  
+  // PLAYER health bar - Compact in bottom-left
+  const healthBarWidth = 200;
+  const healthBarHeight = 20;
+  const healthX = 20;
+  const healthY = canvas.height - 50;
+  
+  // Player label
+  ctx.fillStyle = '#32CD32';
+  ctx.font = 'bold 12px Cinzel, serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('YOUR HEALTH', healthX, healthY - 5);
+  
+  // Background
+  ctx.fillStyle = '#1a1a1a';
+  ctx.fillRect(healthX, healthY, healthBarWidth, healthBarHeight);
+  
+  // Health (green theme)
+  const healthPercent = game.bossFight.playerHealth / 100;
+  const healthColor = healthPercent > 0.5 ? '#32CD32' : healthPercent > 0.2 ? '#FFD700' : '#FF4500';
+  ctx.fillStyle = healthColor;
+  ctx.fillRect(healthX, healthY, healthBarWidth * healthPercent, healthBarHeight);
+  
+  // Health text
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 11px Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${game.bossFight.playerHealth}/100`, healthX + healthBarWidth/2, healthY + 14);
+  
+  // The Fates status - Compact in bottom-right
+  const fatesX = canvas.width - 220;
+  const fatesY = canvas.height - 70;
+  
+  ctx.fillStyle = '#9370DB';
+  ctx.font = 'bold 12px Cinzel, serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('THE FATES', fatesX, fatesY - 5);
+  
+  // Show alive Fates count
+  const aliveFates = game.bossFight.fates.filter(f => f.health > 0).length;
+  ctx.fillStyle = aliveFates > 1 ? '#FF4500' : '#FFD700';
+  ctx.font = 'bold 14px Cinzel, serif';
+  ctx.fillText(`${aliveFates} ALIVE`, fatesX, fatesY + 15);
+  
+  // Cooking Under Attack message
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 12px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('🍳⚔️ COOK WHILE DODGING ATTACKS! ⚔️🍳', canvas.width/2, canvas.height - 15);
 }
 
 console.log("✅ Rendering system loaded");

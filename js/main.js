@@ -27,8 +27,8 @@ function update(deltaTime) {
     updateVictorySequence(deltaTime);
   }
   
-  // Update timer (faster with Hermes' power) - NO TIMER IN LEVEL 4 BOSS FIGHT
-  if (game.currentRiddle && game.currentLevel !== 4) {
+  // Update timer (faster with Hermes' power) - INCLUDE LEVEL 4 COOKING UNDER ATTACK
+  if (game.currentRiddle && (game.currentLevel !== 4 || (game.currentLevel === 4 && game.bossFight.active))) {
     let timerSpeed = 1;
     if (game.speedup) {
       timerSpeed = 2; // Timer counts down 2x faster with Hermes
@@ -76,9 +76,13 @@ function update(deltaTime) {
   // Update customer animation
   updateCustomerAnimation(deltaTime);
   
-  // Handle input (disable cooking controls during boss fight and instruction screens)
-  if (!game.showingInstructions && (game.currentLevel !== 4 || !game.bossFight.active)) {
-    // Normal cooking game controls (only when not showing instructions)
+  // Handle input (allow cooking controls during Cooking Under Attack mode)
+  const allowCookingControls = !game.showingInstructions && 
+    (game.currentLevel !== 4 || !game.bossFight.active || 
+     (game.bossFight.active && game.currentRiddle)); // Allow cooking during boss fight if there's a riddle
+     
+  if (allowCookingControls) {
+    // Cooking game controls (including Cooking Under Attack mode)
     if (input.wasPressed('e')) {
       handleInteraction();
     }
@@ -99,14 +103,13 @@ function update(deltaTime) {
       handleOvenRetrieve();
     }
   }
-  // During boss fight or instruction screens, only movement (WASD) is allowed - handled in physics.js
+  // During pure boss fight or instruction screens, only movement (WASD) is allowed - handled in physics.js
   
   // ESC key pause handling is done in input.js to avoid conflicts
   
-  // Toggle debug mode
-  if (input.wasPressed('backtick')) {
-    game.debugMode = !game.debugMode;
-    console.log(`Debug mode: ${game.debugMode ? 'ON' : 'OFF'}`);
+  // Debug panel input handling
+  if (game.debugPanel.active) {
+    handleDebugPanelInput();
   }
   
   // Leaderboard entry input handling
@@ -144,20 +147,19 @@ function update(deltaTime) {
       game.restartTimeout = null;
     }
     
-    // Handle Level 4 boss fight vs cooking levels differently
+    // Handle Level 4 cooking under attack vs cooking levels differently
     if (game.currentLevel === 4) {
-      console.log('🎮 Level 4 story dismissed - Initializing boss fight...');
+      console.log('🎮 Level 4 story dismissed - Initializing Cooking Under Attack...');
       
       try {
-        // Ensure state is ready for boss fight
+        // Ensure state is ready for cooking under attack
         game.state = 'playing';
-        initializeBossFight();
-      } catch (bossFightError) {
-        console.error('💥 Boss fight initialization failed from story dismissal:', bossFightError);
+        initializeLevel4CookingUnderAttack();
+      } catch (cookingError) {
+        console.error('💥 Cooking Under Attack initialization failed from story dismissal:', cookingError);
         
-        // Emergency fallback
-        game.bossFight.active = true;
-        game.bossFight.playerHealth = 100;
+        // Emergency fallback to pure boss fight
+        initializeBossFight();
         showToast("💀 Boss fight started (emergency mode)");
       }
     } else {
@@ -325,6 +327,19 @@ async function init() {
       AUDIO.enabled = !AUDIO.enabled; 
       console.log(`Audio ${AUDIO.enabled ? 'enabled' : 'disabled'}`);
     },
+    toggleMusic: () => {
+      toggleLevelMusic();
+    },
+    playMusic: (level) => {
+      if (level >= 1 && level <= 4) {
+        startLevelMusic(level);
+      } else {
+        console.log('Level must be 1-4');
+      }
+    },
+    stopMusic: () => {
+      stopLevelMusic();
+    },
     win: () => { game.score = CONFIG.WIN_SCORE; game.state = 'won'; },
     start: () => startGame()
   };
@@ -475,6 +490,299 @@ function handleHallOfHeroesInput() {
       game.state = 'menu';
     }
     game.leaderboardSortBy = 'score'; // Reset to default
+  }
+}
+
+// =============================================================================
+// DEBUG PANEL SYSTEM
+// =============================================================================
+
+// Handle debug panel input
+function handleDebugPanelInput() {
+  // Level Control
+  if (input.wasPressed('1')) {
+    debugJumpToLevel(1);
+  } else if (input.wasPressed('2')) {
+    debugJumpToLevel(2);
+  } else if (input.wasPressed('3')) {
+    debugJumpToLevel(3);
+  } else if (input.wasPressed('4')) {
+    debugJumpToLevel(4);
+  } else if (input.wasPressed('5')) {
+    debugCompleteGame();
+  }
+  
+  // Story Panel Testing
+  else if (input.wasPressed('6')) {
+    debugTestInstructions(2);
+  } else if (input.wasPressed('7')) {
+    debugTestInstructions(3);
+  } else if (input.wasPressed('8')) {
+    debugTestInstructions(4);
+  }
+  
+  // Customer Control
+  else if (input.wasPressed('9')) {
+    debugSkipToNextCustomer();
+  }
+}
+
+// Debug function: Jump to specific level
+function debugJumpToLevel(level) {
+  const oldLevel = game.currentLevel;
+  
+  // Clear any pending timeouts
+  if (game.nextRiddleTimeout) {
+    clearTimeout(game.nextRiddleTimeout);
+    game.nextRiddleTimeout = null;
+  }
+  game.timeoutInProgress = false;
+  
+  if (level === 1) {
+    game.score = 0;
+    game.currentLevel = 1;
+    game.timer = CONFIG.LEVEL_1_TIME;
+    game.state = 'playing';
+    showToast(`🐛 DEBUG: Jumped to Level 1`);
+    
+    // Start Level 1 music and gameplay
+    startLevelMusic(1);
+    game.shuffledCustomers = shuffleCustomers();
+    game.customerIndex = 0;
+    nextRiddle();
+    
+  } else if (level === 2) {
+    game.score = CONFIG.LEVEL_2_SCORE;
+    game.currentLevel = 2;
+    game.timer = CONFIG.LEVEL_2_TIME;
+    game.state = 'playing';
+    showToast(`🐛 DEBUG: Jumped to Level 2`);
+    
+    // Start Level 2 music and gameplay
+    startLevelMusic(2);
+    game.shuffledCustomers = shuffleCustomers();
+    game.customerIndex = 0;
+    nextRiddle();
+    
+  } else if (level === 3) {
+    game.score = CONFIG.LEVEL_3_SCORE;
+    game.currentLevel = 3;
+    game.timer = CONFIG.LEVEL_3_TIME;
+    game.state = 'playing';
+    showToast(`🐛 DEBUG: Jumped to Level 3`);
+    
+    // Start Level 3 music and gameplay
+    startLevelMusic(3);
+    game.shuffledCustomers = shuffleCustomers();
+    game.customerIndex = 0;
+    nextRiddle();
+    
+  } else if (level === 4) {
+    game.score = CONFIG.LEVEL_4_SCORE;
+    game.currentLevel = 4;
+    game.state = 'playing';
+    showToast(`🐛 DEBUG: Jumped to Level 4`);
+    
+    // Stop level music and start Level 4 Cooking Under Attack (uses boss music)
+    stopLevelMusic();
+    initializeLevel4CookingUnderAttack();
+  }
+  
+  console.log(`🐛 DEBUG: Jumped from Level ${oldLevel} to Level ${level}`);
+}
+
+// Debug function: Complete game
+function debugCompleteGame() {
+  console.log(`🐛 DEBUG: Completing game...`);
+  showToast(`🐛 DEBUG: Game completed!`);
+  
+  if (game.currentLevel === 4 && game.bossFight.active) {
+    bossFightWon();
+  } else {
+    game.score = CONFIG.WIN_SCORE;
+    game.state = 'won';
+  }
+}
+
+// Debug function: Test instruction screens
+function debugTestInstructions(level) {
+  console.log(`🐛 DEBUG: Testing Level ${level} instructions...`);
+  showToast(`🐛 DEBUG: Testing Level ${level} instructions`);
+  
+  game.showingInstructions = true;
+  game.instructionLevel = level;
+  
+  // Auto-dismiss after 6 seconds like normal
+  if (game.instructionTimeout) {
+    clearTimeout(game.instructionTimeout);
+  }
+  game.instructionTimeout = setTimeout(() => {
+    if (game.showingInstructions) {
+      dismissInstructionScreen();
+    }
+  }, 6000);
+}
+
+// Debug function: Skip to next customer
+function debugSkipToNextCustomer() {
+  if (game.currentLevel === 4) {
+    console.log(`🐛 DEBUG: Level 4 has single Ultimate Feast - restarting it`);
+    showToast(`🐛 DEBUG: Restarting Level 4 challenge`);
+    initializeLevel4CookingUnderAttack();
+  } else if (game.state === 'playing' && game.currentRiddle) {
+    console.log(`🐛 DEBUG: Skipping to next customer...`);
+    showToast(`🐛 DEBUG: Skipping customer`);
+    
+    // Clear timeouts
+    if (game.nextRiddleTimeout) {
+      clearTimeout(game.nextRiddleTimeout);
+      game.nextRiddleTimeout = null;
+    }
+    game.timeoutInProgress = false;
+    
+    // Clear plate and reset state
+    game.plate = [];
+    game.player.carrying = null;
+    
+    // Go to next riddle
+    nextRiddle();
+  } else {
+    showToast(`🐛 DEBUG: No active customer to skip`);
+  }
+}
+
+// =============================================================================
+// LEVEL MUSIC SYSTEM
+// =============================================================================
+
+// Start level music with randomization
+function startLevelMusic(level) {
+  console.log(`🎵 STARTING LEVEL ${level} MUSIC`);
+  
+  // Don't start level music during boss fight (it has its own music)
+  if (game.bossFight.active) {
+    console.log('🎵 Skipping level music - boss fight is active');
+    return;
+  }
+  
+  // Don't restart the same level music
+  if (game.levelMusic.currentLevel === level && game.levelMusic.currentMusic) {
+    console.log(`🎵 Level ${level} music already playing`);
+    return;
+  }
+  
+  if (!game.levelMusic.enabled) {
+    console.log('🎵 Level music disabled');
+    return;
+  }
+  
+  try {
+    // Stop any existing level music
+    stopLevelMusic();
+    
+    // Get music options for this level
+    const musicOptions = ASSET_FILES.music[`level${level}`];
+    if (!musicOptions || musicOptions.length === 0) {
+      console.log(`🎵 No music found for level ${level}`);
+      return;
+    }
+    
+    // Randomize if multiple songs available
+    let selectedMusic;
+    if (musicOptions.length > 1) {
+      selectedMusic = musicOptions[Math.floor(Math.random() * musicOptions.length)];
+      console.log(`🎵 Randomized selection: ${selectedMusic} (from ${musicOptions.length} options)`);
+    } else {
+      selectedMusic = musicOptions[0];
+      console.log(`🎵 Selected: ${selectedMusic}`);
+    }
+    
+    // Create and configure audio
+    game.levelMusic.currentMusic = new Audio(selectedMusic);
+    game.levelMusic.currentMusic.loop = true;
+    game.levelMusic.currentMusic.volume = game.levelMusic.volume;
+    game.levelMusic.currentMusic.preload = 'auto';
+    game.levelMusic.currentLevel = level;
+    
+    // Set up event listeners
+    game.levelMusic.currentMusic.addEventListener('loadstart', () => {
+      console.log(`🎵 Level ${level} music loading...`);
+    });
+    
+    game.levelMusic.currentMusic.addEventListener('canplay', () => {
+      console.log(`🎵 Level ${level} music ready to play`);
+    });
+    
+    game.levelMusic.currentMusic.addEventListener('error', (e) => {
+      console.error(`🎵 Level ${level} music error:`, e);
+      console.error('🎵 Error details:', {
+        code: e.target.error?.code,
+        message: e.target.error?.message
+      });
+    });
+    
+    // Play the music
+    const playPromise = game.levelMusic.currentMusic.play();
+    
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
+        console.log(`🎵 Level ${level} music started successfully`);
+      }).catch(error => {
+        console.warn(`🎵 Level ${level} music autoplay blocked:`, error);
+        // Music will start when user interacts with the page
+      });
+    }
+    
+  } catch (error) {
+    console.error(`🎵 Failed to start level ${level} music:`, error);
+  }
+}
+
+// Stop level music
+function stopLevelMusic() {
+  if (game.levelMusic.currentMusic) {
+    try {
+      game.levelMusic.currentMusic.pause();
+      game.levelMusic.currentMusic.currentTime = 0;
+      console.log(`🎵 Stopped level ${game.levelMusic.currentLevel} music`);
+    } catch (error) {
+      console.warn('🎵 Error stopping level music:', error);
+    }
+    
+    game.levelMusic.currentMusic = null;
+    game.levelMusic.currentLevel = 0;
+  }
+}
+
+// Fade out level music (for smooth transitions)
+function fadeLevelMusic(duration = 1000) {
+  if (!game.levelMusic.currentMusic) return;
+  
+  const music = game.levelMusic.currentMusic;
+  const startVolume = music.volume;
+  const fadeStep = startVolume / (duration / 50); // 50ms intervals
+  
+  const fadeInterval = setInterval(() => {
+    if (music.volume > fadeStep) {
+      music.volume -= fadeStep;
+    } else {
+      music.volume = 0;
+      music.pause();
+      clearInterval(fadeInterval);
+      console.log(`🎵 Level ${game.levelMusic.currentLevel} music faded out`);
+    }
+  }, 50);
+}
+
+// Toggle level music on/off
+function toggleLevelMusic() {
+  game.levelMusic.enabled = !game.levelMusic.enabled;
+  console.log(`🎵 Level music ${game.levelMusic.enabled ? 'enabled' : 'disabled'}`);
+  
+  if (!game.levelMusic.enabled) {
+    stopLevelMusic();
+  } else if (game.currentLevel > 0 && !game.bossFight.active) {
+    startLevelMusic(game.currentLevel);
   }
 }
 

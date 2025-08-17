@@ -161,6 +161,30 @@ function validatePlate(plate, riddle) {
     return { success: true };
   }
   
+  // ULTIMATE_FEAST validation - requires ALL specific ingredients (order doesn't matter)
+  if (riddle.type === "ULTIMATE_FEAST") {
+    if (plate.length !== riddle.totalCount) {
+      return { success: false, reason: `Need exactly ${riddle.totalCount} items` };
+    }
+    
+    // Check that ALL required ingredients are present
+    const plateItems = [...plate]; // Copy plate to track used items
+    for (let required of riddle.required) {
+      const index = plateItems.findIndex(item => item === required);
+      if (index === -1) {
+        return { success: false, reason: `Missing: ${required}` };
+      }
+      plateItems.splice(index, 1); // Remove found item
+    }
+    
+    // Check for any extra items
+    if (plateItems.length > 0) {
+      return { success: false, reason: `Extra items: ${plateItems.join(', ')}` };
+    }
+    
+    return { success: true };
+  }
+  
   return { success: false, reason: "Unknown riddle type" };
 }
 
@@ -709,6 +733,11 @@ function handleDelivery() {
       // Advance to Level 2: Heroes with Powers
       advanceToLevel2();
       return;
+    } else if (game.currentLevel === 4 && game.currentRiddle && game.currentRiddle.type === "ULTIMATE_FEAST") {
+      // Level 4: Ultimate Feast completed = WIN THE GAME!
+      console.log("🍳⚔️ ULTIMATE FEAST COMPLETED! You defeated the Fates!");
+      bossFightWon();
+      return;
     } else if (game.score >= CONFIG.WIN_SCORE) {
       // Clear any pending nextRiddle timeout before winning
       if (game.nextRiddleTimeout) {
@@ -782,6 +811,9 @@ function advanceToLevel2() {
   console.log("🏛️ Level 2 Features: Athens background, 5 heroes with special powers");
   console.log("🦸‍♂️ Heroes: Hercules (blur), Achilles (disrupt), Cyclops (darken), Pegasus, Satyr");
   
+  // Start Level 2 music (with randomization)
+  startLevelMusic(2);
+  
   // Show epic instruction screen
   game.showingInstructions = true;
   game.instructionLevel = 2;
@@ -818,6 +850,9 @@ function advanceToLevel3() {
   
   console.log("⚡ Advanced to Level 3: Gods Only");
   
+  // Start Level 3 music
+  startLevelMusic(3);
+  
   // Show epic instruction screen
   game.showingInstructions = true;
   game.instructionLevel = 3;
@@ -845,20 +880,23 @@ function advanceToLevel3() {
   }, 6000);
 }
 
-// Advance to Level 4: The Fates (Boss Battle)
+// Advance to Level 4: Cooking Under Attack!
 function advanceToLevel4() {
   game.currentLevel = 4;
   game.levelScore = 0;
-  game.level = 3; // Keep max riddle difficulty
-  game.timePerRiddle = CONFIG.LEVEL_4_TIME;
+  game.level = 4; // Level 4 riddle difficulty
+  game.timePerRiddle = 90; // 90 seconds for Ultimate Feast
   
-  console.log("🌀 Advanced to Level 4: The Fates Boss Battle");
+  console.log("🌀 Advanced to Level 4: Cooking Under Attack!");
   
-  // NO MORE COOKING! This is pure boss fight
-  game.currentRiddle = null;
+  // Stop level music - Level 4 will use boss music instead
+  stopLevelMusic();
+  
+  // COOKING + BOSS FIGHT COMBINED! Set up Ultimate Feast riddle
+  game.currentRiddle = null; // Will be set after instruction screen
   game.currentCustomer = null; // Clear any lingering customer from Level 3
   game.customerState = 'gone'; // Mark as gone
-  game.timer = 0;
+  game.timer = 0; // Will be set when riddle starts
   game.plate = [];
   game.player.carrying = null;
   
@@ -1061,6 +1099,9 @@ function restartLevel() {
         game.showingStory = false;
         game.storyPanel = null;
         
+        // Restart level music
+        startLevelMusic(currentLevelNum);
+        
         nextRiddle();
       }
       
@@ -1181,6 +1222,9 @@ function startGame() {
   game.processingNextRiddle = false; // Reset anti-scrambling flag
   game.timeoutInProgress = false; // Reset timeout flag
   
+  // Start Level 1 music
+  startLevelMusic(1);
+  
   // Clear ALL existing timeouts for clean start
   if (game.storyTimeout) {
     clearTimeout(game.storyTimeout);
@@ -1236,6 +1280,9 @@ function startGame() {
   game.judgmentTimer = 0;
   game.underworld = false;
   game.underworldTimer = 0;
+  
+  // Start Level 1 music
+  startLevelMusic(1);
   
   // Get first riddle
   nextRiddle();
@@ -1839,11 +1886,12 @@ function bossFightWon() {
   // Deactivate boss fight
   game.bossFight.active = false;
   
-  // Stop boss music immediately
+  // Stop all music (boss and level music)
   if (game.bossFight.bossMusic) {
     game.bossFight.bossMusic.pause();
     game.bossFight.bossMusic = null;
   }
+  stopLevelMusic();
   
   // Calculate victory achievements
   calculateVictoryAchievements();
@@ -1853,6 +1901,192 @@ function bossFightWon() {
   
   // Start Phase 1: Victory Explosion
   startVictoryPhase1();
+}
+
+// =============================================================================
+// LEVEL 4: COOKING UNDER ATTACK SYSTEM
+// =============================================================================
+
+// Initialize Level 4: Cooking Under Attack!
+function initializeLevel4CookingUnderAttack() {
+  console.log('🍳⚔️ LEVEL 4: Cooking Under Attack - Starting Ultimate Challenge!');
+  
+  try {
+    // Step 1: Randomly select from ALL Level 4 riddles (with repeat avoidance)
+    const level4Riddles = RIDDLES.filter(riddle => riddle.level === 4);
+    if (level4Riddles.length === 0) {
+      console.error('❌ No Level 4 riddles found!');
+      console.log('Available riddles:', RIDDLES.map(r => r.id));
+      // Fallback to pure boss fight
+      initializeBossFight();
+      return;
+    }
+    
+    // Avoid repeats (reset if all used)
+    let availableLevel4Riddles = level4Riddles.filter(r => !game.usedRiddles.includes(r.id));
+    if (availableLevel4Riddles.length === 0) {
+      console.log('🔄 All Level 4 riddles used, resetting for variety');
+      game.usedRiddles = game.usedRiddles.filter(id => !level4Riddles.some(r => r.id === id));
+      availableLevel4Riddles = level4Riddles;
+    }
+    
+    // Randomly select one of the available Level 4 riddles
+    const ultimateFeastRiddle = randomChoice(availableLevel4Riddles);
+    game.usedRiddles.push(ultimateFeastRiddle.id);
+    console.log('🎲 Selected Level 4 riddle:', ultimateFeastRiddle.text);
+    console.log('📋 Level 4 riddles available:', level4Riddles.length, 'Selected:', ultimateFeastRiddle.id);
+    
+    // Step 2: Set up the cooking challenge
+    game.currentRiddle = ultimateFeastRiddle;
+    
+    // Match customer to the riddle's specified customer
+    const customerName = ultimateFeastRiddle.customer;
+    let matchingCustomer;
+    
+    if (customerName === "Clotho") {
+      matchingCustomer = FATES.find(f => f.id === 'clotho');
+    } else if (customerName === "Lachesis") {
+      matchingCustomer = FATES.find(f => f.id === 'lachesis');
+    } else if (customerName === "Atropos") {
+      matchingCustomer = FATES.find(f => f.id === 'atropos');
+    } else {
+      // Default to collective "The Fates"
+      matchingCustomer = FATES.find(f => f.id === 'fates');
+    }
+    
+    // Set up customer or fallback
+    if (matchingCustomer) {
+      game.currentCustomer = {
+        id: matchingCustomer.id,
+        name: matchingCustomer.name,
+        success: matchingCustomer.success,
+        failure: matchingCustomer.failure,
+        timeout: matchingCustomer.timeout
+      };
+    } else {
+      // Emergency fallback
+      game.currentCustomer = {
+        id: 'fates',
+        name: 'The Fates',
+        success: ["The ultimate feast is accepted!", "The Fates are satisfied!", "Victory is yours!"],
+        failure: ["The feast is incomplete!", "The Fates demand perfection!", "This will not suffice!"],
+        timeout: ["Time has run out!", "The Fates grow impatient!", "Your fate is sealed!"]
+      };
+    }
+    
+    game.customerState = 'waiting';
+    
+    // Step 3: Set 90-second timer
+    game.timer = 90; // 90 seconds for Ultimate Feast
+    game.timePerRiddle = 90;
+    
+    // Step 4: Clear plate and carrying but preserve riddle/customer
+    game.plate = [];
+    game.player.carrying = null;
+    
+    // Step 5: Initialize boss fight AFTER cooking setup (modified version)
+    initializeBossFightForCooking();
+    
+    // Step 6: Reset timeout protection
+    game.timeoutInProgress = false;
+    game.processingNextRiddle = false;
+    
+    console.log('✅ Level 4 Cooking Under Attack initialized!');
+    console.log('🍳 Ultimate Feast riddle active:', game.currentRiddle?.text);
+    console.log('⚔️ Boss fight active:', game.bossFight.active);
+    console.log('👥 Customer:', game.currentCustomer?.name);
+    console.log('⏰ Timer:', game.timer, 'seconds');
+    console.log('🎮 Current Level:', game.currentLevel);
+    console.log('🔥 Level for riddles:', game.level);
+    console.log('🎯 Customer State:', game.customerState);
+    console.log('📝 Riddle Type:', game.currentRiddle?.type);
+    
+    showToast('🍳⚔️ COOK THE ULTIMATE FEAST WHILE DODGING THE FATES!');
+    
+  } catch (error) {
+    console.error('❌ Error initializing Level 4 Cooking Under Attack:', error);
+    // Fallback to regular boss fight
+    initializeBossFight();
+  }
+}
+
+// Initialize boss fight for cooking mode (preserves riddle/customer)
+function initializeBossFightForCooking() {
+  console.log('🎮 INITIALIZE BOSS FIGHT FOR COOKING: Starting setup...');
+  
+  try {
+    // STEP 1: Clear boss-specific state but preserve cooking state
+    game.bossFight.attacks = [];
+    game.bossFight.stringTraps = [];
+    game.bossFight.invulnerable = false;
+    game.bossFight.invulnerabilityTimer = 0;
+    console.log('✅ Step 1: Boss fight state cleared (cooking preserved)');
+    
+    // STEP 2: Set player health and survival parameters
+    game.bossFight.playerHealth = 100;
+    game.bossFight.maxHealth = 100;
+    game.bossFight.phase = 1;
+    game.bossFight.survivalTimer = 0;
+    game.bossFight.survivalGoal = 60000; // 60 seconds
+    console.log('✅ Step 2: Player health and survival parameters set');
+    
+    // STEP 3: Initialize Fates with complete state
+    game.bossFight.fates = [
+      { 
+        name: 'Clotho', 
+        x: 200, 
+        y: 200, 
+        health: 150, 
+        maxHealth: 150, 
+        angry: false, 
+        attackCooldown: 0,
+        power: 'web',
+        powerCooldown: 0,
+        sprite: 'clotho' // Use individual sprite
+      },
+      { 
+        name: 'Lachesis', 
+        x: 400, 
+        y: 300, 
+        health: 150, 
+        maxHealth: 150, 
+        angry: false, 
+        attackCooldown: 0,
+        power: 'teleport',
+        powerCooldown: 0,
+        sprite: 'lachesis' // Use individual sprite
+      },
+      { 
+        name: 'Atropos', 
+        x: 600, 
+        y: 250, 
+        health: 150, 
+        maxHealth: 150, 
+        angry: false, 
+        attackCooldown: 0,
+        power: 'triple',
+        powerCooldown: 0,
+        sprite: 'atropos' // Use individual sprite
+      }
+    ];
+    console.log('✅ Step 3: Fates initialized with individual sprites');
+    
+    // STEP 4: Start boss music
+    startBossMusic();
+    console.log('✅ Step 4: Boss music started');
+    
+    // STEP 5: Activate boss fight
+    game.bossFight.active = true;
+    console.log('✅ Step 5: Boss fight activated');
+    
+    console.log('🎮 Boss fight for cooking initialized successfully!');
+    
+  } catch (error) {
+    console.error('❌ Error initializing boss fight for cooking:', error);
+    // Emergency fallback
+    game.bossFight.active = true;
+    game.bossFight.playerHealth = 100;
+  }
 }
 
 // =============================================================================

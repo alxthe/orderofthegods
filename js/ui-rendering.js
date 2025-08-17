@@ -127,57 +127,29 @@ function renderSpeechBubble(x, y, text) {
   ctx.stroke();
 }
 
-// Render UI
+// Render Clean Minimalistic UI - Greek-Inspired
 function renderUI() {
-  // Skip normal UI during boss fight
-  if (game.currentLevel === 4 && game.bossFight.active) {
-    return; // Boss UI is rendered in renderBossUI()
-  }
-  
-  // Transparent header with stone dungeon styling
-  const headerGrad = ctx.createLinearGradient(0, 0, canvas.width, 120);
-  headerGrad.addColorStop(0, 'rgba(74, 55, 40, 0.8)'); // Stone brown with transparency
-  headerGrad.addColorStop(0.5, 'rgba(44, 24, 16, 0.9)'); // Dark brown  
-  headerGrad.addColorStop(1, 'rgba(26, 13, 8, 0.95)'); // Very dark brown
+  // Clean minimalistic header
+  const headerGrad = ctx.createLinearGradient(0, 0, canvas.width, 100);
+  headerGrad.addColorStop(0, 'rgba(139, 69, 19, 0.6)'); // Subtle brown
+  headerGrad.addColorStop(1, 'rgba(101, 67, 33, 0.7)'); // Darker brown
   ctx.fillStyle = headerGrad;
-  ctx.fillRect(0, 0, canvas.width, 120);
+  ctx.fillRect(0, 0, canvas.width, 100);
   
-  // Ancient stone border with carved appearance
-  ctx.strokeStyle = '#8B4513';
-  ctx.lineWidth = 4;
-  ctx.strokeRect(2, 2, canvas.width - 4, 116);
-  
-  // Inner carved border
-  ctx.strokeStyle = '#A0522D';
+  // Simple clean border
+  ctx.strokeStyle = 'rgba(218, 165, 32, 0.4)';
   ctx.lineWidth = 2;
-  ctx.strokeRect(6, 6, canvas.width - 12, 108);
+  ctx.strokeRect(0, 0, canvas.width, 100);
   
-  // Trial progress display (top-right)
-  ctx.fillStyle = '#DAA520'; // Dark goldenrod
-  ctx.font = 'bold 22px Cinzel, serif';
-  ctx.textAlign = 'right';
-  ctx.strokeStyle = '#654321';
-  ctx.lineWidth = 2;
-  ctx.strokeText(`Level ${game.currentLevel}: ${game.score}/${getNextLevelScore()}`, canvas.width - 20, 35);
-  ctx.fillText(`Level ${game.currentLevel}: ${game.score}/${getNextLevelScore()}`, canvas.width - 20, 35);
+  // Clean level progress display
+  renderCleanLevelProgress();
   
-  // Show level type
-  let levelName;
-  if (game.currentLevel === 1) levelName = "Gracious Time";
-  else if (game.currentLevel === 2) levelName = "Heroes' Powers";
-  else if (game.currentLevel === 3) levelName = "Divine Trials";
-  else if (game.currentLevel === 4) levelName = "THE FATES";
-  else levelName = "Unknown";
-  ctx.font = 'bold 16px Cinzel, serif';
-  ctx.strokeText(levelName, canvas.width - 20, 60);
-  ctx.fillText(levelName, canvas.width - 20, 60);
-  
-  // Enhanced timer with ancient hourglass styling
+  // Clean timer
   if (game.currentRiddle) {
     renderTimer();
   }
   
-  // Current riddle display (top-center)
+  // Clean riddle display
   if (game.currentRiddle) {
     renderRiddle();
   }
@@ -187,38 +159,129 @@ function renderUI() {
     renderStoryPanel();
   }
   
-  // Toast messages (positioned right under the divine table)
+  // Clean toast messages
   if (game.toastMessage && game.toastTimer > 0) {
-    // Position just below the divine preparation table
-    const tableY = Math.max(420, canvas.height * 0.45); // Same as table position
-    const toastY = tableY + 150; // Right below the table with some spacing
-    
-    ctx.fillStyle = '#FFD700';
-    ctx.font = 'bold 20px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
-    ctx.lineWidth = 3;
-    ctx.strokeText(game.toastMessage, canvas.width/2, toastY);
-    ctx.fillText(game.toastMessage, canvas.width/2, toastY);
+    renderCleanToast();
   }
   
-  // Controls (bottom)
-  ctx.fillStyle = '#AAA';
-  ctx.font = '12px Arial';
-  ctx.textAlign = 'center';
-  ctx.fillText('WASD: Move | E: Pickup/Place | Q: Undo | X: Trash | Enter: Deliver | ~: Debug',
-               canvas.width/2, canvas.height - 10);
+  // Debug panel (if active)
+  if (game.debugPanel && game.debugPanel.active) {
+    renderDebugPanel();
+  }
   
-  // Developer button (bottom left)
-  renderDeveloperButton();
-  
-  // FPS counter (debug)
-  if (game.debugMode) {
+  // FPS counter (debug panel)
+  if (game.debugPanel && game.debugPanel.active) {
     ctx.fillStyle = '#0F0';
     ctx.font = '14px Arial';
     ctx.textAlign = 'left';
     ctx.fillText(`FPS: ${game.currentFPS}`, 20, canvas.height - 40);
   }
+}
+
+// Render Greek key pattern decoration on header
+function renderHeaderGreekPattern() {
+  ctx.strokeStyle = 'rgba(184, 134, 11, 0.5)';
+  ctx.lineWidth = 2;
+  
+  const patternHeight = 8;
+  const patternWidth = 12;
+  const steps = Math.floor(canvas.width / patternWidth);
+  
+  // Top pattern
+  for (let i = 0; i < steps; i++) {
+    const x = i * patternWidth;
+    const y = 15;
+    
+    ctx.strokeRect(x + 2, y, patternWidth/2, patternHeight/2);
+    ctx.strokeRect(x + patternWidth/2 + 2, y, patternWidth/4, patternHeight);
+  }
+  
+  // Bottom pattern
+  for (let i = 0; i < steps; i++) {
+    const x = i * patternWidth;
+    const y = 115;
+    
+    ctx.strokeRect(x + 2, y, patternWidth/2, patternHeight/2);
+    ctx.strokeRect(x + patternWidth/2 + 2, y - patternHeight/2, patternWidth/4, patternHeight);
+  }
+}
+
+// Render divine corner ornaments
+function renderHeaderOrnaments(time) {
+  const ornamentSize = 20;
+  const pulse = 0.7 + 0.2 * Math.sin(time * 1.5);
+  
+  ctx.fillStyle = `rgba(255, 215, 0, ${pulse})`;
+  ctx.font = 'bold 18px Cinzel, serif';
+  ctx.textAlign = 'center';
+  
+  // Corner ornaments with divine symbols
+  const ornaments = ['⚡', '🏛️', '🔱', '⚱'];
+  const positions = [
+    { x: 30, y: 35 },    // Top-left
+    { x: canvas.width - 30, y: 35 }, // Top-right
+    { x: 30, y: 105 },   // Bottom-left
+    { x: canvas.width - 30, y: 105 } // Bottom-right
+  ];
+  
+  positions.forEach((pos, i) => {
+    // Glowing circle background
+    ctx.fillStyle = `rgba(255, 215, 0, ${pulse * 0.3})`;
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, ornamentSize/2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Ornament symbol
+    ctx.fillStyle = `rgba(255, 215, 0, ${pulse})`;
+    ctx.fillText(ornaments[i], pos.x, pos.y + 6);
+  });
+}
+
+// Render clean level progress
+function renderCleanLevelProgress() {
+  // Simple level progress
+  ctx.fillStyle = 'rgba(255, 215, 0, 0.9)';
+  ctx.font = 'bold 20px Cinzel, serif';
+  ctx.textAlign = 'right';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+  ctx.shadowBlur = 3;
+  
+  const progressText = `Level ${game.currentLevel}: ${game.score}/${getNextLevelScore()}`;
+  ctx.fillText(progressText, canvas.width - 20, 35);
+  
+  // Simple level type
+  let levelName;
+  if (game.currentLevel === 1) levelName = "Gracious Time";
+  else if (game.currentLevel === 2) levelName = "Heroes' Powers";
+  else if (game.currentLevel === 3) levelName = "Divine Trials";
+  else if (game.currentLevel === 4) levelName = "THE FATES";
+  else levelName = "Unknown";
+  
+  ctx.fillStyle = 'rgba(218, 165, 32, 0.8)';
+  ctx.font = 'bold 14px Cinzel, serif';
+  ctx.fillText(levelName, canvas.width - 20, 55);
+  
+  // Reset shadow
+  ctx.shadowBlur = 0;
+  ctx.shadowColor = 'transparent';
+}
+
+// Render clean toast messages
+function renderCleanToast() {
+  const tableY = Math.max(420, canvas.height * 0.45);
+  const toastY = tableY + 130;
+  
+  // Simple toast text
+  ctx.fillStyle = 'rgba(255, 215, 0, 0.9)';
+  ctx.font = 'bold 18px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+  ctx.shadowBlur = 4;
+  
+  ctx.fillText(game.toastMessage, canvas.width/2, toastY);
+  
+  ctx.shadowBlur = 0;
+  ctx.shadowColor = 'transparent';
 }
 
 // Render timer (simple and clean) - NO TIMER IN BOSS FIGHT
@@ -325,85 +388,93 @@ function renderStoryPanel() {
   ctx.fillText('Click anywhere to continue...', canvas.width/2, panelY + panelHeight - 30);
 }
 
-// Render developer button
-function renderDeveloperButton() {
-  const devBtnX = 20;
-  const devBtnY = canvas.height - 50;
-  const devBtnWidth = 120;
-  const devBtnHeight = 30;
+// Debug Panel System
+function renderDebugPanel() {
+  const panelX = 50;
+  const panelY = 150;
+  const panelWidth = 400;
+  const panelHeight = 350;
   
-  // Button background
-  ctx.fillStyle = 'rgba(255, 165, 0, 0.8)';
-  ctx.fillRect(devBtnX, devBtnY, devBtnWidth, devBtnHeight);
-  ctx.strokeStyle = '#FF8C00';
+  // Semi-transparent dark overlay
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+  ctx.fillRect(panelX, panelY, panelWidth, panelHeight);
+  
+  // Panel border
+  ctx.strokeStyle = '#FFD700';
   ctx.lineWidth = 2;
-  ctx.strokeRect(devBtnX, devBtnY, devBtnWidth, devBtnHeight);
+  ctx.strokeRect(panelX, panelY, panelWidth, panelHeight);
   
-  // Button text
-  ctx.fillStyle = '#000';
-  ctx.font = 'bold 12px Arial';
+  // Header
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 18px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText('SKIP LEVEL (L)', devBtnX + devBtnWidth/2, devBtnY + devBtnHeight/2 + 4);
+  ctx.fillText('DEBUG MODE', panelX + panelWidth/2, panelY + 25);
   
-  // Developer button functionality
-  if (input.wasPressed('l')) {
-    // Fast-forward to next level by adding points and triggering level progression
-    const oldLevel = game.currentLevel;
-    
-    if (game.currentLevel === 1) {
-      // Add points to reach Level 2
-      game.score = CONFIG.LEVEL_2_SCORE;
-      game.levelScore = CONFIG.LEVEL_2_SCORE;
-      game.currentLevel = 2;
-      game.timer = CONFIG.LEVEL_2_TIME;
-      showToast(`🚀 DEV: Advanced to Level 2!`);
-    } else if (game.currentLevel === 2) {
-      // Add points to reach Level 3
-      game.score = CONFIG.LEVEL_3_SCORE;
-      game.levelScore = CONFIG.LEVEL_3_SCORE;
-      game.currentLevel = 3;
-      game.timer = CONFIG.LEVEL_3_TIME;
-      showToast(`🚀 DEV: Advanced to Level 3!`);
-    } else if (game.currentLevel === 3) {
-      // Add points to reach Level 4 (Fates Boss Fight)
-      game.score = CONFIG.LEVEL_4_SCORE;
-      game.levelScore = CONFIG.LEVEL_4_SCORE;
-      game.currentLevel = 4;
-      game.timer = 0; // No timer in boss fight
-      game.currentRiddle = null; // No riddles in boss fight
-      showToast(`🚀 DEV: Advanced to Level 4 (Boss Fight)!`);
-      // Initialize boss fight immediately
-      initializeBossFight();
-    } else if (game.currentLevel === 4) {
-      // Complete the game (boss fight won)
-      if (game.bossFight.active) {
-        bossFightWon();
-      } else {
-        game.score = CONFIG.WIN_SCORE;
-        game.state = 'won';
-        showToast(`🚀 DEV: Game completed!`);
-      }
-    }
-    
-    // Trigger new customer for the new level (except Level 4 boss fight)
-    if (game.currentLevel !== oldLevel && game.state === 'playing' && game.currentLevel !== 4) {
-      // Clear any pending timeouts before calling nextRiddle
-      if (game.nextRiddleTimeout) {
-        clearTimeout(game.nextRiddleTimeout);
-        game.nextRiddleTimeout = null;
-      }
-      game.shuffledCustomers = shuffleCustomers();
-      game.customerIndex = 0;
-      nextRiddle();
-    }
-    
-    console.log(`🚀 DEV BUTTON: Advanced from Level ${oldLevel} to Level ${game.currentLevel} with score ${game.score}`);
-  }
+  // Instructions
+  ctx.fillStyle = '#FFF';
+  ctx.font = '12px Arial';
+  ctx.textAlign = 'left';
+  const startY = panelY + 50;
+  const lineHeight = 20;
+  let currentY = startY;
+  
+  // Level Control section
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 14px Arial';
+  ctx.fillText('LEVEL CONTROL:', panelX + 20, currentY);
+  currentY += lineHeight + 5;
+  
+  ctx.fillStyle = '#FFF';
+  ctx.font = '12px Arial';
+  ctx.fillText('1 - Jump to Level 1', panelX + 30, currentY);
+  currentY += lineHeight;
+  ctx.fillText('2 - Jump to Level 2', panelX + 30, currentY);
+  currentY += lineHeight;
+  ctx.fillText('3 - Jump to Level 3', panelX + 30, currentY);
+  currentY += lineHeight;
+  ctx.fillText('4 - Jump to Level 4', panelX + 30, currentY);
+  currentY += lineHeight;
+  ctx.fillText('5 - Complete Game', panelX + 30, currentY);
+  currentY += lineHeight + 10;
+  
+  // Story Panel Testing section
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 14px Arial';
+  ctx.fillText('STORY PANEL TESTING:', panelX + 20, currentY);
+  currentY += lineHeight + 5;
+  
+  ctx.fillStyle = '#FFF';
+  ctx.font = '12px Arial';
+  ctx.fillText('6 - Test Level 2 Instructions', panelX + 30, currentY);
+  currentY += lineHeight;
+  ctx.fillText('7 - Test Level 3 Instructions', panelX + 30, currentY);
+  currentY += lineHeight;
+  ctx.fillText('8 - Test Level 4 Instructions', panelX + 30, currentY);
+  currentY += lineHeight + 10;
+  
+  // Customer Control section
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 14px Arial';
+  ctx.fillText('CUSTOMER CONTROL:', panelX + 20, currentY);
+  currentY += lineHeight + 5;
+  
+  ctx.fillStyle = '#FFF';
+  ctx.font = '12px Arial';
+  ctx.fillText('9 - Skip to Next Customer', panelX + 30, currentY);
+  currentY += lineHeight + 15;
+  
+  // Footer
+  ctx.fillStyle = '#AAA';
+  ctx.font = '12px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('Press ~ to close', panelX + panelWidth/2, panelY + panelHeight - 15);
 }
 
-// Menu screen - Frontpage Display
+// Cinematic Greek Main Menu - Polished and Professional
 function renderMenu() {
-  // Display frontpage.png as full-screen background
+  const time = Date.now() * 0.001;
+  
+  // Soft background overlay to reduce fire intensity
   const frontpageImg = ASSETS.ui.frontpage;
   
   if (frontpageImg && ASSETS.loaded) {
@@ -418,51 +489,249 @@ function renderMenu() {
     let drawWidth, drawHeight, drawX, drawY;
     
     if (imgAspectRatio > screenAspectRatio) {
-      // Image is wider than screen - fit to height and crop sides
       drawHeight = canvas.height;
       drawWidth = canvas.height * imgAspectRatio;
       drawX = (canvas.width - drawWidth) / 2;
       drawY = 0;
     } else {
-      // Image is taller than screen - fit to width and crop top/bottom
       drawWidth = canvas.width;
       drawHeight = canvas.width / imgAspectRatio;
       drawX = 0;
       drawY = (canvas.height - drawHeight) / 2;
     }
     
-    // Draw the frontpage image
+    // Draw the frontpage image with subtle overlay
     ctx.drawImage(frontpageImg, drawX, drawY, drawWidth, drawHeight);
-  } else {
-    // Fallback if frontpage.png fails to load
-    const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    bgGrad.addColorStop(0, '#2C1810'); // Dark brown
-    bgGrad.addColorStop(0.6, '#1A0F08'); // Nearly black
-    bgGrad.addColorStop(1, '#000000'); // Black
-    ctx.fillStyle = bgGrad;
+    
+    // Soft dramatic overlay to tone down fire
+    const overlayGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    overlayGrad.addColorStop(0, 'rgba(0, 0, 0, 0.3)');
+    overlayGrad.addColorStop(0.4, 'rgba(26, 15, 8, 0.4)');
+    overlayGrad.addColorStop(1, 'rgba(0, 0, 0, 0.5)');
+    ctx.fillStyle = overlayGrad;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Fallback text
-    ctx.fillStyle = '#FFD700';
-    ctx.font = 'bold 64px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-    ctx.shadowBlur = 8;
-    ctx.fillText('ORDER OF THE GODS', canvas.width/2, canvas.height * 0.4);
-    ctx.fillText('(Loading frontpage.png...)', canvas.width/2, canvas.height * 0.5);
-    ctx.shadowBlur = 0;
+  } else {
+    // Fallback cinematic background
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    bgGrad.addColorStop(0, '#2C1810');
+    bgGrad.addColorStop(0.6, '#1A0F08');
+    bgGrad.addColorStop(1, '#000000');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
   
-  // Input handling - ENTER to start game, H for Hall of Heroes
+  // Elegant Greek decorative border frame
+  renderCinematicFrame();
+  
+  // Professional text layout with perfect spacing
+  ctx.textAlign = 'center';
+  
+  // 1. MAIN TITLE - Elegant and Bold
+  renderMainTitle(time);
+  
+  // 2. SUBTITLE - Refined styling
+  renderSubtitle();
+  
+  // 3. STORY TEXT - Enhanced readability
+  renderStoryText();
+  
+  // 4. PROFESSIONAL UI BUTTONS
+  renderMenuButtons(time);
+  
+  // Reset all effects
+  ctx.shadowBlur = 0;
+  ctx.shadowColor = 'transparent';
+  
+  // Input handling
   if (input.wasPressed('enter')) {
     startGame();
   }
   
   if (input.wasPressed('h')) {
     game.state = 'hall_of_heroes';
-    game.leaderboardSortBy = 'score'; // Default sort
+    game.leaderboardSortBy = 'score';
     AUDIO.playMenuSelect();
   }
+}
+
+// Render elegant cinematic frame with Greek motifs
+function renderCinematicFrame() {
+  const borderWidth = 40;
+  const cornerSize = 80;
+  
+  // Subtle outer frame
+  ctx.strokeStyle = 'rgba(218, 165, 32, 0.6)';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(15, 15, canvas.width - 30, canvas.height - 30);
+  
+  // Inner refined frame
+  ctx.strokeStyle = 'rgba(255, 215, 0, 0.4)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(25, 25, canvas.width - 50, canvas.height - 50);
+  
+  // Elegant corner ornaments
+  const corners = [
+    { x: 35, y: 35 },
+    { x: canvas.width - 35, y: 35 },
+    { x: 35, y: canvas.height - 35 },
+    { x: canvas.width - 35, y: canvas.height - 35 }
+  ];
+  
+  ctx.strokeStyle = 'rgba(218, 165, 32, 0.5)';
+  ctx.lineWidth = 2;
+  
+  corners.forEach(corner => {
+    // Simple Greek corner flourish
+    ctx.beginPath();
+    ctx.moveTo(corner.x - 15, corner.y);
+    ctx.lineTo(corner.x + 15, corner.y);
+    ctx.moveTo(corner.x, corner.y - 15);
+    ctx.lineTo(corner.x, corner.y + 15);
+    ctx.stroke();
+  });
+}
+
+// Render main title with elegant styling
+function renderMainTitle(time) {
+  const titleY = canvas.height * 0.18;
+  const glow = 0.8 + 0.1 * Math.sin(time * 1.5);
+  
+  // Elegant title with refined glow
+  ctx.font = 'bold 72px Cinzel, serif';
+  ctx.fillStyle = `rgba(255, 215, 0, ${glow})`;
+  ctx.strokeStyle = 'rgba(139, 69, 19, 0.8)';
+  ctx.lineWidth = 3;
+  ctx.shadowColor = 'rgba(255, 215, 0, 0.4)';
+  ctx.shadowBlur = 15;
+  
+  ctx.strokeText('ORDER OF THE GODS', canvas.width/2, titleY);
+  ctx.fillText('ORDER OF THE GODS', canvas.width/2, titleY);
+  
+  // Subtle underline decoration
+  ctx.strokeStyle = 'rgba(218, 165, 32, 0.6)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(canvas.width/2 - 250, titleY + 15);
+  ctx.lineTo(canvas.width/2 + 250, titleY + 15);
+  ctx.stroke();
+}
+
+// Render subtitle with balanced styling
+function renderSubtitle() {
+  const subtitleY = canvas.height * 0.18 + 80;
+  
+  ctx.font = 'bold 32px Cinzel, serif';
+  ctx.fillStyle = 'rgba(218, 165, 32, 0.9)';
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
+  ctx.lineWidth = 2;
+  ctx.shadowBlur = 8;
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+  
+  ctx.strokeText('DUNGEON OF MOUNT OLYMPUS', canvas.width/2, subtitleY);
+  ctx.fillText('DUNGEON OF MOUNT OLYMPUS', canvas.width/2, subtitleY);
+}
+
+// Render story text with improved readability
+function renderStoryText() {
+  const storyStartY = canvas.height * 0.35;
+  
+  // Story background for better readability
+  const storyBg = ctx.createRadialGradient(
+    canvas.width/2, storyStartY + 100, 0,
+    canvas.width/2, storyStartY + 100, 400
+  );
+  storyBg.addColorStop(0, 'rgba(0, 0, 0, 0.4)');
+  storyBg.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = storyBg;
+  ctx.beginPath();
+  ctx.arc(canvas.width/2, storyStartY + 100, 400, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Refined story text
+  ctx.font = '22px Crimson Text, serif';
+  ctx.fillStyle = 'rgba(230, 210, 163, 0.95)';
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)';
+  ctx.lineWidth = 1;
+  ctx.shadowBlur = 4;
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+  
+  const storyLines = [
+    'Collared by the Fates themselves, you stand in the Tartarus Feast Hall—',
+    'a torchlit kitchen suspended between worlds, where mythic creatures',
+    'gather to test your worth with cryptic riddles.',
+    '',
+    'Each correct order cracks your iron collar. Each failure tightens it.',
+    '',
+    'Survive four trials: creatures, heroes, gods, and the Fates themselves.',
+    'The Fates have written your contract in riddles of their own.'
+  ];
+  
+  let storyY = storyStartY;
+  const lineHeight = 30;
+  
+  storyLines.forEach(line => {
+    if (line.trim()) {
+      ctx.strokeText(line, canvas.width/2, storyY);
+    }
+    ctx.fillText(line, canvas.width/2, storyY);
+    storyY += lineHeight;
+  });
+}
+
+// Render professional menu buttons
+function renderMenuButtons(time) {
+  const enterY = canvas.height * 0.72;
+  const heroesY = enterY + 60;
+  const pulse = 0.9 + 0.1 * Math.sin(time * 2);
+  
+  // Main action button with professional styling
+  renderMenuButton(
+    'PRESS ENTER TO BEGIN YOUR TRIAL',
+    canvas.width/2, enterY,
+    320, 45,
+    `rgba(255, 215, 0, ${pulse})`,
+    'rgba(139, 69, 19, 0.8)',
+    'bold 24px Cinzel, serif'
+  );
+  
+  // Secondary button
+  renderMenuButton(
+    'PRESS H FOR HALL OF HEROES',
+    canvas.width/2, heroesY,
+    280, 35,
+    'rgba(218, 165, 32, 0.8)',
+    'rgba(101, 67, 33, 0.7)',
+    'bold 18px Cinzel, serif'
+  );
+}
+
+// Render individual menu button with consistent styling
+function renderMenuButton(text, x, y, width, height, fillColor, strokeColor, font) {
+  // Button background
+  const buttonGrad = ctx.createLinearGradient(x - width/2, y - height/2, x - width/2, y + height/2);
+  buttonGrad.addColorStop(0, 'rgba(139, 69, 19, 0.2)');
+  buttonGrad.addColorStop(0.5, 'rgba(160, 82, 45, 0.3)');
+  buttonGrad.addColorStop(1, 'rgba(101, 67, 33, 0.4)');
+  
+  ctx.fillStyle = buttonGrad;
+  ctx.fillRect(x - width/2, y - height/2, width, height);
+  
+  // Button border
+  ctx.strokeStyle = strokeColor;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x - width/2, y - height/2, width, height);
+  
+  // Button text
+  ctx.font = font;
+  ctx.fillStyle = fillColor;
+  ctx.shadowBlur = 6;
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+  ctx.lineWidth = 1;
+  
+  ctx.strokeText(text, x, y + 6);
+  ctx.fillText(text, x, y + 6);
 }
 
 // Level Instruction Screen - Epic full-screen overlays
@@ -586,8 +855,8 @@ function dismissInstructionScreen() {
     game.processingNextRiddle = false;
     nextRiddle();
   } else if (level === 4) {
-    // Initialize Level 4 boss fight
-    initializeBossFight();
+    // Initialize Level 4: Cooking Under Attack!
+    initializeLevel4CookingUnderAttack();
   }
 }
 
@@ -1206,33 +1475,7 @@ function renderPauseOverlay() {
   ctx.fillText('Press ESC to resume', canvas.width/2, canvas.height/2 + 50);
 }
 
-// Debug info
-function renderDebug() {
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-  ctx.fillRect(10, 100, 300, 200);
-  
-  ctx.fillStyle = '#0F0';
-  ctx.font = '12px monospace';
-  ctx.textAlign = 'left';
-  
-  const debugInfo = [
-    `Player: (${Math.round(game.player.x)}, ${Math.round(game.player.y)})`,
-    `Zone: ${game.player.currentZone || 'none'}`,
-    `Carrying: ${game.player.carrying || 'none'}`,
-    `Plate: [${game.plate.join(', ')}]`,
-    `Timer: ${Math.ceil(game.timer)}s`,
-    `Score: ${game.score}, Level: ${game.currentLevel}`,
-    `Customer: ${game.currentCustomer?.name || 'none'}`,
-    `State: ${game.customerState}`,
-    `Riddle: ${game.currentRiddle?.text || 'none'}`,
-    `Cooking: ${game.cookingItem || 'none'} (${Math.ceil(game.cookingTimer/1000)}s)`,
-    `Special: ${game.frozen ? 'FROZEN' : ''}${game.blurred ? 'BLURRED' : ''}${game.disrupted ? 'DISRUPTED' : ''}${game.darkened ? 'DARKENED' : ''}`
-  ];
-  
-  debugInfo.forEach((line, i) => {
-    ctx.fillText(line, 20, 120 + i * 15);
-  });
-}
+
 
 // Helper function to wrap text
 function wrapText(text, maxWidth) {
