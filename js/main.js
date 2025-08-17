@@ -12,7 +12,7 @@ function ensureRenderQuality() {
 
 // Main update function
 function update(deltaTime) {
-  if (game.state !== 'playing') return;
+  if (game.state !== 'playing' && game.state !== 'victory_sequence') return;
   
   // Update special power timers
   updateSpecialPowers(deltaTime);
@@ -20,6 +20,11 @@ function update(deltaTime) {
   // Update boss fight (Level 4)
   if (game.currentLevel === 4) {
     updateBossFight(deltaTime);
+  }
+  
+  // Update victory sequence if active
+  if (game.victorySequence && game.victorySequence.active) {
+    updateVictorySequence(deltaTime);
   }
   
   // Update timer (faster with Hermes' power) - NO TIMER IN LEVEL 4 BOSS FIGHT
@@ -39,9 +44,12 @@ function update(deltaTime) {
       AUDIO.playTick(); // Urgent tick at 1 second
     }
     
-    if (game.timer <= 0) {
+    if (game.timer <= 0 && !game.timeoutInProgress) {
       game.timer = 0;
-      // SIMPLE timeout handling - no scrambling!
+      game.timeoutInProgress = true; // CRITICAL: Block duplicate timeouts
+      console.log("🕐 Creating timeout - timeoutInProgress:", game.timeoutInProgress);
+      
+      // Show timeout feedback
       game.customerMessage = "TIMED OUT!!!";
       game.messageTimer = 2000;
       showToast("TIMED OUT!!!");
@@ -51,10 +59,12 @@ function update(deltaTime) {
       // Update god relationship (negative for timeout)
       updateGodRelationship(game.currentCustomer.id, false);
       
-      // Customer walks out, then immediate next riddle - NO complex logic
+      // Customer walks out, then next riddle - SINGLE TIMEOUT ONLY
       game.customerState = 'walking_out';
       game.nextRiddleTimeout = setTimeout(() => {
         game.nextRiddleTimeout = null; // Clear the timeout reference
+        game.timeoutInProgress = false; // Reset flag for next timeout
+        console.log("🔄 Timeout completed, flag reset");
         nextRiddle(); // Use the single, consistent nextRiddle function
       }, 2500);
     }
@@ -99,8 +109,20 @@ function update(deltaTime) {
     console.log(`Debug mode: ${game.debugMode ? 'ON' : 'OFF'}`);
   }
   
+  // Leaderboard entry input handling
+  if (game.state === 'leaderboard_entry' || game.state === 'epic_leaderboard_entry') {
+    handleLeaderboardEntryInput();
+  }
+  
+  // Hall of Heroes input handling
+  if (game.state === 'hall_of_heroes' || game.state === 'epic_hall_of_heroes') {
+    handleHallOfHeroesInput();
+  }
+  
   // Story panel interaction (Enter, Space, or Click - ESC handled by input.js for pause)
   if (game.showingStory && (input.wasPressed('enter') || input.wasPressed('space') || input.wasClicked())) {
+    console.log('👆 Story panel manually dismissed by user');
+    
     game.showingStory = false;
     game.storyPanel = null;
     
@@ -113,9 +135,38 @@ function update(deltaTime) {
       clearTimeout(game.nextRiddleTimeout);
       game.nextRiddleTimeout = null;
     }
+    if (game.defeatTimeout) {
+      clearTimeout(game.defeatTimeout);
+      game.defeatTimeout = null;
+    }
+    if (game.restartTimeout) {
+      clearTimeout(game.restartTimeout);
+      game.restartTimeout = null;
+    }
     
-    // Immediately proceed to next riddle when user dismisses story
-    nextRiddle();
+    // Handle Level 4 boss fight vs cooking levels differently
+    if (game.currentLevel === 4) {
+      console.log('🎮 Level 4 story dismissed - Initializing boss fight...');
+      
+      try {
+        // Ensure state is ready for boss fight
+        game.state = 'playing';
+        initializeBossFight();
+      } catch (bossFightError) {
+        console.error('💥 Boss fight initialization failed from story dismissal:', bossFightError);
+        
+        // Emergency fallback
+        game.bossFight.active = true;
+        game.bossFight.playerHealth = 100;
+        showToast("💀 Boss fight started (emergency mode)");
+      }
+    } else {
+      console.log(`🎯 Level ${game.currentLevel} story dismissed - Starting next riddle...`);
+      
+      // Ensure state is ready for cooking
+      game.state = 'playing';
+      nextRiddle();
+    }
   }
   
   // Update timers
@@ -310,6 +361,122 @@ function handleResize() {
 
 // Add resize event listener
 window.addEventListener('resize', handleResize);
+
+// =============================================================================
+// LEADERBOARD INPUT HANDLING
+// =============================================================================
+
+// Handle input for leaderboard entry screen
+function handleLeaderboardEntryInput() {
+  // Handle text input for player name
+  document.addEventListener('keydown', function leaderboardKeyHandler(e) {
+    if (game.state !== 'leaderboard_entry') {
+      document.removeEventListener('keydown', leaderboardKeyHandler);
+      return;
+    }
+    
+    const key = e.key;
+    
+    // Handle character input
+    if (key.length === 1 && key.match(/[a-zA-Z0-9\s]/)) {
+      if (game.leaderboardPlayerName.length < 15) {
+        game.leaderboardPlayerName += key.toUpperCase();
+      }
+      e.preventDefault();
+    }
+    // Handle backspace
+    else if (key === 'Backspace') {
+      game.leaderboardPlayerName = game.leaderboardPlayerName.slice(0, -1);
+      e.preventDefault();
+    }
+    // Handle enter (submit)
+    else if (key === 'Enter') {
+      if (game.leaderboardPlayerName.length >= 3) {
+        submitToLeaderboard();
+      }
+      e.preventDefault();
+    }
+    // Handle escape (skip)
+    else if (key === 'Escape') {
+      skipLeaderboard();
+      e.preventDefault();
+    }
+  });
+}
+
+// Submit entry to leaderboard
+function submitToLeaderboard() {
+  try {
+    const entry = createLeaderboardEntry(game.leaderboardPlayerName, game);
+    const success = saveLeaderboardEntry(entry);
+    
+    if (success) {
+      showToast(`🏆 Welcome to the Hall of Heroes, ${game.leaderboardPlayerName}!`);
+      const rank = getPlayerRank(entry);
+      if (rank > 0) {
+        showToast(`🏆 You ranked #${rank}!`);
+      }
+    } else {
+      showToast('⚠️ Failed to save leaderboard entry');
+    }
+  } catch (error) {
+    console.error('❌ Error submitting leaderboard entry:', error);
+    showToast('⚠️ Error saving to leaderboard');
+  }
+  
+  // Continue victory sequence or go to final phase
+  game.showingLeaderboardEntry = false;
+  
+  if (game.victorySequence && game.victorySequence.active) {
+    // Continue epic victory sequence to final phase
+    startVictoryPhase5();
+  } else {
+    // Fallback to regular victory screen
+    game.state = 'won';
+  }
+}
+
+// Skip leaderboard entry
+function skipLeaderboard() {
+  showToast('Leaderboard entry skipped');
+  game.showingLeaderboardEntry = false;
+  
+  if (game.victorySequence && game.victorySequence.active) {
+    // Continue epic victory sequence to final phase
+    startVictoryPhase5();
+  } else {
+    // Fallback to regular victory screen
+    game.state = 'won';
+  }
+}
+
+// Handle input for Hall of Heroes screen
+function handleHallOfHeroesInput() {
+  // Handle sorting options
+  if (input.wasPressed('1')) {
+    game.leaderboardSortBy = 'score';
+  } else if (input.wasPressed('2')) {
+    game.leaderboardSortBy = 'time';
+  } else if (input.wasPressed('3')) {
+    game.leaderboardSortBy = 'deaths';
+  } else if (input.wasPressed('4')) {
+    game.leaderboardSortBy = 'recent';
+  }
+  
+  // Handle escape (return to menu or end victory sequence)
+  if (input.wasPressed('escape')) {
+    if (game.state === 'epic_hall_of_heroes' && game.victorySequence && game.victorySequence.active) {
+      // End epic victory sequence and return to menu
+      game.victorySequence.active = false;
+      game.state = 'menu';
+      console.log('🏛️ Epic victory sequence completed - returned to menu');
+    } else {
+      // Regular Hall of Heroes - return to menu
+      game.state = 'menu';
+    }
+    game.leaderboardSortBy = 'score'; // Reset to default
+  }
+}
 
 // Start initialization when page loads
 window.addEventListener('load', init);

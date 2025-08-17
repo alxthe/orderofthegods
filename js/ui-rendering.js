@@ -455,16 +455,27 @@ function renderMenu() {
   // Call to action
   ctx.fillStyle = '#FFD700';
   ctx.font = 'bold 32px Cinzel, serif';
-  ctx.fillText('Press ENTER to Begin Your Trial', canvas.width/2, canvas.height * 0.8);
+  ctx.fillText('Press ENTER to Begin Your Trial', canvas.width/2, canvas.height * 0.75);
+  
+  // Hall of Heroes button
+  ctx.fillStyle = '#CD853F';
+  ctx.font = 'bold 24px Cinzel, serif';
+  ctx.fillText('Press H for Hall of Heroes', canvas.width/2, canvas.height * 0.82);
   
   // Simple controls text
   ctx.fillStyle = '#CD853F';
   ctx.font = '18px Crimson Text, serif';
-  ctx.fillText('WASD: Move  |  E: Interact  |  Q: Undo  |  X: Trash  |  Enter: Deliver', canvas.width/2, canvas.height * 0.87);
+  ctx.fillText('WASD: Move  |  E: Interact  |  Q: Undo  |  X: Trash  |  Enter: Deliver', canvas.width/2, canvas.height * 0.9);
   
-  // Check for enter key to start
+  // Input handling
   if (input.wasPressed('enter')) {
     startGame();
+  }
+  
+  if (input.wasPressed('h')) {
+    game.state = 'hall_of_heroes';
+    game.leaderboardSortBy = 'score'; // Default sort
+    AUDIO.playMenuSelect();
   }
 }
 
@@ -1262,6 +1273,257 @@ function wrapText(text, maxWidth) {
   }
   
   return lines;
+}
+
+// =============================================================================
+// LEADERBOARD UI SYSTEM
+// =============================================================================
+
+// Render leaderboard entry form
+function renderLeaderboardEntry() {
+  if (!game.showingLeaderboardEntry) return;
+  
+  // Same elegant background as main menu
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  bgGrad.addColorStop(0, '#2C1810'); // Dark brown
+  bgGrad.addColorStop(0.6, '#1A0F08'); // Nearly black
+  bgGrad.addColorStop(1, '#000000'); // Black
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Subtle stone texture
+  ctx.fillStyle = 'rgba(139, 69, 19, 0.1)';
+  for (let i = 0; i < 30; i++) {
+    const x = Math.random() * canvas.width;
+    const y = Math.random() * canvas.height;
+    ctx.fillRect(x, y, 2, 2);
+  }
+  
+  // Victory title
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 48px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+  ctx.shadowBlur = 8;
+  ctx.fillText('🏆 VICTORY! YOU\'VE ESCAPED THE FATES! 🏆', canvas.width/2, canvas.height * 0.15);
+  ctx.shadowBlur = 0;
+  
+  // Subtitle
+  ctx.fillStyle = '#CD853F';
+  ctx.font = '24px Cinzel, serif';
+  ctx.fillText('Enter your name for the Hall of Heroes:', canvas.width/2, canvas.height * 0.25);
+  
+  // Input field background
+  const inputWidth = 400;
+  const inputHeight = 50;
+  const inputX = canvas.width/2 - inputWidth/2;
+  const inputY = canvas.height * 0.35;
+  
+  // Golden input field
+  ctx.fillStyle = 'rgba(255, 215, 0, 0.2)';
+  ctx.strokeStyle = '#FFD700';
+  ctx.lineWidth = 3;
+  ctx.fillRect(inputX, inputY, inputWidth, inputHeight);
+  ctx.strokeRect(inputX, inputY, inputWidth, inputHeight);
+  
+  // Player name text
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 24px Cinzel, serif';
+  ctx.textAlign = 'left';
+  const displayName = game.leaderboardPlayerName || '';
+  const cursor = Date.now() % 1000 < 500 ? '|' : ' '; // Blinking cursor
+  ctx.fillText(displayName + cursor, inputX + 15, inputY + 32);
+  
+  // Stats display
+  const completionTime = Date.now() - (game.gameStartTime || Date.now());
+  const statsY = canvas.height * 0.5;
+  
+  ctx.fillStyle = '#E6D2A3';
+  ctx.font = '20px Crimson Text, serif';
+  ctx.textAlign = 'center';
+  
+  const statsLines = [
+    'Your Epic Stats:',
+    `• Final Score: ${game.score} points`,
+    `• Completion Time: ${formatTime(completionTime)}`,
+    `• Deaths: ${game.totalDeaths}`,
+    `• Date: ${formatDate(new Date())}`
+  ];
+  
+  statsLines.forEach((line, index) => {
+    const y = statsY + (index * 30);
+    if (index === 0) {
+      ctx.fillStyle = '#FFD700';
+      ctx.font = 'bold 22px Cinzel, serif';
+    } else {
+      ctx.fillStyle = '#E6D2A3';
+      ctx.font = '20px Crimson Text, serif';
+    }
+    ctx.fillText(line, canvas.width/2, y);
+  });
+  
+  // Submit button
+  const buttonY = canvas.height * 0.75;
+  const buttonWidth = 250;
+  const buttonHeight = 50;
+  const buttonX = canvas.width/2 - buttonWidth/2;
+  
+  // Button background
+  ctx.fillStyle = game.leaderboardPlayerName.length >= 3 ? 'rgba(255, 215, 0, 0.3)' : 'rgba(128, 128, 128, 0.3)';
+  ctx.strokeStyle = game.leaderboardPlayerName.length >= 3 ? '#FFD700' : '#808080';
+  ctx.lineWidth = 3;
+  ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
+  ctx.strokeRect(buttonX, buttonY, buttonWidth, buttonHeight);
+  
+  // Button text
+  ctx.fillStyle = game.leaderboardPlayerName.length >= 3 ? '#FFD700' : '#808080';
+  ctx.font = 'bold 20px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Submit to Leaderboard', canvas.width/2, buttonY + 30);
+  
+  // Skip button
+  const skipButtonY = buttonY + 70;
+  ctx.fillStyle = '#CD853F';
+  ctx.font = '18px Crimson Text, serif';
+  ctx.fillText('Press ESC to Skip', canvas.width/2, skipButtonY);
+  
+  // Instructions
+  ctx.fillStyle = '#CD853F';
+  ctx.font = '16px Crimson Text, serif';
+  ctx.fillText('Type your hero name (3-15 characters) | ENTER to submit | ESC to skip', canvas.width/2, canvas.height * 0.9);
+}
+
+// Render Hall of Heroes leaderboard screen
+function renderHallOfHeroes() {
+  if (game.state !== 'hall_of_heroes') return;
+  
+  // Same elegant background as main menu
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  bgGrad.addColorStop(0, '#2C1810'); // Dark brown
+  bgGrad.addColorStop(0.6, '#1A0F08'); // Nearly black
+  bgGrad.addColorStop(1, '#000000'); // Black
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Subtle stone texture
+  ctx.fillStyle = 'rgba(139, 69, 19, 0.1)';
+  for (let i = 0; i < 30; i++) {
+    const x = Math.random() * canvas.width;
+    const y = Math.random() * canvas.height;
+    ctx.fillRect(x, y, 2, 2);
+  }
+  
+  // Title
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 48px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+  ctx.shadowBlur = 8;
+  ctx.fillText('🏛️ HALL OF HEROES 🏛️', canvas.width/2, canvas.height * 0.1);
+  ctx.shadowBlur = 0;
+  
+  // Get leaderboard data
+  const sortBy = game.leaderboardSortBy || 'score';
+  const leaderboard = getLeaderboard(sortBy);
+  
+  // Sorting options
+  const sortOptions = [
+    { key: 'score', label: 'Highest Score' },
+    { key: 'time', label: 'Fastest Time' },
+    { key: 'deaths', label: 'Fewest Deaths' },
+    { key: 'recent', label: 'Most Recent' }
+  ];
+  
+  // Render sort buttons
+  const sortY = canvas.height * 0.18;
+  const buttonSpacing = 180;
+  const startX = canvas.width/2 - (sortOptions.length * buttonSpacing) / 2 + buttonSpacing/2;
+  
+  sortOptions.forEach((option, index) => {
+    const x = startX + index * buttonSpacing;
+    const isActive = sortBy === option.key;
+    
+    // Button background
+    ctx.fillStyle = isActive ? 'rgba(255, 215, 0, 0.3)' : 'rgba(139, 69, 19, 0.3)';
+    ctx.strokeStyle = isActive ? '#FFD700' : '#CD853F';
+    ctx.lineWidth = 2;
+    ctx.fillRect(x - 80, sortY - 15, 160, 30);
+    ctx.strokeRect(x - 80, sortY - 15, 160, 30);
+    
+    // Button text
+    ctx.fillStyle = isActive ? '#FFD700' : '#E6D2A3';
+    ctx.font = 'bold 14px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(option.label, x, sortY + 5);
+  });
+  
+  // Leaderboard header
+  const headerY = canvas.height * 0.28;
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 18px Cinzel, serif';
+  ctx.textAlign = 'left';
+  
+  const colWidths = [60, 200, 80, 100, 80, 100];
+  const colStarts = [canvas.width/2 - 350, canvas.width/2 - 290, canvas.width/2 - 90, canvas.width/2 + 10, canvas.width/2 + 110, canvas.width/2 + 190];
+  const headers = ['RANK', 'NAME', 'SCORE', 'TIME', 'DEATHS', 'DATE'];
+  
+  headers.forEach((header, index) => {
+    ctx.fillText(header, colStarts[index], headerY);
+  });
+  
+  // Header underline
+  ctx.strokeStyle = '#FFD700';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(canvas.width/2 - 350, headerY + 10);
+  ctx.lineTo(canvas.width/2 + 290, headerY + 10);
+  ctx.stroke();
+  
+  // Leaderboard entries
+  const maxVisible = Math.min(leaderboard.length, 10);
+  for (let i = 0; i < maxVisible; i++) {
+    const entry = leaderboard[i];
+    const y = headerY + 40 + (i * 30);
+    
+    // Rank highlighting
+    if (i < 3) {
+      const rankColors = ['#FFD700', '#C0C0C0', '#CD7F32']; // Gold, Silver, Bronze
+      ctx.fillStyle = rankColors[i];
+    } else {
+      ctx.fillStyle = '#E6D2A3';
+    }
+    
+    ctx.font = '16px Crimson Text, serif';
+    ctx.textAlign = 'left';
+    
+    const values = [
+      (i + 1).toString(),
+      entry.playerName,
+      entry.score.toString(),
+      entry.completionTimeFormatted,
+      entry.deaths.toString(),
+      entry.completionDateFormatted
+    ];
+    
+    values.forEach((value, index) => {
+      ctx.fillText(value, colStarts[index], y);
+    });
+  }
+  
+  // No entries message
+  if (leaderboard.length === 0) {
+    ctx.fillStyle = '#CD853F';
+    ctx.font = '24px Crimson Text, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('No heroes have escaped the Fates yet...', canvas.width/2, canvas.height * 0.5);
+    ctx.fillText('Be the first to earn your place in legend!', canvas.width/2, canvas.height * 0.55);
+  }
+  
+  // Navigation instructions
+  ctx.fillStyle = '#CD853F';
+  ctx.font = '18px Crimson Text, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('1-4: Change Sort | ESC: Return to Menu', canvas.width/2, canvas.height * 0.9);
 }
 
 console.log("✅ UI rendering system loaded");

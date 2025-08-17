@@ -12,6 +12,16 @@ function render() {
   
   if (game.state === 'menu') {
     renderMenu();
+  } else if (game.state === 'leaderboard_entry') {
+    renderLeaderboardEntry();
+  } else if (game.state === 'epic_leaderboard_entry') {
+    renderEpicLeaderboardEntry();
+  } else if (game.state === 'hall_of_heroes') {
+    renderHallOfHeroes();
+  } else if (game.state === 'epic_hall_of_heroes') {
+    renderEpicHallOfHeroes();
+  } else if (game.state === 'victory_sequence') {
+    renderVictorySequence();
   } else if (game.state === 'playing' || game.state === 'paused') {
     renderKitchen();
     // Don't render customers during Level 4 boss fight!
@@ -160,7 +170,71 @@ function renderIngredientCrates() {
       );
     } else {
       // Fallback wooden crate appearance
-      renderFallbackCrate(pos, crateSize);
+      renderFallbackCrate(pos, crateSize, ingredient);
+    }
+    
+    // Draw food icon on top of crate
+    const foodImg = ASSETS.ingredients[ingredient];
+    if (foodImg && ASSETS.loaded) {
+      const iconSize = 45; // Size of the food icon
+      
+      // Ensure high quality food icon rendering
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      
+      // Preserve aspect ratio for food icons
+      const imgAspectRatio = foodImg.width / foodImg.height;
+      let imgWidth, imgHeight;
+      
+      if (imgAspectRatio > 1) {
+        // Wider than tall
+        imgWidth = iconSize;
+        imgHeight = iconSize / imgAspectRatio;
+      } else {
+        // Taller than wide or square
+        imgHeight = iconSize;
+        imgWidth = iconSize * imgAspectRatio;
+      }
+      
+      // Position the food icon in the center-top area of the crate
+      const iconX = pos.x - imgWidth/2;
+      const iconY = pos.y - crateSize/2 + 8; // 8px from top of crate
+      
+      // Add subtle shadow for the food icon
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+      ctx.shadowBlur = 3;
+      ctx.shadowOffsetX = 1;
+      ctx.shadowOffsetY = 1;
+      
+      ctx.drawImage(
+        foodImg,
+        iconX,
+        iconY,
+        imgWidth,
+        imgHeight
+      );
+      
+      // Reset shadow
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+    } else {
+      // Fallback food icon - colored circle
+      ctx.fillStyle = CONFIG.COLORS[ingredient.toUpperCase()] || '#8B4513';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+      ctx.shadowBlur = 3;
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y - crateSize/2 + 20, 18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      
+      // Add border to fallback icon
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y - crateSize/2 + 20, 18, 0, Math.PI * 2);
+      ctx.stroke();
     }
     
     // Ancient-style label with parchment appearance
@@ -174,7 +248,7 @@ function renderIngredientCrates() {
 }
 
 // Fallback crate rendering
-function renderFallbackCrate(pos, crateSize) {
+function renderFallbackCrate(pos, crateSize, ingredient) {
   const crateGradient = ctx.createLinearGradient(pos.x - crateSize/2, pos.y - crateSize/2, 
                                                 pos.x + crateSize/2, pos.y + crateSize/2);
   crateGradient.addColorStop(0, '#D2691E'); // Chocolate
@@ -267,13 +341,61 @@ function renderFatesIngredientSources() {
     ctx.fillStyle = glowGrad;
     ctx.fillRect(pos.x - 50, pos.y - 50, 100, 100);
     
-    // Floating ingredient name
+    // Draw mystical food icon in the center of the orb
+    const foodImg = ASSETS.ingredients[ingredient];
+    if (foodImg && ASSETS.loaded) {
+      const iconSize = 40; // Size of the mystical food icon
+      
+      // Ensure high quality food icon rendering
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      
+      // Preserve aspect ratio for food icons
+      const imgAspectRatio = foodImg.width / foodImg.height;
+      let imgWidth, imgHeight;
+      
+      if (imgAspectRatio > 1) {
+        // Wider than tall
+        imgWidth = iconSize;
+        imgHeight = iconSize / imgAspectRatio;
+      } else {
+        // Taller than wide or square
+        imgHeight = iconSize;
+        imgWidth = iconSize * imgAspectRatio;
+      }
+      
+      // Add mystical glow effect to food icon
+      ctx.shadowColor = 'rgba(147, 112, 219, 0.8)';
+      ctx.shadowBlur = 15;
+      
+      ctx.drawImage(
+        foodImg,
+        pos.x - imgWidth/2,
+        pos.y - imgHeight/2,
+        imgWidth,
+        imgHeight
+      );
+      
+      // Reset shadow
+      ctx.shadowBlur = 0;
+    } else {
+      // Fallback - floating ingredient name
+      ctx.fillStyle = '#E6E6FA'; // Lavender
+      ctx.font = 'bold 14px Cinzel, serif';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(147, 112, 219, 0.8)';
+      ctx.shadowBlur = 10;
+      ctx.fillText(ingredient.toUpperCase(), pos.x, pos.y);
+      ctx.shadowBlur = 0;
+    }
+    
+    // Floating ingredient name below the icon
     ctx.fillStyle = '#E6E6FA'; // Lavender
-    ctx.font = 'bold 14px Cinzel, serif';
+    ctx.font = 'bold 12px Cinzel, serif';
     ctx.textAlign = 'center';
     ctx.shadowColor = 'rgba(147, 112, 219, 0.8)';
     ctx.shadowBlur = 10;
-    ctx.fillText(ingredient.toUpperCase(), pos.x, pos.y);
+    ctx.fillText(ingredient.toUpperCase(), pos.x, pos.y + 35);
     ctx.shadowBlur = 0;
     
     // Interactive hint when player is near
@@ -1409,6 +1531,263 @@ function renderBensonBoone() {
     ctx.fillText('IS WATCHING', canvas.width - 20, canvas.height - 80);
     ctx.textAlign = 'left';
   }
+}
+
+// =============================================================================
+// EPIC VICTORY SEQUENCE RENDERING
+// =============================================================================
+
+// Render victory sequence
+function renderVictorySequence() {
+  if (!game.victorySequence.active) return;
+  
+  const phase = game.victorySequence.phase;
+  
+  // Base background - keep boss fight arena visible but dimmed
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Phase-specific rendering
+  switch (phase) {
+    case 1:
+      renderVictoryPhase1();
+      break;
+    case 2:
+      renderVictoryPhase2();
+      break;
+    case 3:
+      renderVictoryPhase3();
+      break;
+    default:
+      // Phases 4 and 5 handled by epic leaderboard screens
+      break;
+  }
+  
+  // Always render victory particles if they exist
+  renderVictoryParticles();
+}
+
+// Phase 1: Victory Explosion
+function renderVictoryPhase1() {
+  // Screen flash effect
+  const flashIntensity = Math.max(0, 1 - (game.victorySequence.phaseTimer / 1000));
+  if (flashIntensity > 0) {
+    ctx.fillStyle = `rgba(255, 255, 255, ${flashIntensity * 0.8})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+  
+  // Central victory text
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 64px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+  ctx.shadowBlur = 10;
+  
+  const scale = 1 + Math.sin(game.victorySequence.phaseTimer / 200) * 0.1;
+  ctx.save();
+  ctx.translate(canvas.width/2, canvas.height/2);
+  ctx.scale(scale, scale);
+  ctx.fillText('🌟 THE FATES ARE DEFEATED! 🌟', 0, 0);
+  ctx.restore();
+  
+  ctx.shadowBlur = 0;
+}
+
+// Phase 2: Freedom Animation
+function renderVictoryPhase2() {
+  // Golden freedom glow around entire screen
+  const glowIntensity = game.victorySequence.freedomGlow;
+  const glow = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, 
+                                       canvas.width/2, canvas.height/2, canvas.width);
+  glow.addColorStop(0, `rgba(255, 215, 0, ${glowIntensity * 0.3})`);
+  glow.addColorStop(0.5, `rgba(255, 215, 0, ${glowIntensity * 0.1})`);
+  glow.addColorStop(1, 'rgba(255, 215, 0, 0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Collar breaking animation
+  renderCollarBreaking();
+  
+  // Freedom text
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 48px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+  ctx.shadowBlur = 8;
+  ctx.fillText('⛓️ YOUR CHAINS ARE BROKEN! ⛓️', canvas.width/2, canvas.height * 0.2);
+  ctx.fillText('🕊️ YOU ARE FREE! 🕊️', canvas.width/2, canvas.height * 0.8);
+  ctx.shadowBlur = 0;
+}
+
+// Phase 3: Achievement Summary
+function renderVictoryPhase3() {
+  // Dark overlay for better text readability
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Achievement summary title
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 42px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+  ctx.shadowBlur = 8;
+  ctx.fillText('🏆 LEGENDARY VICTORY ACHIEVED! 🏆', canvas.width/2, canvas.height * 0.15);
+  ctx.shadowBlur = 0;
+  
+  // Stats display
+  const statsY = canvas.height * 0.3;
+  const completionTime = Date.now() - (game.gameStartTime || Date.now());
+  const survivalTime = Math.floor(game.bossFight.survivalTimer / 1000);
+  
+  const stats = [
+    `⚡ Final Score: ${game.score} points`,
+    `⏱️ Completion Time: ${formatTime(completionTime)}`,
+    `💀 Deaths: ${game.totalDeaths}`,
+    `🎯 Survival Time: ${survivalTime} seconds`,
+    `🔥 Fates Defeated: All 3`
+  ];
+  
+  ctx.fillStyle = '#E6D2A3';
+  ctx.font = '24px Crimson Text, serif';
+  
+  stats.forEach((stat, index) => {
+    const y = statsY + (index * 40);
+    ctx.fillText(stat, canvas.width/2, y);
+  });
+  
+  // Achievement badges
+  if (game.victorySequence.achievements.length > 0) {
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 28px Cinzel, serif';
+    ctx.fillText('🎖️ ACHIEVEMENTS EARNED 🎖️', canvas.width/2, statsY + 220);
+    
+    ctx.fillStyle = '#CD853F';
+    ctx.font = '20px Crimson Text, serif';
+    
+    game.victorySequence.achievements.forEach((achievement, index) => {
+      const y = statsY + 260 + (index * 30);
+      ctx.fillText(`${achievement.name} - ${achievement.description}`, canvas.width/2, y);
+    });
+  }
+  
+  // Loading text
+  ctx.fillStyle = '#FFD700';
+  ctx.font = '18px Cinzel, serif';
+  ctx.fillText('Preparing Hall of Heroes entry...', canvas.width/2, canvas.height * 0.9);
+}
+
+// Render collar breaking effect
+function renderCollarBreaking() {
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  const animation = game.victorySequence.collarBreakAnimation;
+  
+  if (animation > 0) {
+    // Draw breaking collar fragments
+    for (let i = 0; i < 8; i++) {
+      const angle = (i * Math.PI * 2) / 8;
+      const distance = animation * 100;
+      const fragmentX = centerX + Math.cos(angle) * distance;
+      const fragmentY = centerY + Math.sin(angle) * distance;
+      
+      ctx.fillStyle = '#444';
+      ctx.fillRect(fragmentX - 15, fragmentY - 8, 30, 16);
+      
+      // Golden cracks
+      ctx.strokeStyle = '#FFD700';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(fragmentX - 15, fragmentY);
+      ctx.lineTo(fragmentX + 15, fragmentY);
+      ctx.stroke();
+    }
+    
+    // Central golden explosion
+    if (animation < 2) {
+      const explosionSize = animation * 50;
+      const explosion = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, explosionSize);
+      explosion.addColorStop(0, 'rgba(255, 215, 0, 0.8)');
+      explosion.addColorStop(1, 'rgba(255, 215, 0, 0)');
+      ctx.fillStyle = explosion;
+      ctx.fillRect(centerX - explosionSize, centerY - explosionSize, explosionSize * 2, explosionSize * 2);
+    }
+  }
+}
+
+// Render victory particles
+function renderVictoryParticles() {
+  // Explosion particles
+  game.victorySequence.explosionParticles.forEach(particle => {
+    ctx.globalAlpha = particle.life;
+    ctx.fillStyle = particle.color;
+    ctx.beginPath();
+    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  
+  // Celebration effects
+  game.victorySequence.celebrationEffects.forEach(effect => {
+    ctx.globalAlpha = effect.life;
+    ctx.fillStyle = effect.color;
+    
+    if (effect.type === 'star') {
+      // Draw star shape
+      const spikes = 5;
+      const outerRadius = effect.size;
+      const innerRadius = effect.size / 2;
+      
+      ctx.beginPath();
+      for (let i = 0; i < spikes * 2; i++) {
+        const radius = i % 2 === 0 ? outerRadius : innerRadius;
+        const angle = (i * Math.PI) / spikes;
+        const x = effect.x + Math.cos(angle) * radius;
+        const y = effect.y + Math.sin(angle) * radius;
+        
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      ctx.beginPath();
+      ctx.arc(effect.x, effect.y, effect.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+  
+  ctx.globalAlpha = 1;
+}
+
+// Epic Leaderboard Entry (enhanced version)
+function renderEpicLeaderboardEntry() {
+  // Same as regular leaderboard entry but with victory particles
+  renderLeaderboardEntry();
+  renderVictoryParticles();
+  
+  // Add "LEGENDARY VICTORY" banner at top
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 32px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+  ctx.shadowBlur = 8;
+  ctx.fillText('🏆 LEGENDARY VICTORY 🏆', canvas.width/2, 50);
+  ctx.shadowBlur = 0;
+}
+
+// Epic Hall of Heroes (enhanced version)
+function renderEpicHallOfHeroes() {
+  // Same as regular Hall of Heroes but with victory celebration
+  renderHallOfHeroes();
+  renderVictoryParticles();
+  
+  // Add victory celebration banner
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 24px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+  ctx.shadowBlur = 8;
+  ctx.fillText('🎉 WELCOME TO IMMORTALITY! 🎉', canvas.width/2, 50);
+  ctx.shadowBlur = 0;
 }
 
 console.log("✅ Rendering system loaded");

@@ -371,6 +371,7 @@ function nextRiddle() {
   
   // Reset processing flag
   game.processingNextRiddle = false;
+  game.timeoutInProgress = false; // Reset timeout flag for next timeout
   console.log("✅ nextRiddle() completed successfully");
 }
 
@@ -684,6 +685,7 @@ function handleDelivery() {
         clearTimeout(game.nextRiddleTimeout);
         game.nextRiddleTimeout = null;
       }
+      game.timeoutInProgress = false; // Clear timeout flag for level advancement
       // Advance to Level 4: The Fates
       advanceToLevel4();
       return;
@@ -693,6 +695,7 @@ function handleDelivery() {
         clearTimeout(game.nextRiddleTimeout);
         game.nextRiddleTimeout = null;
       }
+      game.timeoutInProgress = false; // Clear timeout flag for level advancement
       // Advance to Level 3: Gods Only
       advanceToLevel3();
       return;
@@ -702,6 +705,7 @@ function handleDelivery() {
         clearTimeout(game.nextRiddleTimeout);
         game.nextRiddleTimeout = null;
       }
+      game.timeoutInProgress = false; // Clear timeout flag for level advancement
       // Advance to Level 2: Heroes with Powers
       advanceToLevel2();
       return;
@@ -711,6 +715,7 @@ function handleDelivery() {
         clearTimeout(game.nextRiddleTimeout);
         game.nextRiddleTimeout = null;
       }
+      game.timeoutInProgress = false; // Clear timeout flag for game victory
       // Won the game after defeating the Fates!
       game.state = 'won';
       console.log("GAME WON! You've defeated the Fates!");
@@ -794,6 +799,7 @@ function advanceToLevel2() {
     clearTimeout(game.nextRiddleTimeout);
     game.nextRiddleTimeout = null;
   }
+  game.timeoutInProgress = false; // Clear timeout flag for level advancement
   
   // Auto-dismiss after 6 seconds
   game.instructionTimeout = setTimeout(() => {
@@ -829,6 +835,7 @@ function advanceToLevel3() {
     clearTimeout(game.nextRiddleTimeout);
     game.nextRiddleTimeout = null;
   }
+  game.timeoutInProgress = false; // Clear timeout flag for level advancement
   
   // Auto-dismiss after 6 seconds
   game.instructionTimeout = setTimeout(() => {
@@ -872,6 +879,7 @@ function advanceToLevel4() {
     clearTimeout(game.nextRiddleTimeout);
     game.nextRiddleTimeout = null;
   }
+  game.timeoutInProgress = false; // Clear timeout flag for level advancement
   
   // Auto-dismiss after 6 seconds
   game.instructionTimeout = setTimeout(() => {
@@ -884,6 +892,36 @@ function advanceToLevel4() {
 // Restart current level after failure
 function restartLevel() {
   const currentLevelNum = game.currentLevel;
+  console.log(`🔄 RESTART LEVEL ${currentLevelNum}: Starting restart sequence...`);
+  
+  // Track level attempt for leaderboard
+  if (game.levelAttempts && game.levelAttempts[currentLevelNum] !== undefined) {
+    game.levelAttempts[currentLevelNum]++;
+    console.log(`📊 Level ${currentLevelNum} attempt #${game.levelAttempts[currentLevelNum]} recorded`);
+  }
+  
+  // CRITICAL: Clear ALL existing timeouts to prevent conflicts
+  if (game.defeatTimeout) {
+    clearTimeout(game.defeatTimeout);
+    game.defeatTimeout = null;
+    console.log('🧹 Cleared defeat timeout');
+  }
+  if (game.restartTimeout) {
+    clearTimeout(game.restartTimeout);
+    game.restartTimeout = null;
+    console.log('🧹 Cleared restart timeout');
+  }
+  if (game.storyTimeout) {
+    clearTimeout(game.storyTimeout);
+    game.storyTimeout = null;
+    console.log('🧹 Cleared story timeout');
+  }
+  if (game.nextRiddleTimeout) {
+    clearTimeout(game.nextRiddleTimeout);
+    game.nextRiddleTimeout = null;
+    console.log('🧹 Cleared next riddle timeout');
+  }
+  game.timeoutInProgress = false; // Reset timeout flag for restart
   
   // Reset score based on level
   if (currentLevelNum === 1) {
@@ -894,10 +932,38 @@ function restartLevel() {
     game.score = CONFIG.LEVEL_3_SCORE - 1; // Just below Level 3 threshold
   } else if (currentLevelNum === 4) {
     game.score = CONFIG.LEVEL_4_SCORE - 1; // Just below Level 4 threshold
-    // CRITICAL: Stop any active boss fight and music before restart!
-    game.bossFight.active = false;
-    if (game.bossFight.bossMusic) {
-      game.bossFight.bossMusic.pause();
+    console.log('🎮 Level 4 restart - Preparing boss fight reset...');
+    
+    // COMPLETE boss fight cleanup with error handling
+    try {
+      game.bossFight.active = false;
+      if (game.bossFight.bossMusic) {
+        game.bossFight.bossMusic.pause();
+        game.bossFight.bossMusic.currentTime = 0;
+        game.bossFight.bossMusic = null;
+      }
+      
+      // Reset ALL boss fight state to initial values
+      game.bossFight.playerHealth = 100;
+      game.bossFight.phase = 1;
+      game.bossFight.attacks = [];
+      game.bossFight.stringTraps = [];
+      game.bossFight.invulnerable = false;
+      game.bossFight.invulnerabilityTimer = 0;
+      game.bossFight.survivalTimer = 0;
+      
+      // Reset all Fates to initial state
+      game.bossFight.fates = [
+        { name: 'Clotho', x: 200, y: 200, health: 150, maxHealth: 150, angry: false, attackCooldown: 0, power: 'web', powerCooldown: 0 },
+        { name: 'Lachesis', x: 400, y: 300, health: 150, maxHealth: 150, angry: false, attackCooldown: 0, power: 'teleport', powerCooldown: 0 },
+        { name: 'Atropos', x: 600, y: 250, health: 150, maxHealth: 150, angry: false, attackCooldown: 0, power: 'triple', powerCooldown: 0 }
+      ];
+      
+      console.log('🗡️ Boss fight state completely reset');
+    } catch (error) {
+      console.error('⚠️ Error during boss fight cleanup:', error);
+      // Force reset even on error
+      game.bossFight.active = false;
       game.bossFight.bossMusic = null;
     }
   }
@@ -934,6 +1000,7 @@ function restartLevel() {
   game.shuffledCustomers = shuffleCustomers();
   game.customerIndex = 0;
   game.processingNextRiddle = false;
+  game.timeoutInProgress = false; // Reset timeout flag
   
   // Show restart story
   game.storyPanel = {
@@ -942,25 +1009,79 @@ function restartLevel() {
   };
   game.showingStory = true;
   
-  // Clear any existing story timeout
-  if (game.storyTimeout) {
-    clearTimeout(game.storyTimeout);
-  }
-  
-  // Set new timeout and store the ID
-  game.storyTimeout = setTimeout(() => {
-    game.storyTimeout = null;
-    // Level 4 boss fight restart, not riddle!
-    if (currentLevelNum === 4) {
-      initializeBossFight();
-    } else {
-      // Clear any pending nextRiddle timeouts before calling
-      if (game.nextRiddleTimeout) {
-        clearTimeout(game.nextRiddleTimeout);
-        game.nextRiddleTimeout = null;
+  // Set tracked restart timeout with comprehensive error handling
+  game.restartTimeout = setTimeout(() => {
+    game.restartTimeout = null; // Clear timeout reference
+    
+    try {
+      if (currentLevelNum === 4) {
+        console.log('🎮 BOSS FIGHT RESTART: Initializing boss fight...');
+        
+        // Ensure game state is ready for boss fight
+        game.state = 'playing';
+        game.showingStory = false;
+        game.storyPanel = null;
+        
+        // Clear any cooking-related state that might interfere
+        game.currentRiddle = null;
+        game.currentCustomer = null;
+        game.customerState = 'gone';
+        game.timer = 0;
+        game.timePerRiddle = 0;
+        
+        // Initialize boss fight with error handling
+        try {
+          initializeBossFight();
+          console.log('✅ Boss fight successfully reinitialized!');
+        } catch (bossFightError) {
+          console.error('💥 CRITICAL: Boss fight initialization failed:', bossFightError);
+          
+          // Fallback: Set minimal boss fight state manually
+          game.bossFight.active = true;
+          game.bossFight.playerHealth = 100;
+          game.bossFight.survivalTimer = 0;
+          game.bossFight.attacks = [];
+          game.bossFight.stringTraps = [];
+          
+          showToast("⚠️ Boss fight restarted (recovery mode)");
+        }
+        
+      } else {
+        console.log(`🎯 Level ${currentLevelNum} restart: Starting next riddle...`);
+        
+        // Clear any pending nextRiddle timeouts before calling
+        if (game.nextRiddleTimeout) {
+          clearTimeout(game.nextRiddleTimeout);
+          game.nextRiddleTimeout = null;
+        }
+        game.timeoutInProgress = false; // Reset timeout flag
+        
+        // Ensure game state is ready for cooking
+        game.state = 'playing';
+        game.showingStory = false;
+        game.storyPanel = null;
+        
+        nextRiddle();
       }
-      nextRiddle();
+      
+    } catch (restartError) {
+      console.error(`💥 CRITICAL: Level ${currentLevelNum} restart failed:`, restartError);
+      
+      // Emergency fallback
+      game.state = 'playing';
+      game.showingStory = false;
+      game.storyPanel = null;
+      
+      if (currentLevelNum === 4) {
+        // Force minimal boss fight state
+        game.bossFight.active = true;
+        game.bossFight.playerHealth = 100;
+        showToast("💀 Emergency boss fight restart!");
+      } else {
+        showToast("⚠️ Level restarted (emergency mode)");
+      }
     }
+    
   }, 3000);
   
   console.log(`🔄 Level ${currentLevelNum} restarted - Score reset to ${game.score}`);
@@ -1058,8 +1179,9 @@ function startGame() {
   game.shuffledCustomers = shuffleCustomers(); // Randomize customer order each game
   game.player.carrying = null;
   game.processingNextRiddle = false; // Reset anti-scrambling flag
+  game.timeoutInProgress = false; // Reset timeout flag
   
-  // Clear any existing timeouts
+  // Clear ALL existing timeouts for clean start
   if (game.storyTimeout) {
     clearTimeout(game.storyTimeout);
     game.storyTimeout = null;
@@ -1068,10 +1190,28 @@ function startGame() {
     clearTimeout(game.nextRiddleTimeout);
     game.nextRiddleTimeout = null;
   }
+  if (game.defeatTimeout) {
+    clearTimeout(game.defeatTimeout);
+    game.defeatTimeout = null;
+  }
+  if (game.restartTimeout) {
+    clearTimeout(game.restartTimeout);
+    game.restartTimeout = null;
+  }
+  game.timeoutInProgress = false; // Reset timeout flag for fresh start
+  console.log('🧹 All timeouts cleared for fresh game start');
   
   // Clear story panel state
   game.showingStory = false;
   game.storyPanel = null;
+  
+  // Initialize leaderboard tracking for new game
+  game.gameStartTime = Date.now();
+  game.totalDeaths = 0;
+  game.levelAttempts = { 1: 0, 2: 0, 3: 0, 4: 0 };
+  game.showingLeaderboardEntry = false;
+  game.leaderboardPlayerName = '';
+  console.log('📊 Leaderboard tracking initialized for new game');
   
   // Clear all special power effects
   game.frozen = false;
@@ -1109,89 +1249,230 @@ function startGame() {
 
 // Initialize boss fight
 function initializeBossFight() {
-  game.bossFight.active = true;
-  game.bossFight.playerHealth = 100;
-  game.bossFight.phase = 1;
-  game.bossFight.attacks = [];
-  game.bossFight.stringTraps = [];
-  game.bossFight.invulnerable = false;
-  game.bossFight.invulnerabilityTimer = 0;
-  game.bossFight.survivalTimer = 0;
-  game.bossFight.survivalGoal = 60000; // 60 seconds
+  console.log('🎮 INITIALIZE BOSS FIGHT: Starting comprehensive setup...');
   
-  // NO TIMER OR RIDDLES IN BOSS FIGHT!
-  game.currentRiddle = null;
-  game.currentCustomer = null; // Ensure no customers in boss fight
-  game.customerState = 'gone';
-  game.timer = 0;
-  game.timePerRiddle = 0;
-  
-  // Reset Fates positions and health (with individual sprites and powers)
-  game.bossFight.fates = [
-    { 
-      name: 'Clotho', 
-      sprite: 'clotho', 
-      x: 200, 
-      y: 200, 
-      health: 150, 
-      maxHealth: 150, 
-      angry: false, 
-      attackCooldown: 0,
-      power: 'web', // Creates web traps that slow player
-      powerCooldown: 0
-    },
-    { 
-      name: 'Lachesis', 
-      sprite: 'lachesis', 
-      x: 400, 
-      y: 300, 
-      health: 150, 
-      maxHealth: 150, 
-      angry: false, 
-      attackCooldown: 0,
-      power: 'teleport', // Teleports behind player
-      powerCooldown: 0
-    },
-    { 
-      name: 'Atropos', 
-      sprite: 'atropos', 
-      x: 600, 
-      y: 250, 
-      health: 150, 
-      maxHealth: 150, 
-      angry: false, 
-      attackCooldown: 0,
-      power: 'triple', // Fires triple scissors
-      powerCooldown: 0
+  try {
+    // STEP 1: Clear ALL existing boss fight state
+    game.bossFight.active = false; // Temporarily disable while setting up
+    game.bossFight.attacks = [];
+    game.bossFight.stringTraps = [];
+    game.bossFight.invulnerable = false;
+    game.bossFight.invulnerabilityTimer = 0;
+    console.log('✅ Step 1: Boss fight state cleared');
+    
+    // STEP 2: Set player health and survival parameters
+    game.bossFight.playerHealth = 100;
+    game.bossFight.maxHealth = 100;
+    game.bossFight.phase = 1;
+    game.bossFight.survivalTimer = 0;
+    game.bossFight.survivalGoal = 60000; // 60 seconds
+    console.log('✅ Step 2: Player health and survival parameters set');
+    
+    // STEP 3: Completely clear cooking game state
+    game.currentRiddle = null;
+    game.currentCustomer = null;
+    game.customerState = 'gone';
+    game.timer = 0;
+    game.timePerRiddle = 0;
+    game.plate = []; // Clear any items on plate
+    game.player.carrying = null; // Clear carried items
+    console.log('✅ Step 3: Cooking game state cleared');
+    
+    // STEP 4: Initialize Fates with complete state
+    game.bossFight.fates = [
+      { 
+        name: 'Clotho', 
+        sprite: 'clotho', 
+        x: 200, 
+        y: 200, 
+        health: 150, 
+        maxHealth: 150, 
+        angry: false, 
+        attackCooldown: 0,
+        power: 'web',
+        powerCooldown: 0
+      },
+      { 
+        name: 'Lachesis', 
+        sprite: 'lachesis', 
+        x: 400, 
+        y: 300, 
+        health: 150, 
+        maxHealth: 150, 
+        angry: false, 
+        attackCooldown: 0,
+        power: 'teleport',
+        powerCooldown: 0
+      },
+      { 
+        name: 'Atropos', 
+        sprite: 'atropos', 
+        x: 600, 
+        y: 250, 
+        health: 150, 
+        maxHealth: 150, 
+        angry: false, 
+        attackCooldown: 0,
+        power: 'triple',
+        powerCooldown: 0
+      }
+    ];
+    console.log('✅ Step 4: Fates initialized with full state');
+    
+    // STEP 5: Verify Fates sprites are available (with fallback)
+    try {
+      if (ASSETS.boss) {
+        const missingSprites = [];
+        if (!ASSETS.boss.clotho) missingSprites.push('clotho');
+        if (!ASSETS.boss.lachesis) missingSprites.push('lachesis');
+        if (!ASSETS.boss.atropos) missingSprites.push('atropos');
+        
+        if (missingSprites.length > 0) {
+          console.warn(`⚠️ Missing Fate sprites: ${missingSprites.join(', ')} - Will use fallback rendering`);
+        } else {
+          console.log('✅ Step 5: All Fate sprites verified');
+        }
+      } else {
+        console.warn('⚠️ Boss assets not loaded - Will use fallback rendering');
+      }
+    } catch (assetError) {
+      console.warn('⚠️ Asset verification failed:', assetError);
     }
-  ];
-  
-  // Start the survival challenge!
-  showToast("🌀 SURVIVE FOR 60 SECONDS! DODGE THE FATES!");
-  
-  // Start boss music
-  startBossMusic();
-  
-  console.log('💀 Boss Fight: THE FATES AWAKEN!');
+    
+    // STEP 6: Reset player position to center
+    game.player.x = canvas.width / 2;
+    game.player.y = canvas.height / 2;
+    game.player.speed = CONFIG.PLAYER_SPEED; // Reset any speed modifications
+    console.log('✅ Step 6: Player position reset');
+    
+    // STEP 7: Start boss music with comprehensive error handling
+    try {
+      startBossMusic();
+      console.log('✅ Step 7: Boss music started');
+    } catch (musicError) {
+      console.warn('⚠️ Boss music failed to start:', musicError);
+      // Don't let music failure break the boss fight
+    }
+    
+    // STEP 8: Show survival challenge message
+    showToast("🌀 SURVIVE FOR 60 SECONDS! DODGE THE FATES!");
+    
+    // STEP 9: Activate boss fight (LAST STEP!)
+    game.bossFight.active = true;
+    console.log('✅ Step 9: Boss fight activated!');
+    
+    console.log('🎯 BOSS FIGHT INITIALIZATION COMPLETE - All systems ready!');
+    
+  } catch (initError) {
+    console.error('💥 BOSS FIGHT INITIALIZATION FAILED:', initError);
+    
+    // Emergency fallback initialization
+    console.log('🚨 Attempting emergency fallback initialization...');
+    
+    game.bossFight.active = true;
+    game.bossFight.playerHealth = 100;
+    game.bossFight.survivalTimer = 0;
+    game.bossFight.attacks = [];
+    game.bossFight.stringTraps = [];
+    game.bossFight.phase = 1;
+    
+    // Simple Fate setup for emergency mode
+    game.bossFight.fates = [
+      { name: 'Clotho', x: 200, y: 200, health: 150, attackCooldown: 0 },
+      { name: 'Lachesis', x: 400, y: 300, health: 150, attackCooldown: 0 },
+      { name: 'Atropos', x: 600, y: 250, health: 150, attackCooldown: 0 }
+    ];
+    
+    showToast("⚠️ Boss fight started (emergency mode)");
+    console.log('🚨 Emergency fallback initialization complete');
+    
+    // Re-throw the error so it can be caught by the calling function
+    throw initError;
+  }
 }
 
-// Start boss music
+// Start boss music with comprehensive error handling
 function startBossMusic() {
+  console.log('🎵 STARTING BOSS MUSIC: Attempting to load and play...');
+  
   try {
+    // STEP 1: Clean up any existing music
     if (game.bossFight.bossMusic) {
-      game.bossFight.bossMusic.pause();
+      try {
+        game.bossFight.bossMusic.pause();
+        game.bossFight.bossMusic.currentTime = 0;
+        game.bossFight.bossMusic = null;
+        console.log('🧹 Previous boss music cleaned up');
+      } catch (cleanupError) {
+        console.warn('⚠️ Error cleaning up previous music:', cleanupError);
+        game.bossFight.bossMusic = null; // Force clear
+      }
     }
     
-    game.bossFight.bossMusic = new Audio('assets/level 4 (boss fight)/mythological magical.mp3');
+    // STEP 2: Create new audio with error handling
+    const musicPath = 'assets/level 4 (boss fight)/mythological magical.mp3';
+    console.log(`🎵 Loading music from: ${musicPath}`);
+    
+    game.bossFight.bossMusic = new Audio(musicPath);
+    
+    // STEP 3: Configure audio properties
     game.bossFight.bossMusic.loop = true;
     game.bossFight.bossMusic.volume = 0.7;
-    game.bossFight.bossMusic.play().catch(e => {
-      console.log('Boss music failed to play:', e);
+    game.bossFight.bossMusic.preload = 'auto';
+    
+    // STEP 4: Set up event listeners for audio feedback
+    game.bossFight.bossMusic.addEventListener('loadstart', () => {
+      console.log('🎵 Music loading started...');
     });
     
-    console.log('🎵 Boss music started!');
-  } catch (error) {
-    console.log('Failed to load boss music:', error);
+    game.bossFight.bossMusic.addEventListener('canplay', () => {
+      console.log('🎵 Music ready to play');
+    });
+    
+    game.bossFight.bossMusic.addEventListener('error', (e) => {
+      console.error('🎵 Music loading error:', e);
+      console.error('🎵 Error details:', {
+        code: e.target.error?.code,
+        message: e.target.error?.message
+      });
+    });
+    
+    // STEP 5: Attempt to play with comprehensive promise handling
+    const playPromise = game.bossFight.bossMusic.play();
+    
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          console.log('🎵 Boss music successfully playing!');
+        })
+        .catch((playError) => {
+          console.warn('🎵 Music play failed:', playError);
+          
+          // Check specific error types
+          if (playError.name === 'NotAllowedError') {
+            console.warn('🎵 Music blocked by browser autoplay policy');
+          } else if (playError.name === 'NotSupportedError') {
+            console.warn('🎵 Music format not supported');
+          } else {
+            console.warn('🎵 Unknown music play error:', playError.name);
+          }
+          
+          // Don't let music failure break the boss fight
+          console.log('🎮 Boss fight continuing without music');
+        });
+    } else {
+      console.log('🎵 Music play() returned undefined (older browser)');
+    }
+    
+  } catch (musicError) {
+    console.error('🎵 MUSIC SYSTEM FAILURE:', musicError);
+    console.error('🎵 Stack trace:', musicError.stack);
+    
+    // Ensure music reference is cleared on any error
+    game.bossFight.bossMusic = null;
+    
+    // Boss fight should continue without music
+    console.log('🎮 Boss fight will proceed without music');
   }
 }
 
@@ -1499,47 +1780,343 @@ function takeDamage(damage) {
 
 // Player defeated
 function playerDefeated() {
-  game.bossFight.active = false;
+  console.log('💀 BOSS FIGHT DEFEAT: Starting defeat sequence...');
   
-  // Stop boss music
-  if (game.bossFight.bossMusic) {
-    game.bossFight.bossMusic.pause();
-    game.bossFight.bossMusic = null;
+  // Track death for leaderboard
+  game.totalDeaths++;
+  console.log(`💀 Player death #${game.totalDeaths} recorded for leaderboard`);
+  
+  // CRITICAL: Clear any existing defeat timeout to prevent conflicts
+  if (game.defeatTimeout) {
+    clearTimeout(game.defeatTimeout);
+    game.defeatTimeout = null;
+    console.log('🔄 Cleared existing defeat timeout');
   }
   
-  // Show defeat message
-  showToast("The Fates have sealed your destiny...");
+  // Immediately deactivate boss fight
+  game.bossFight.active = false;
+  console.log('⛔ Boss fight deactivated');
   
-  // Restart the level after a delay
-  setTimeout(() => {
+  // Stop boss music with error handling
+  try {
+    if (game.bossFight.bossMusic) {
+      game.bossFight.bossMusic.pause();
+      game.bossFight.bossMusic.currentTime = 0; // Reset to beginning
+      game.bossFight.bossMusic = null;
+      console.log('🎵 Boss music stopped and reset');
+    }
+  } catch (error) {
+    console.warn('⚠️ Error stopping boss music:', error);
+    game.bossFight.bossMusic = null; // Force clear even on error
+  }
+  
+  // Clear ALL boss fight state immediately
+  game.bossFight.attacks = [];
+  game.bossFight.stringTraps = [];
+  game.bossFight.invulnerable = false;
+  game.bossFight.invulnerabilityTimer = 0;
+  console.log('🧹 Boss fight state cleared');
+  
+  // Show defeat message
+  showToast("💀 The Fates have sealed your destiny... Preparing restart...");
+  
+  // Track the defeat timeout to prevent conflicts
+  game.defeatTimeout = setTimeout(() => {
+    game.defeatTimeout = null; // Clear timeout reference
+    console.log('⏰ Defeat timeout completed, calling restartLevel()');
     restartLevel();
   }, 3000);
   
-  console.log('💀 Player defeated by The Fates');
+  console.log('💀 Player defeated by The Fates - Restart timeout set for 3 seconds');
 }
 
 
 
-// Boss fight won
+// Boss fight won - EPIC VICTORY SEQUENCE
 function bossFightWon() {
+  console.log('🏆 EPIC VICTORY! Starting legendary sequence...');
+  
+  // Deactivate boss fight
   game.bossFight.active = false;
   
-  // Stop boss music
+  // Stop boss music immediately
   if (game.bossFight.bossMusic) {
     game.bossFight.bossMusic.pause();
     game.bossFight.bossMusic = null;
   }
   
-  // Victory!
-  game.state = 'won';
+  // Calculate victory achievements
+  calculateVictoryAchievements();
+  
+  // Initialize epic victory sequence
+  initializeVictorySequence();
+  
+  // Start Phase 1: Victory Explosion
+  startVictoryPhase1();
+}
+
+// =============================================================================
+// EPIC VICTORY SEQUENCE SYSTEM
+// =============================================================================
+
+// Calculate achievements earned for this victory
+function calculateVictoryAchievements() {
+  const achievements = [];
+  const completionTime = Date.now() - (game.gameStartTime || Date.now());
+  
+  // Speed achievement
+  if (completionTime < 600000) { // Under 10 minutes
+    achievements.push({
+      id: 'lightning_fast',
+      name: '🏃 Lightning Fast',
+      description: 'Completed in under 10 minutes',
+      epic: true
+    });
+  }
+  
+  // Deathless achievement
+  if (game.totalDeaths === 0) {
+    achievements.push({
+      id: 'deathless_hero',
+      name: '💀 Deathless Hero', 
+      description: 'Completed without dying',
+      epic: true
+    });
+  }
+  
+  // Perfect score achievement
+  if (game.score >= 50) {
+    achievements.push({
+      id: 'perfect_score',
+      name: '⚡ Perfect Score',
+      description: 'Achieved maximum score',
+      epic: true
+    });
+  }
+  
+  // Flawless achievement
+  const allLevelsFirstTry = Object.values(game.levelAttempts).every(attempts => attempts <= 1);
+  if (allLevelsFirstTry) {
+    achievements.push({
+      id: 'flawless',
+      name: '🎯 Flawless',
+      description: 'Completed each level on first attempt',
+      epic: true
+    });
+  }
+  
+  // God Slayer achievement (always earned)
+  achievements.push({
+    id: 'god_slayer',
+    name: '🔥 God Slayer',
+    description: 'Defeated all three Fates',
+    epic: false
+  });
+  
+  game.victorySequence.achievements = achievements;
+  console.log('🏆 Achievements calculated:', achievements.map(a => a.name).join(', '));
+}
+
+// Initialize victory sequence
+function initializeVictorySequence() {
+  game.victorySequence.active = true;
+  game.victorySequence.phase = 0;
+  game.victorySequence.phaseTimer = 0;
+  game.victorySequence.explosionParticles = [];
+  game.victorySequence.collarBreakAnimation = 0;
+  game.victorySequence.freedomGlow = 0;
+  game.victorySequence.statsScroll = 0;
+  game.victorySequence.celebrationEffects = [];
+  game.victorySequence.phaseStartTime = Date.now();
+  
+  // Set game state to victory sequence
+  game.state = 'victory_sequence';
+  
+  console.log('🎆 Victory sequence initialized');
+}
+
+// Phase 1: Victory Explosion (0-3 seconds)
+function startVictoryPhase1() {
+  game.victorySequence.phase = 1;
+  game.victorySequence.phaseTimer = 0;
+  game.victorySequence.phaseStartTime = Date.now();
+  
+  console.log('💥 PHASE 1: Victory Explosion begins!');
+  
+  // Create massive victory explosion particles
+  createVictoryExplosion();
+  
+  // Show immediate victory toast
+  showToast('🌟 THE FATES ARE DEFEATED! 🌟');
+  
+  // Play epic victory fanfare
+  AUDIO.playVictory();
+  
+  // Screen flash effect will be handled in rendering
+  
+  // Auto-advance to Phase 2 after 3 seconds
+  setTimeout(() => {
+    if (game.victorySequence.active && game.victorySequence.phase === 1) {
+      startVictoryPhase2();
+    }
+  }, 3000);
+}
+
+// Phase 2: Freedom Animation (3-8 seconds)
+function startVictoryPhase2() {
+  game.victorySequence.phase = 2;
+  game.victorySequence.phaseTimer = 0;
+  game.victorySequence.phaseStartTime = Date.now();
+  
+  console.log('⛓️ PHASE 2: Collar breaking and freedom!');
+  
+  // Start collar breaking animation
+  game.victorySequence.collarBreakAnimation = 1;
+  
+  // Play collar breaking sound
+  AUDIO.playCollarBreak();
+  
+  // Show freedom message
+  showToast('⛓️ YOUR CHAINS ARE BROKEN! YOU ARE FREE! ⛓️');
+  
+  // Create freedom glow effect
+  game.victorySequence.freedomGlow = 1;
+  
+  // Auto-advance to Phase 3 after 5 seconds
+  setTimeout(() => {
+    if (game.victorySequence.active && game.victorySequence.phase === 2) {
+      startVictoryPhase3();
+    }
+  }, 5000);
+}
+
+// Phase 3: Stats Collection (8-12 seconds)
+function startVictoryPhase3() {
+  game.victorySequence.phase = 3;
+  game.victorySequence.phaseTimer = 0;
+  game.victorySequence.phaseStartTime = Date.now();
+  
+  console.log('📊 PHASE 3: Achievement summary!');
+  
+  // Start stats scrolling animation
+  game.victorySequence.statsScroll = 1;
+  
+  // Show achievement summary
   const survivalTime = Math.floor(game.bossFight.survivalTimer / 1000);
-  showToast(`🏆 YOU SURVIVED ${survivalTime} SECONDS! You are FREE!`);
+  showToast(`🏆 Victory in ${survivalTime} seconds! Calculating achievements...`);
   
-  // Play epic victory sounds!
-  AUDIO.playVictory(); // Epic victory melody
-  setTimeout(() => AUDIO.playCollarBreak(), 500); // Collar breaking sound
+  // Auto-advance to Phase 4 after 4 seconds
+  setTimeout(() => {
+    if (game.victorySequence.active && game.victorySequence.phase === 3) {
+      startVictoryPhase4();
+    }
+  }, 4000);
+}
+
+// Phase 4: Name Entry (12+ seconds)
+function startVictoryPhase4() {
+  game.victorySequence.phase = 4;
+  game.victorySequence.phaseTimer = 0;
+  game.victorySequence.phaseStartTime = Date.now();
   
-  console.log(`🏆 Boss fight WON! Player survived ${survivalTime} seconds!`);
+  console.log('🏛️ PHASE 4: Hall of Heroes entry!');
+  
+  // Check if player qualifies for leaderboard
+  if (qualifiesForLeaderboard(game.score)) {
+    // Show epic leaderboard entry form
+    game.showingLeaderboardEntry = true;
+    game.state = 'epic_leaderboard_entry'; // Special epic version
+    console.log('🏆 Showing EPIC leaderboard entry form...');
+  } else {
+    // Skip to final phase
+    startVictoryPhase5();
+  }
+}
+
+// Phase 5: Hall of Heroes Display
+function startVictoryPhase5() {
+  game.victorySequence.phase = 5;
+  game.victorySequence.phaseTimer = 0;
+  game.victorySequence.phaseStartTime = Date.now();
+  
+  console.log('🏛️ PHASE 5: Hall of Heroes display!');
+  
+  // Show Hall of Heroes with player's new entry highlighted
+  game.state = 'epic_hall_of_heroes';
+}
+
+// Create victory explosion particles
+function createVictoryExplosion() {
+  const explosionCount = 50;
+  game.victorySequence.explosionParticles = [];
+  
+  for (let i = 0; i < explosionCount; i++) {
+    game.victorySequence.explosionParticles.push({
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      vx: (Math.random() - 0.5) * 20,
+      vy: (Math.random() - 0.5) * 20,
+      life: 1.0,
+      color: Math.random() > 0.5 ? '#FFD700' : '#FFA500',
+      size: Math.random() * 8 + 4
+    });
+  }
+  
+  // Add celebration effects around the screen
+  for (let i = 0; i < 30; i++) {
+    game.victorySequence.celebrationEffects.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 5,
+      vy: (Math.random() - 0.5) * 5,
+      life: 1.0,
+      color: '#FFD700',
+      size: Math.random() * 6 + 2,
+      type: 'star'
+    });
+  }
+}
+
+// Update victory sequence (called from main update loop)
+function updateVictorySequence(deltaTime) {
+  if (!game.victorySequence.active) return;
+  
+  game.victorySequence.phaseTimer += deltaTime;
+  
+  // Update explosion particles
+  game.victorySequence.explosionParticles.forEach((particle, index) => {
+    particle.x += particle.vx;
+    particle.y += particle.vy;
+    particle.life -= deltaTime / 3000; // Fade over 3 seconds
+    
+    if (particle.life <= 0) {
+      game.victorySequence.explosionParticles.splice(index, 1);
+    }
+  });
+  
+  // Update celebration effects
+  game.victorySequence.celebrationEffects.forEach((effect, index) => {
+    effect.x += effect.vx;
+    effect.y += effect.vy;
+    effect.life -= deltaTime / 5000; // Fade over 5 seconds
+    
+    // Wrap around screen edges
+    if (effect.x > canvas.width) effect.x = 0;
+    if (effect.x < 0) effect.x = canvas.width;
+    if (effect.y > canvas.height) effect.y = 0;
+    if (effect.y < 0) effect.y = canvas.height;
+    
+    if (effect.life <= 0) {
+      game.victorySequence.celebrationEffects.splice(index, 1);
+    }
+  });
+  
+  // Update animations based on phase
+  if (game.victorySequence.phase === 2) {
+    // Animate collar breaking
+    game.victorySequence.collarBreakAnimation += deltaTime / 1000;
+    game.victorySequence.freedomGlow = Math.sin(game.victorySequence.phaseTimer / 500) * 0.5 + 0.5;
+  }
 }
 
 

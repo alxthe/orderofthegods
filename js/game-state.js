@@ -131,6 +131,13 @@ const game = {
   processingNextRiddle: false, // Prevent multiple nextRiddle() calls
   nextRiddleTimeout: null,     // Track timeout IDs to prevent race conditions
   
+  // Anti-timeout-spam protection
+  timeoutInProgress: false,    // Prevent multiple timeout creation (CRITICAL FIX)
+  
+  // Boss Fight Restart Protection
+  defeatTimeout: null,         // Track defeat timeout to prevent conflicts
+  restartTimeout: null,        // Track restart story timeout
+  
   // Boss Fight System (Level 4)
   bossFight: {
     active: false,
@@ -149,6 +156,33 @@ const game = {
     invulnerabilityTimer: 0,
     survivalTimer: 0, // Track how long player has survived
     survivalGoal: 60000 // Survive for 60 seconds to win!
+  },
+  
+  // Leaderboard Tracking Data
+  gameStartTime: null,           // When the current playthrough started
+  totalDeaths: 0,                // Number of player deaths this playthrough
+  levelAttempts: {               // How many times each level was attempted
+    1: 0,
+    2: 0, 
+    3: 0,
+    4: 0
+  },
+  showingLeaderboardEntry: false, // Whether leaderboard entry form is displayed
+  leaderboardPlayerName: '',      // Player name being entered for leaderboard
+  leaderboardSortBy: 'score',     // How to sort the leaderboard
+  
+  // Epic Victory Sequence System
+  victorySequence: {
+    active: false,              // Whether victory sequence is running
+    phase: 0,                   // Current victory phase (0=inactive, 1=explosion, 2=freedom, 3=stats, 4=name_entry, 5=hall_display)
+    phaseTimer: 0,              // Timer for current phase
+    explosionParticles: [],     // Victory explosion particles
+    collarBreakAnimation: 0,    // Collar breaking animation frame
+    freedomGlow: 0,             // Player freedom glow intensity
+    statsScroll: 0,             // Stats scroll animation
+    celebrationEffects: [],     // General celebration particle effects
+    phaseStartTime: 0,          // When current phase started
+    achievements: []            // Earned achievements for this victory
   },
   
   // Debug
