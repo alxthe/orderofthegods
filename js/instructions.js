@@ -71,4 +71,87 @@ const LEVEL_INSTRUCTIONS = {
   }
 };
 
+// =============================================================================
+// INSTRUCTION TILES - HELPFUL GAMEPLAY REMINDERS
+// =============================================================================
+
+// Small instruction tiles that appear during gameplay
+const INSTRUCTION_TILES = {
+  1: {
+    title: "🍳 LEVEL 1: TARTARUS FEAST HALL",
+    tips: [
+      "🎮 WASD or Arrow Keys: Move around kitchen",
+      "🔎 E: Pick up ingredients / Interact",
+      "📦 Q: Remove item from plate",
+      "🗑️ X: Throw away carried item",
+      "🍽️ ENTER: Deliver completed order",
+      "⏸️ ESC: Pause game"
+    ],
+    cooking: [
+      "🔥 V: Use oven (cook meat, egg, bacon)",
+      "🔪 E: Use cutting board (slice ingredients)",
+      "📋 Read riddles carefully!",
+      "⏰ Watch the timer!"
+    ]
+  },
+  
+  2: {
+    title: "🏛️ LEVEL 2: ACROPOLIS OF ATHENS",
+    tips: [
+      "🎮 WASD or Arrow Keys: Move around",
+      "🦸 NEW: Heroes with special powers!",
+      "💪 Hercules: Blurs your vision",
+      "⚔️ Achilles: Reverses your controls",
+      "👁️ Cyclops: Darkens the screen",
+      "🍽️ Table now holds 6 ingredients!"
+    ],
+    cooking: [
+      "🥓 NEW: Bacon (cook in oven)",
+      "🥑 NEW: Avocado (slice on cutting board)",
+      "🫒 NEW: Olive oil & olives",
+      "🔥 Still use V for oven",
+      "🔪 Still use E for cutting board"
+    ]
+  },
+  
+  3: {
+    title: "⚡ LEVEL 3: MOUNT OLYMPUS",
+    tips: [
+      "🎮 WASD or Arrow Keys: Move around",
+      "🏛️ ALL GODS have powers now!",
+      "⚡ Zeus: Lightning teleports you",
+      "🌊 Poseidon: Ocean waves push you",
+      "💨 Hermes: Speeds up time & movement",
+      "👑 Hera: Locks ingredients",
+      "💀 Hades: Ghostly soul interference"
+    ],
+    cooking: [
+      "🥛 NEW: Milk & yogurt ingredients",
+      "🍲 NEW: Saucepan (E to use)",
+      "⏰ Saucepan: Milk → yogurt (3 seconds)",
+      "🔥 V: Still use oven for cooking",
+      "🔪 E: Still use cutting board"
+    ]
+  },
+  
+  4: {
+    title: "💀 LEVEL 4: THE LOOM OF DESTINY",
+    tips: [
+      "🎮 WASD or Arrow Keys: Move around",
+      "⚔️ COOKING UNDER ATTACK!",
+      "🎯 Three 6-item Fate feasts",
+      "⏰ 60 seconds per feast",
+      "🔥 Use ALL equipment while dodging",
+      "💀 Avoid Fate attacks!"
+    ],
+    cooking: [
+      "🍳 Clotho's Masterpiece: Complex feast",
+      "⚖️ Lachesis' Perfection: Ultimate skill",
+      "✂️ Atropos' Finale: Final challenge",
+      "🔥 V: Oven | 🔪 E: Cutting | 🍲 E: Saucepan",
+      "🍽️ Assemble on table, deliver at altar"
+    ]
+  }
+};
+
 console.log("✅ Level instruction content loaded");

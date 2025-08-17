@@ -37,6 +37,9 @@ function render() {
       renderBossUICompact();
     }
     
+    // Render instruction tiles if enabled
+    renderInstructionTiles();
+    
     // Render instruction screen overlay if showing
     if (game.showingInstructions) {
       renderInstructionScreen();
@@ -93,16 +96,16 @@ function renderKitchen() {
   }
   
   // Render kitchen elements - INCLUDING Level 4 for Cooking Under Attack!
-  renderIngredientCrates();
-  renderTable();
-  renderTrashBin();
-  renderOven();
-  renderCuttingBoard();
-  // Level 3+ only: Render saucepan
-  if (game.currentLevel >= 3) {
-    renderSaucepan();
-  }
-  renderKitchenLabels();
+    renderIngredientCrates();
+    renderTable();
+    renderTrashBin();
+    renderOven();
+    renderCuttingBoard();
+    // Level 3+ only: Render saucepan
+    if (game.currentLevel >= 3) {
+      renderSaucepan();
+    }
+    renderKitchenLabels();
   
   // Level 4: Also render boss fight elements
   if (game.currentLevel === 4 && game.bossFight.active) {
@@ -110,7 +113,7 @@ function renderKitchen() {
   }
   
   // Render delivery altar - INCLUDING Level 4!
-  renderDeliveryAltar();
+    renderDeliveryAltar();
 }
 
 // Fallback background when images don't load
@@ -541,9 +544,9 @@ function renderTable() {
     tableGrad.addColorStop(0.5, '#A0522D'); // Sienna
     tableGrad.addColorStop(1, '#654321'); // Dark brown
     
-    ctx.fillStyle = tableGrad;
-    ctx.fillRect(table.x - tableWidth/2, table.y - tableHeight/2, tableWidth, tableHeight);
-    
+  ctx.fillStyle = tableGrad;
+  ctx.fillRect(table.x - tableWidth/2, table.y - tableHeight/2, tableWidth, tableHeight);
+  
     // Simple border
     ctx.strokeStyle = 'rgba(101, 67, 33, 0.8)';
     ctx.lineWidth = 3;
@@ -901,17 +904,17 @@ function renderDeliveryAltar() {
       counter.x, counter.y - altarHeight/2,
       counter.x, counter.y + altarHeight/2
     );
-    altarGrad.addColorStop(0, '#A0522D'); // Sienna
-    altarGrad.addColorStop(0.5, '#8B4513'); // Saddle brown
-    altarGrad.addColorStop(1, '#654321'); // Dark brown
+  altarGrad.addColorStop(0, '#A0522D'); // Sienna
+  altarGrad.addColorStop(0.5, '#8B4513'); // Saddle brown
+  altarGrad.addColorStop(1, '#654321'); // Dark brown
     
-    ctx.fillStyle = altarGrad;
-    ctx.fillRect(counter.x - altarWidth/2, counter.y - altarHeight/2, altarWidth, altarHeight);
-    
+  ctx.fillStyle = altarGrad;
+  ctx.fillRect(counter.x - altarWidth/2, counter.y - altarHeight/2, altarWidth, altarHeight);
+  
     // Simple border
     ctx.strokeStyle = 'rgba(101, 67, 33, 0.8)';
     ctx.lineWidth = 3;
-    ctx.strokeRect(counter.x - altarWidth/2, counter.y - altarHeight/2, altarWidth, altarHeight);
+  ctx.strokeRect(counter.x - altarWidth/2, counter.y - altarHeight/2, altarWidth, altarHeight);
   }
   
   // Clean glow when player is near
@@ -2067,151 +2070,493 @@ function renderVictorySequence() {
   renderVictoryParticles();
 }
 
-// Phase 1: Victory Explosion
+// 🌟 PHASE 1: DIVINE EXPLOSION OF VICTORY 🌟
 function renderVictoryPhase1() {
-  // Screen flash effect
-  const flashIntensity = Math.max(0, 1 - (game.victorySequence.phaseTimer / 1000));
+  const time = game.victorySequence.phaseTimer / 1000;
+  
+  // 💥 DIVINE FLASH OF TRIUMPH
+  const flashIntensity = Math.max(0, 1 - (time / 1.5));
   if (flashIntensity > 0) {
-    ctx.fillStyle = `rgba(255, 255, 255, ${flashIntensity * 0.8})`;
+    // Multiple flash layers for epic effect
+    ctx.fillStyle = `rgba(255, 255, 255, ${flashIntensity * 0.9})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Golden flash overlay
+    ctx.fillStyle = `rgba(255, 215, 0, ${flashIntensity * 0.6})`;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
   
-  // Central victory text
-  ctx.fillStyle = '#FFD700';
-  ctx.font = 'bold 64px Cinzel, serif';
-  ctx.textAlign = 'center';
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-  ctx.shadowBlur = 10;
+  // 🌟 CELESTIAL STARFIELD EXPLOSION
+  for (let i = 0; i < 200; i++) {
+    const angle = (i * 137.5) % (Math.PI * 2);
+    const distance = time * 300 + (i % 50) * 10;
+    const starX = canvas.width/2 + Math.cos(angle) * distance;
+    const starY = canvas.height/2 + Math.sin(angle) * distance;
+    
+    if (starX > 0 && starX < canvas.width && starY > 0 && starY < canvas.height) {
+      const brightness = Math.max(0, 1 - time/2) * (0.5 + Math.sin(time * 10 + i) * 0.5);
+      ctx.fillStyle = `rgba(255, 215, 0, ${brightness})`;
+      
+      const size = 2 + Math.sin(time * 5 + i) * 2;
+      ctx.fillRect(starX - size/2, starY - size/2, size, size);
+    }
+  }
   
-  const scale = 1 + Math.sin(game.victorySequence.phaseTimer / 200) * 0.1;
+  // 🏆 MAGNIFICENT VICTORY TITLE WITH DIVINE POWER
   ctx.save();
-  ctx.translate(canvas.width/2, canvas.height/2);
-  ctx.scale(scale, scale);
-  ctx.fillText('🌟 THE FATES ARE DEFEATED! 🌟', 0, 0);
+  
+  // Epic multi-layer glow effect
+  for (let glow = 20; glow > 0; glow -= 4) {
+    ctx.shadowColor = '#FFD700';
+    ctx.shadowBlur = glow;
+    ctx.fillStyle = glow > 12 ? 'rgba(255, 215, 0, 0.3)' : '#FFD700';
+    ctx.font = 'bold 84px Cinzel, serif';
+    ctx.textAlign = 'center';
+    
+    // Dynamic scaling and rotation
+    const scale = 1 + Math.sin(time * 3) * 0.15;
+    const rotation = Math.sin(time * 2) * 0.05;
+    
+    ctx.save();
+    ctx.translate(canvas.width/2, canvas.height/2);
+    ctx.scale(scale, scale);
+    ctx.rotate(rotation);
+    ctx.fillText('⚡ DIVINE VICTORY! ⚡', 0, -20);
+    ctx.fillText('🌟 FATES CONQUERED! 🌟', 0, 80);
+    ctx.restore();
+  }
+  
+  ctx.restore();
+  
+  // ⚡ LIGHTNING STRIKES OF TRIUMPH
+  for (let i = 0; i < 8; i++) {
+    const boltTime = (time * 3 + i) % 1;
+    if (boltTime < 0.3) {
+      const startX = Math.random() * canvas.width;
+      const startY = 0;
+      const endX = startX + (Math.random() - 0.5) * 200;
+      const endY = canvas.height;
+      
+      const boltIntensity = Math.sin(boltTime * Math.PI / 0.3);
+      ctx.strokeStyle = `rgba(255, 255, 255, ${boltIntensity})`;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      
+      // Jagged lightning path
+      for (let j = 0; j < 10; j++) {
+        const progress = j / 10;
+        const x = startX + (endX - startX) * progress + (Math.random() - 0.5) * 40;
+        const y = startY + (endY - startY) * progress;
+        ctx.lineTo(x, y);
+      }
+      
+      ctx.stroke();
+    }
+  }
+  
+  // 🎊 VICTORY PROCLAMATION
+  if (time > 1) {
+    ctx.fillStyle = 'rgba(255, 215, 0, 0.9)';
+    ctx.font = 'bold 32px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+    ctx.shadowBlur = 6;
+    
+    const proclamationScale = Math.min(1, (time - 1) * 2);
+    ctx.save();
+    ctx.translate(canvas.width/2, canvas.height * 0.85);
+    ctx.scale(proclamationScale, proclamationScale);
+    ctx.fillText('🏛️ THE GODS THEMSELVES BOW TO YOUR GREATNESS! 🏛️', 0, 0);
+    ctx.restore();
+  }
+  
+  ctx.shadowBlur = 0;
+}
+
+// 🕊️ PHASE 2: CHAINS OF DESTINY SHATTERED 🕊️
+function renderVictoryPhase2() {
+  const time = game.victorySequence.phaseTimer / 1000;
+  
+  // 🌅 DIVINE SUNRISE OF FREEDOM
+  const horizonGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  horizonGrad.addColorStop(0, '#FFE4B5'); // Moccasin
+  horizonGrad.addColorStop(0.3, '#FFA500'); // Orange
+  horizonGrad.addColorStop(0.6, '#FF69B4'); // Hot pink
+  horizonGrad.addColorStop(0.8, '#4169E1'); // Royal blue
+  horizonGrad.addColorStop(1, '#191970'); // Midnight blue
+  ctx.fillStyle = horizonGrad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // ☀️ RADIANT SUN OF LIBERTY
+  const sunIntensity = Math.min(1, time / 2);
+  const sunSize = sunIntensity * 150;
+  const sunGrad = ctx.createRadialGradient(canvas.width/2, canvas.height * 0.3, 0, 
+                                          canvas.width/2, canvas.height * 0.3, sunSize);
+  sunGrad.addColorStop(0, `rgba(255, 255, 255, ${sunIntensity})`);
+  sunGrad.addColorStop(0.3, `rgba(255, 215, 0, ${sunIntensity * 0.9})`);
+  sunGrad.addColorStop(0.7, `rgba(255, 140, 0, ${sunIntensity * 0.5})`);
+  sunGrad.addColorStop(1, 'rgba(255, 140, 0, 0)');
+  ctx.fillStyle = sunGrad;
+  ctx.fillRect(canvas.width/2 - sunSize, canvas.height * 0.3 - sunSize, sunSize * 2, sunSize * 2);
+  
+  // 🌟 CASCADING GOLDEN LIGHT RAYS
+  for (let i = 0; i < 16; i++) {
+    const angle = (i * Math.PI * 2 / 16) + time * 0.1;
+    const rayLength = canvas.height * 0.8;
+    const startX = canvas.width/2 + Math.cos(angle) * 80;
+    const startY = canvas.height * 0.3 + Math.sin(angle) * 80;
+    const endX = canvas.width/2 + Math.cos(angle) * rayLength;
+    const endY = canvas.height * 0.3 + Math.sin(angle) * rayLength;
+    
+    const rayGrad = ctx.createLinearGradient(startX, startY, endX, endY);
+    rayGrad.addColorStop(0, `rgba(255, 215, 0, ${0.4 * sunIntensity})`);
+    rayGrad.addColorStop(0.5, `rgba(255, 215, 0, ${0.2 * sunIntensity})`);
+    rayGrad.addColorStop(1, 'rgba(255, 215, 0, 0)');
+    
+    ctx.strokeStyle = rayGrad;
+    ctx.lineWidth = 8;
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+  }
+  
+  // ⛓️ SPECTACULAR COLLAR BREAKING ANIMATION
+  renderEpicCollarBreaking();
+  
+  // 🕊️ ASCENDING FREEDOM BIRDS
+  for (let i = 0; i < 12; i++) {
+    const birdTime = (time * 2 + i * 0.5) % 3;
+    if (birdTime < 2) {
+      const birdX = (canvas.width * 0.2) + (birdTime / 2) * (canvas.width * 0.6);
+      const birdY = canvas.height * 0.7 - (birdTime / 2) * canvas.height * 0.4;
+      const wingFlap = Math.sin(time * 10 + i) * 0.2;
+      
+      // Bird body
+      ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, 1 - birdTime/2)})`;
+      ctx.fillRect(birdX - 4, birdY - 2, 8, 4);
+      
+      // Wings
+      ctx.strokeStyle = `rgba(255, 255, 255, ${Math.max(0, 1 - birdTime/2)})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(birdX - 8, birdY + wingFlap * 6);
+      ctx.lineTo(birdX, birdY);
+      ctx.lineTo(birdX + 8, birdY + wingFlap * 6);
+      ctx.stroke();
+    }
+  }
+  
+  // 🏆 FREEDOM DECLARATION WITH DIVINE GLOW
+  ctx.save();
+  
+  // Multiple glow layers for epic effect
+  for (let glow = 25; glow > 0; glow -= 5) {
+    ctx.shadowColor = '#FFD700';
+    ctx.shadowBlur = glow;
+    ctx.fillStyle = glow > 15 ? 'rgba(255, 215, 0, 0.4)' : '#FFD700';
+    ctx.font = 'bold 72px Cinzel, serif';
+    ctx.textAlign = 'center';
+    
+    const pulsate = 1 + Math.sin(time * 4) * 0.1;
+    ctx.save();
+    ctx.translate(canvas.width/2, canvas.height * 0.15);
+    ctx.scale(pulsate, pulsate);
+    ctx.fillText('⛓️ CHAINS SHATTERED! ⛓️', 0, 0);
+    ctx.restore();
+    
+    ctx.save();
+    ctx.translate(canvas.width/2, canvas.height * 0.85);
+    ctx.scale(pulsate, pulsate);
+    ctx.fillText('🕊️ FREEDOM ETERNAL! 🕊️', 0, 0);
+    ctx.restore();
+  }
+  
+  ctx.restore();
+  ctx.shadowBlur = 0;
+}
+
+// 🏆 PHASE 3: LEGEND'S CHRONICLE UNFURLED 🏆
+function renderVictoryPhase3() {
+  const time = game.victorySequence.phaseTimer / 1000;
+  
+  // 📜 MAJESTIC SCROLL BACKGROUND
+  const scrollGrad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, 
+                                             canvas.width/2, canvas.height/2, Math.max(canvas.width, canvas.height));
+  scrollGrad.addColorStop(0, '#2F4F4F'); // Dark slate gray
+  scrollGrad.addColorStop(0.3, '#1C1C1C'); // Very dark gray
+  scrollGrad.addColorStop(0.7, '#0F0F0F'); // Almost black
+  scrollGrad.addColorStop(1, '#000000'); // Pure black
+  ctx.fillStyle = scrollGrad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // ⭐ FLOATING VICTORY STARS
+  for (let i = 0; i < 50; i++) {
+    const starX = (i * 73.5 + time * 20) % canvas.width;
+    const starY = (i * 157.3) % canvas.height;
+    const twinkle = Math.sin(time * 3 + i) * 0.5 + 0.5;
+    const brightness = 0.3 + twinkle * 0.7;
+    
+    ctx.fillStyle = `rgba(255, 215, 0, ${brightness})`;
+    ctx.fillRect(starX, starY, 3, 3);
+  }
+  
+  // 🏆 MAGNIFICENT ACHIEVEMENT SCROLL
+  const scrollX = canvas.width * 0.1;
+  const scrollY = canvas.height * 0.1;
+  const scrollWidth = canvas.width * 0.8;
+  const scrollHeight = canvas.height * 0.8;
+  
+  // Parchment background with epic glow
+  const parchmentGrad = ctx.createLinearGradient(scrollX, scrollY, scrollX, scrollY + scrollHeight);
+  parchmentGrad.addColorStop(0, 'rgba(255, 248, 220, 0.95)');
+  parchmentGrad.addColorStop(0.1, 'rgba(255, 255, 255, 0.98)');
+  parchmentGrad.addColorStop(0.9, 'rgba(255, 255, 255, 0.98)');
+  parchmentGrad.addColorStop(1, 'rgba(245, 222, 179, 0.95)');
+  
+  ctx.fillStyle = parchmentGrad;
+  ctx.fillRect(scrollX, scrollY, scrollWidth, scrollHeight);
+  
+  // Ornate golden border with multiple layers
+  for (let border = 0; border < 3; border++) {
+    ctx.strokeStyle = border === 0 ? '#8B4513' : (border === 1 ? '#FFD700' : 'rgba(255, 215, 0, 0.5)');
+    ctx.lineWidth = border === 0 ? 6 : (border === 1 ? 4 : 2);
+    ctx.strokeRect(scrollX + border * 3, scrollY + border * 3, 
+                   scrollWidth - border * 6, scrollHeight - border * 6);
+  }
+  
+  // 👑 EPIC TITLE WITH DIVINE RADIANCE
+  ctx.save();
+  
+  for (let glow = 20; glow > 0; glow -= 4) {
+    ctx.shadowColor = '#FFD700';
+    ctx.shadowBlur = glow;
+    ctx.fillStyle = glow > 12 ? 'rgba(255, 215, 0, 0.3)' : '#8B0000';
+    ctx.font = 'bold 52px Cinzel, serif';
+    ctx.textAlign = 'center';
+    
+    const titlePulse = 1 + Math.sin(time * 2) * 0.05;
+    ctx.save();
+    ctx.translate(canvas.width/2, scrollY + 80);
+    ctx.scale(titlePulse, titlePulse);
+    ctx.fillText('🏆 CHRONICLE OF IMMORTAL TRIUMPH 🏆', 0, 0);
+    ctx.restore();
+  }
+  
+  ctx.restore();
+  
+  // 📊 LEGENDARY STATISTICS DISPLAY
+  const statsY = scrollY + 140;
+  const completionTime = Date.now() - (game.gameStartTime || Date.now());
+  const survivalTime = Math.floor((game.bossFight?.survivalTimer || 0) / 1000);
+  
+  const legendaryStats = [
+    { icon: '⚡', label: 'Divine Score Achieved', value: `${game.score} Points of Glory` },
+    { icon: '⏱️', label: 'Epic Journey Duration', value: formatTime(completionTime) },
+    { icon: '💀', label: 'Deaths Endured', value: `${game.totalDeaths} Resurrections` },
+    { icon: '🎯', label: 'Final Battle Survival', value: `${survivalTime} Seconds of Glory` },
+    { icon: '🔥', label: 'Primordial Forces Conquered', value: 'All Three Fates Defeated' }
+  ];
+  
+  // Stats display with royal styling
+  legendaryStats.forEach((stat, index) => {
+    const statY = statsY + (index * 55);
+    const isEven = index % 2 === 0;
+    
+    // Alternating background highlights
+    if (isEven) {
+      ctx.fillStyle = 'rgba(255, 215, 0, 0.1)';
+      ctx.fillRect(scrollX + 20, statY - 25, scrollWidth - 40, 45);
+    }
+    
+    // Icon with glow
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 32px serif';
+    ctx.textAlign = 'left';
+    ctx.shadowColor = 'rgba(255, 215, 0, 0.5)';
+    ctx.shadowBlur = 4;
+    ctx.fillText(stat.icon, scrollX + 40, statY + 10);
+    
+    // Stat label
+    ctx.fillStyle = '#8B0000';
+    ctx.font = 'bold 24px Cinzel, serif';
+    ctx.shadowBlur = 0;
+    ctx.fillText(stat.label, scrollX + 100, statY - 5);
+    
+    // Stat value
+    ctx.fillStyle = '#2F4F4F';
+    ctx.font = 'bold 20px Cinzel, serif';
+    ctx.fillText(stat.value, scrollX + 100, statY + 25);
+  });
+  
+  // 🎖️ ACHIEVEMENT BADGES OF LEGEND
+  if (game.victorySequence.achievements && game.victorySequence.achievements.length > 0) {
+    const achievementY = statsY + 300;
+    
+    // Achievement section title
+    ctx.fillStyle = '#8B0000';
+    ctx.font = 'bold 36px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = 'rgba(139, 0, 0, 0.5)';
+    ctx.shadowBlur = 6;
+    ctx.fillText('🎖️ IMMORTAL ACHIEVEMENTS EARNED 🎖️', canvas.width/2, achievementY);
+    ctx.shadowBlur = 0;
+    
+    // Individual achievement badges
+    game.victorySequence.achievements.forEach((achievement, index) => {
+      const badgeY = achievementY + 50 + (index * 40);
+      
+      // Achievement background
+      ctx.fillStyle = 'rgba(139, 0, 0, 0.1)';
+      ctx.fillRect(scrollX + 40, badgeY - 20, scrollWidth - 80, 35);
+      
+      // Achievement display
+      ctx.fillStyle = '#CD853F';
+      ctx.font = 'bold 22px Cinzel, serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${achievement.name} — ${achievement.description}`, canvas.width/2, badgeY);
+    });
+  }
+  
+  // 🌟 HALL OF HEROES PREPARATION
+  const preparationY = scrollY + scrollHeight - 80;
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'italic 28px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(255, 215, 0, 0.8)';
+  ctx.shadowBlur = 8;
+  
+  const preparationPulse = 1 + Math.sin(time * 3) * 0.1;
+  ctx.save();
+  ctx.translate(canvas.width/2, preparationY);
+  ctx.scale(preparationPulse, preparationPulse);
+  ctx.fillText('✨ Inscribing Your Legend in the Hall of Heroes... ✨', 0, 0);
   ctx.restore();
   
   ctx.shadowBlur = 0;
 }
 
-// Phase 2: Freedom Animation
-function renderVictoryPhase2() {
-  // Golden freedom glow around entire screen
-  const glowIntensity = game.victorySequence.freedomGlow;
-  const glow = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, 
-                                       canvas.width/2, canvas.height/2, canvas.width);
-  glow.addColorStop(0, `rgba(255, 215, 0, ${glowIntensity * 0.3})`);
-  glow.addColorStop(0.5, `rgba(255, 215, 0, ${glowIntensity * 0.1})`);
-  glow.addColorStop(1, 'rgba(255, 215, 0, 0)');
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
-  // Collar breaking animation
-  renderCollarBreaking();
-  
-  // Freedom text
-  ctx.fillStyle = '#FFD700';
-  ctx.font = 'bold 48px Cinzel, serif';
-  ctx.textAlign = 'center';
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-  ctx.shadowBlur = 8;
-  ctx.fillText('⛓️ YOUR CHAINS ARE BROKEN! ⛓️', canvas.width/2, canvas.height * 0.2);
-  ctx.fillText('🕊️ YOU ARE FREE! 🕊️', canvas.width/2, canvas.height * 0.8);
-  ctx.shadowBlur = 0;
-}
-
-// Phase 3: Achievement Summary
-function renderVictoryPhase3() {
-  // Dark overlay for better text readability
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
-  // Achievement summary title
-  ctx.fillStyle = '#FFD700';
-  ctx.font = 'bold 42px Cinzel, serif';
-  ctx.textAlign = 'center';
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-  ctx.shadowBlur = 8;
-  ctx.fillText('🏆 LEGENDARY VICTORY ACHIEVED! 🏆', canvas.width/2, canvas.height * 0.15);
-  ctx.shadowBlur = 0;
-  
-  // Stats display
-  const statsY = canvas.height * 0.3;
-  const completionTime = Date.now() - (game.gameStartTime || Date.now());
-  const survivalTime = Math.floor(game.bossFight.survivalTimer / 1000);
-  
-  const stats = [
-    `⚡ Final Score: ${game.score} points`,
-    `⏱️ Completion Time: ${formatTime(completionTime)}`,
-    `💀 Deaths: ${game.totalDeaths}`,
-    `🎯 Survival Time: ${survivalTime} seconds`,
-    `🔥 Fates Defeated: All 3`
-  ];
-  
-  ctx.fillStyle = '#E6D2A3';
-  ctx.font = '24px Crimson Text, serif';
-  
-  stats.forEach((stat, index) => {
-    const y = statsY + (index * 40);
-    ctx.fillText(stat, canvas.width/2, y);
-  });
-  
-  // Achievement badges
-  if (game.victorySequence.achievements.length > 0) {
-    ctx.fillStyle = '#FFD700';
-    ctx.font = 'bold 28px Cinzel, serif';
-    ctx.fillText('🎖️ ACHIEVEMENTS EARNED 🎖️', canvas.width/2, statsY + 220);
-    
-    ctx.fillStyle = '#CD853F';
-    ctx.font = '20px Crimson Text, serif';
-    
-    game.victorySequence.achievements.forEach((achievement, index) => {
-      const y = statsY + 260 + (index * 30);
-      ctx.fillText(`${achievement.name} - ${achievement.description}`, canvas.width/2, y);
-    });
-  }
-  
-  // Loading text
-  ctx.fillStyle = '#FFD700';
-  ctx.font = '18px Cinzel, serif';
-  ctx.fillText('Preparing Hall of Heroes entry...', canvas.width/2, canvas.height * 0.9);
-}
-
-// Render collar breaking effect
-function renderCollarBreaking() {
+// ⛓️ EPIC COLLAR BREAKING SPECTACLE ⛓️
+function renderEpicCollarBreaking() {
   const centerX = canvas.width / 2;
   const centerY = canvas.height / 2;
   const animation = game.victorySequence.collarBreakAnimation;
+  const time = game.victorySequence.phaseTimer / 1000;
   
   if (animation > 0) {
-    // Draw breaking collar fragments
-    for (let i = 0; i < 8; i++) {
-      const angle = (i * Math.PI * 2) / 8;
-      const distance = animation * 100;
-      const fragmentX = centerX + Math.cos(angle) * distance;
-      const fragmentY = centerY + Math.sin(angle) * distance;
-      
-      ctx.fillStyle = '#444';
-      ctx.fillRect(fragmentX - 15, fragmentY - 8, 30, 16);
-      
-      // Golden cracks
-      ctx.strokeStyle = '#FFD700';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(fragmentX - 15, fragmentY);
-      ctx.lineTo(fragmentX + 15, fragmentY);
-      ctx.stroke();
+    // 💥 MASSIVE CENTRAL EXPLOSION OF FREEDOM
+    const explosionProgress = Math.min(1, animation / 2);
+    const explosionSize = explosionProgress * 200;
+    
+    // Multiple explosion layers for epic effect
+    const explosion1 = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, explosionSize);
+    explosion1.addColorStop(0, `rgba(255, 255, 255, ${0.9 * explosionProgress})`);
+    explosion1.addColorStop(0.3, `rgba(255, 215, 0, ${0.8 * explosionProgress})`);
+    explosion1.addColorStop(0.7, `rgba(255, 140, 0, ${0.4 * explosionProgress})`);
+    explosion1.addColorStop(1, 'rgba(255, 140, 0, 0)');
+    
+    ctx.fillStyle = explosion1;
+    ctx.fillRect(centerX - explosionSize, centerY - explosionSize, explosionSize * 2, explosionSize * 2);
+    
+    // 🌟 RADIAL SHOCKWAVE RINGS
+    for (let ring = 0; ring < 5; ring++) {
+      const ringProgress = (animation - ring * 0.2) / 2;
+      if (ringProgress > 0 && ringProgress < 1) {
+        const ringRadius = ringProgress * 300;
+        const ringOpacity = Math.sin(ringProgress * Math.PI) * 0.6;
+        
+        ctx.strokeStyle = `rgba(255, 215, 0, ${ringOpacity})`;
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, ringRadius, 0, Math.PI * 2);
+        ctx.stroke();
+      }
     }
     
-    // Central golden explosion
-    if (animation < 2) {
-      const explosionSize = animation * 50;
-      const explosion = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, explosionSize);
-      explosion.addColorStop(0, 'rgba(255, 215, 0, 0.8)');
-      explosion.addColorStop(1, 'rgba(255, 215, 0, 0)');
-      ctx.fillStyle = explosion;
-      ctx.fillRect(centerX - explosionSize, centerY - explosionSize, explosionSize * 2, explosionSize * 2);
+    // ⛓️ DRAMATIC COLLAR FRAGMENTS WITH PHYSICS
+    for (let i = 0; i < 12; i++) {
+      const angle = (i * Math.PI * 2) / 12;
+      const fragmentDistance = animation * 150 + Math.sin(time * 5 + i) * 10;
+      const fragmentX = centerX + Math.cos(angle) * fragmentDistance;
+      const fragmentY = centerY + Math.sin(angle) * fragmentDistance + (animation * animation * 20); // Gravity effect
+      const rotation = animation * 4 + i;
+      
+      // Fragment shadow
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+      ctx.save();
+      ctx.translate(fragmentX + 3, fragmentY + 3);
+      ctx.rotate(rotation);
+      ctx.fillRect(-20, -10, 40, 20);
+      ctx.restore();
+      
+      // Main fragment with metallic shading
+      const fragmentGrad = ctx.createLinearGradient(fragmentX - 20, fragmentY - 10, fragmentX + 20, fragmentY + 10);
+      fragmentGrad.addColorStop(0, '#666666');
+      fragmentGrad.addColorStop(0.3, '#888888');
+      fragmentGrad.addColorStop(0.7, '#444444');
+      fragmentGrad.addColorStop(1, '#222222');
+      
+      ctx.fillStyle = fragmentGrad;
+      ctx.save();
+      ctx.translate(fragmentX, fragmentY);
+      ctx.rotate(rotation);
+      ctx.fillRect(-20, -10, 40, 20);
+      ctx.restore();
+      
+      // Golden liberation cracks
+      ctx.strokeStyle = '#FFD700';
+      ctx.lineWidth = 4;
+      ctx.save();
+      ctx.translate(fragmentX, fragmentY);
+      ctx.rotate(rotation);
+      ctx.beginPath();
+      
+      // Multiple crack patterns
+      for (let crack = 0; crack < 3; crack++) {
+        const crackOffset = (crack - 1) * 8;
+        ctx.moveTo(-20, crackOffset);
+        ctx.lineTo(20, crackOffset);
+        ctx.moveTo(crackOffset, -10);
+        ctx.lineTo(crackOffset, 10);
+      }
+      
+      ctx.stroke();
+      ctx.restore();
+      
+      // Fragment glow effect
+      ctx.shadowColor = '#FFD700';
+      ctx.shadowBlur = 8;
+      ctx.strokeStyle = 'rgba(255, 215, 0, 0.8)';
+      ctx.lineWidth = 2;
+      ctx.save();
+      ctx.translate(fragmentX, fragmentY);
+      ctx.rotate(rotation);
+      ctx.strokeRect(-20, -10, 40, 20);
+      ctx.restore();
+      ctx.shadowBlur = 0;
+    }
+    
+    // ✨ FREEDOM SPARKLES EMANATING FROM CENTER
+    for (let sparkle = 0; sparkle < 20; sparkle++) {
+      const sparkleAngle = (sparkle * 137.5) % (Math.PI * 2);
+      const sparkleDistance = (animation + sparkle * 0.1) * 100;
+      const sparkleX = centerX + Math.cos(sparkleAngle) * sparkleDistance;
+      const sparkleY = centerY + Math.sin(sparkleAngle) * sparkleDistance;
+      const sparkleLife = Math.max(0, 1 - (animation - sparkle * 0.05));
+      
+      if (sparkleLife > 0) {
+        ctx.fillStyle = `rgba(255, 215, 0, ${sparkleLife})`;
+        const sparkleSize = 4 + Math.sin(time * 8 + sparkle) * 3;
+        ctx.fillRect(sparkleX - sparkleSize/2, sparkleY - sparkleSize/2, sparkleSize, sparkleSize);
+      }
     }
   }
+}
+
+// Legacy collar breaking (keep for compatibility)
+function renderCollarBreaking() {
+  renderEpicCollarBreaking();
 }
 
 // Render victory particles

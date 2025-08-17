@@ -198,6 +198,10 @@ const game = {
   debugPanel: {                   // Debug panel system
     active: false                 // Whether debug panel is shown
   },
+  
+  // Instruction tiles
+  showInstructionTiles: false,    // Whether instruction tiles are visible
+  
   frameCount: 0,
   lastFPSTime: 0,
   currentFPS: 60,

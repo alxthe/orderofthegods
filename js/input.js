@@ -28,8 +28,8 @@ const input = {
       
       this.keys[key] = true;
       
-      // Prevent defaults for game keys
-      if (['w','a','s','d','e','q','x','v','enter','escape'].includes(key)) {
+      // Prevent defaults for game keys (including arrow keys)
+      if (['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright','e','q','x','v','enter','escape'].includes(key)) {
         e.preventDefault();
       }
       
@@ -49,6 +49,12 @@ const input = {
       if (key === '`' || key === '~') {
         game.debugPanel.active = !game.debugPanel.active;
         console.log('Debug panel:', game.debugPanel.active ? 'OPEN' : 'CLOSED');
+      }
+      
+      // Instruction tiles toggle
+      if (key === 'f1' || key === 'i') {
+        game.showInstructionTiles = !game.showInstructionTiles;
+        console.log('Instruction tiles:', game.showInstructionTiles ? 'SHOWN' : 'HIDDEN');
       }
       
 
@@ -113,14 +119,21 @@ const input = {
     return false;
   },
   
-  // Get movement vector (normalized for diagonal)
+  // Get movement vector (normalized for diagonal) - WASD + Arrow Keys
   getMovementVector() {
     let x = 0, y = 0;
     
+    // WASD movement
     if (this.isPressed('a')) x -= 1;
     if (this.isPressed('d')) x += 1;
     if (this.isPressed('w')) y -= 1;
     if (this.isPressed('s')) y += 1;
+    
+    // Arrow key movement (same as WASD)
+    if (this.isPressed('arrowleft')) x -= 1;
+    if (this.isPressed('arrowright')) x += 1;
+    if (this.isPressed('arrowup')) y -= 1;
+    if (this.isPressed('arrowdown')) y += 1;
     
     // Normalize diagonal movement
     if (x !== 0 && y !== 0) {

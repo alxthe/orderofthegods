@@ -303,7 +303,7 @@ function renderFloatingTimer() {
   
   ctx.fillStyle = timerColor;
   ctx.font = 'bold 18px Cinzel, serif';
-  ctx.textAlign = 'center';
+    ctx.textAlign = 'center';
   ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
   ctx.shadowBlur = 3;
   
@@ -480,8 +480,11 @@ function renderLevel4DetailedRequirements() {
 
 
 
-// Render story panel
+// Render story panel (disabled - story system removed)
 function renderStoryPanel() {
+  // Safety check - don't render if there's no story panel
+  if (!game.storyPanel || !game.showingStory) return;
+  
   // Story panel background
   ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -625,7 +628,7 @@ function renderMenu() {
       drawWidth = canvas.height * imgAspectRatio;
       drawX = (canvas.width - drawWidth) / 2;
       drawY = 0;
-    } else {
+      } else {
       drawWidth = canvas.width;
       drawHeight = canvas.width / imgAspectRatio;
       drawX = 0;
@@ -712,6 +715,17 @@ function renderMinimalistButtons(time) {
   
   ctx.strokeText('PRESS H FOR HALL OF HEROES', canvas.width/2, heroesY);
   ctx.fillText('PRESS H FOR HALL OF HEROES', canvas.width/2, heroesY);
+  
+  // Instruction tip
+  const tipY = heroesY + 50;
+  ctx.font = '16px Cinzel, serif';
+  ctx.fillStyle = 'rgba(139, 139, 139, 0.9)';
+  ctx.strokeStyle = 'rgba(69, 69, 69, 0.5)';
+  ctx.lineWidth = 1;
+  ctx.shadowBlur = 2;
+  
+  ctx.strokeText('💡 PRESS F1 OR I DURING GAMEPLAY FOR HELPFUL TIPS', canvas.width/2, tipY);
+  ctx.fillText('💡 PRESS F1 OR I DURING GAMEPLAY FOR HELPFUL TIPS', canvas.width/2, tipY);
 }
 
 // Render beautiful majestic title
@@ -1655,251 +1669,599 @@ function wrapText(text, maxWidth) {
 // LEADERBOARD UI SYSTEM
 // =============================================================================
 
-// Render leaderboard entry form
+// ✨ DIVINE LEADERBOARD ENTRY - LEGENDARY INSCRIPTION ✨
 function renderLeaderboardEntry() {
   if (!game.showingLeaderboardEntry) return;
   
-  // Same elegant background as main menu
-  const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  bgGrad.addColorStop(0, '#2C1810'); // Dark brown
-  bgGrad.addColorStop(0.6, '#1A0F08'); // Nearly black
-  bgGrad.addColorStop(1, '#000000'); // Black
+  const time = Date.now() * 0.001;
+  
+  // 🌌 CELESTIAL VICTORY BACKGROUND
+  const bgGrad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, canvas.width/2, canvas.height/2, Math.max(canvas.width, canvas.height));
+  bgGrad.addColorStop(0, '#1a1a2e'); // Deep midnight blue
+  bgGrad.addColorStop(0.4, '#16213e'); // Royal blue
+  bgGrad.addColorStop(0.7, '#0f0f23'); // Dark navy
+  bgGrad.addColorStop(1, '#000000'); // Pure black
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   
-  // Subtle stone texture
-  ctx.fillStyle = 'rgba(139, 69, 19, 0.1)';
-  for (let i = 0; i < 30; i++) {
-    const x = Math.random() * canvas.width;
-    const y = Math.random() * canvas.height;
-    ctx.fillRect(x, y, 2, 2);
+  // ⭐ CELEBRATORY STARFIELD
+  for (let i = 0; i < 150; i++) {
+    const starX = (i * 137.5) % canvas.width;
+    const starY = (i * 197.3) % canvas.height;
+    const twinkle = Math.sin(time * 2 + i) * 0.5 + 0.5;
+    const brightness = 0.4 + twinkle * 0.6;
+    
+    ctx.fillStyle = `rgba(255, 215, 0, ${brightness})`;
+    ctx.fillRect(starX, starY, 2, 2);
   }
   
-  // Victory title
-  ctx.fillStyle = '#FFD700';
-  ctx.font = 'bold 48px Cinzel, serif';
-  ctx.textAlign = 'center';
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-  ctx.shadowBlur = 8;
-  ctx.fillText('🏆 VICTORY! YOU\'VE ESCAPED THE FATES! 🏆', canvas.width/2, canvas.height * 0.15);
-  ctx.shadowBlur = 0;
+  // 🌟 RADIATING VICTORY RAYS
+  for (let i = 0; i < 12; i++) {
+    const angle = (time * 0.1 + i * Math.PI / 6);
+    const rayLength = canvas.height * 0.7;
+    const startX = canvas.width/2 + Math.cos(angle) * 60;
+    const startY = canvas.height/2 + Math.sin(angle) * 60;
+    const endX = canvas.width/2 + Math.cos(angle) * rayLength;
+    const endY = canvas.height/2 + Math.sin(angle) * rayLength;
+    
+    const rayGrad = ctx.createLinearGradient(startX, startY, endX, endY);
+    rayGrad.addColorStop(0, 'rgba(255, 215, 0, 0.2)');
+    rayGrad.addColorStop(0.5, 'rgba(255, 215, 0, 0.1)');
+    rayGrad.addColorStop(1, 'rgba(255, 215, 0, 0)');
+    
+    ctx.strokeStyle = rayGrad;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+  }
   
-  // Subtitle
-  ctx.fillStyle = '#CD853F';
-  ctx.font = '24px Cinzel, serif';
-  ctx.fillText('Enter your name for the Hall of Heroes:', canvas.width/2, canvas.height * 0.25);
+  // 🏆 EPIC VICTORY PROCLAMATION
+  ctx.save();
   
-  // Input field background
-  const inputWidth = 400;
-  const inputHeight = 50;
-  const inputX = canvas.width/2 - inputWidth/2;
-  const inputY = canvas.height * 0.35;
+  for (let glow = 25; glow > 0; glow -= 5) {
+    ctx.shadowColor = '#FFD700';
+    ctx.shadowBlur = glow;
+    ctx.fillStyle = glow > 15 ? 'rgba(255, 215, 0, 0.3)' : '#FFD700';
+    ctx.font = 'bold 64px Cinzel, serif';
+    ctx.textAlign = 'center';
+    
+    const titlePulse = 1 + Math.sin(time * 3) * 0.08;
+    ctx.save();
+    ctx.translate(canvas.width/2, canvas.height * 0.12);
+    ctx.scale(titlePulse, titlePulse);
+    ctx.fillText('🏆 IMMORTAL VICTORY ACHIEVED! 🏆', 0, 0);
+    ctx.restore();
+  }
   
-  // Golden input field
-  ctx.fillStyle = 'rgba(255, 215, 0, 0.2)';
+  ctx.restore();
+  
+  // 📜 LEGENDARY INSCRIPTION SCROLL
+  const scrollX = canvas.width * 0.15;
+  const scrollY = canvas.height * 0.22;
+  const scrollWidth = canvas.width * 0.7;
+  const scrollHeight = canvas.height * 0.65;
+  
+  // Epic parchment background
+  const scrollGrad = ctx.createLinearGradient(scrollX, scrollY, scrollX, scrollY + scrollHeight);
+  scrollGrad.addColorStop(0, 'rgba(255, 248, 220, 0.98)');
+  scrollGrad.addColorStop(0.1, 'rgba(255, 255, 255, 1.0)');
+  scrollGrad.addColorStop(0.9, 'rgba(255, 255, 255, 1.0)');
+  scrollGrad.addColorStop(1, 'rgba(245, 222, 179, 0.98)');
+  
+  ctx.fillStyle = scrollGrad;
+  ctx.fillRect(scrollX, scrollY, scrollWidth, scrollHeight);
+  
+  // Ornate borders
+  ctx.strokeStyle = '#8B4513';
+  ctx.lineWidth = 6;
+  ctx.strokeRect(scrollX, scrollY, scrollWidth, scrollHeight);
+  
   ctx.strokeStyle = '#FFD700';
   ctx.lineWidth = 3;
-  ctx.fillRect(inputX, inputY, inputWidth, inputHeight);
-  ctx.strokeRect(inputX, inputY, inputWidth, inputHeight);
+  ctx.strokeRect(scrollX + 8, scrollY + 8, scrollWidth - 16, scrollHeight - 16);
   
-  // Player name text
-  ctx.fillStyle = '#FFD700';
-  ctx.font = 'bold 24px Cinzel, serif';
+  // ⚔️ HERO INSCRIPTION TITLE
+  ctx.fillStyle = '#8B0000';
+  ctx.font = 'bold 36px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(139, 0, 0, 0.5)';
+  ctx.shadowBlur = 4;
+  ctx.fillText('📜 INSCRIBE YOUR LEGEND 📜', canvas.width/2, scrollY + 60);
+  ctx.shadowBlur = 0;
+  
+  // 🏅 LEGENDARY INPUT FIELD
+  const inputWidth = 500;
+  const inputHeight = 60;
+  const inputX = canvas.width/2 - inputWidth/2;
+  const inputY = scrollY + 100;
+  
+  // Magnificent input background
+  const inputGrad = ctx.createLinearGradient(inputX, inputY, inputX, inputY + inputHeight);
+  inputGrad.addColorStop(0, 'rgba(255, 215, 0, 0.3)');
+  inputGrad.addColorStop(0.5, 'rgba(255, 215, 0, 0.4)');
+  inputGrad.addColorStop(1, 'rgba(255, 215, 0, 0.3)');
+  
+  ctx.fillStyle = inputGrad;
+  ctx.fillRect(inputX, inputY, inputWidth, inputHeight);
+  
+  // Epic input border with glow
+  ctx.strokeStyle = '#FFD700';
+  ctx.lineWidth = 4;
+  ctx.shadowColor = '#FFD700';
+  ctx.shadowBlur = 8;
+  ctx.strokeRect(inputX, inputY, inputWidth, inputHeight);
+  ctx.shadowBlur = 0;
+  
+  // Hero name with royal styling
+  ctx.fillStyle = '#8B0000';
+  ctx.font = 'bold 32px Cinzel, serif';
   ctx.textAlign = 'left';
   const displayName = game.leaderboardPlayerName || '';
-  const cursor = Date.now() % 1000 < 500 ? '|' : ' '; // Blinking cursor
-  ctx.fillText(displayName + cursor, inputX + 15, inputY + 32);
+  const cursor = Date.now() % 1000 < 500 ? '|' : ' ';
+  ctx.fillText(displayName + cursor, inputX + 20, inputY + 40);
   
-  // Stats display
+  // 📊 HEROIC ACHIEVEMENT STATISTICS
+  const statsY = scrollY + 200;
   const completionTime = Date.now() - (game.gameStartTime || Date.now());
-  const statsY = canvas.height * 0.5;
   
-  ctx.fillStyle = '#E6D2A3';
-  ctx.font = '20px Crimson Text, serif';
-  ctx.textAlign = 'center';
-  
-  const statsLines = [
-    'Your Epic Stats:',
-    `• Final Score: ${game.score} points`,
-    `• Completion Time: ${formatTime(completionTime)}`,
-    `• Deaths: ${game.totalDeaths}`,
-    `• Date: ${formatDate(new Date())}`
+  const heroicStats = [
+    { icon: '⚡', label: 'Divine Score', value: `${game.score} Points of Glory` },
+    { icon: '⏱️', label: 'Epic Journey', value: formatTime(completionTime) },
+    { icon: '💀', label: 'Deaths Faced', value: `${game.totalDeaths} Trials` },
+    { icon: '📅', label: 'Date of Victory', value: formatDate(new Date()) }
   ];
   
-  statsLines.forEach((line, index) => {
-    const y = statsY + (index * 30);
-    if (index === 0) {
-      ctx.fillStyle = '#FFD700';
-      ctx.font = 'bold 22px Cinzel, serif';
-    } else {
-      ctx.fillStyle = '#E6D2A3';
-      ctx.font = '20px Crimson Text, serif';
-    }
-    ctx.fillText(line, canvas.width/2, y);
-  });
-  
-  // Submit button
-  const buttonY = canvas.height * 0.75;
-  const buttonWidth = 250;
-  const buttonHeight = 50;
-  const buttonX = canvas.width/2 - buttonWidth/2;
-  
-  // Button background
-  ctx.fillStyle = game.leaderboardPlayerName.length >= 3 ? 'rgba(255, 215, 0, 0.3)' : 'rgba(128, 128, 128, 0.3)';
-  ctx.strokeStyle = game.leaderboardPlayerName.length >= 3 ? '#FFD700' : '#808080';
-  ctx.lineWidth = 3;
-  ctx.fillRect(buttonX, buttonY, buttonWidth, buttonHeight);
-  ctx.strokeRect(buttonX, buttonY, buttonWidth, buttonHeight);
-  
-  // Button text
-  ctx.fillStyle = game.leaderboardPlayerName.length >= 3 ? '#FFD700' : '#808080';
-  ctx.font = 'bold 20px Cinzel, serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('Submit to Leaderboard', canvas.width/2, buttonY + 30);
-  
-  // Skip button
-  const skipButtonY = buttonY + 70;
-  ctx.fillStyle = '#CD853F';
-  ctx.font = '18px Crimson Text, serif';
-  ctx.fillText('Press ESC to Skip', canvas.width/2, skipButtonY);
-  
-  // Instructions
-  ctx.fillStyle = '#CD853F';
-  ctx.font = '16px Crimson Text, serif';
-  ctx.fillText('Type your hero name (3-15 characters) | ENTER to submit | ESC to skip', canvas.width/2, canvas.height * 0.9);
-}
-
-// Render Hall of Heroes leaderboard screen
-function renderHallOfHeroes() {
-  if (game.state !== 'hall_of_heroes') return;
-  
-  // Same elegant background as main menu
-  const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  bgGrad.addColorStop(0, '#2C1810'); // Dark brown
-  bgGrad.addColorStop(0.6, '#1A0F08'); // Nearly black
-  bgGrad.addColorStop(1, '#000000'); // Black
-  ctx.fillStyle = bgGrad;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
-  // Subtle stone texture
-  ctx.fillStyle = 'rgba(139, 69, 19, 0.1)';
-  for (let i = 0; i < 30; i++) {
-    const x = Math.random() * canvas.width;
-    const y = Math.random() * canvas.height;
-    ctx.fillRect(x, y, 2, 2);
-  }
-  
-  // Title
-  ctx.fillStyle = '#FFD700';
-  ctx.font = 'bold 48px Cinzel, serif';
-  ctx.textAlign = 'center';
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-  ctx.shadowBlur = 8;
-  ctx.fillText('🏛️ HALL OF HEROES 🏛️', canvas.width/2, canvas.height * 0.1);
-  ctx.shadowBlur = 0;
-  
-  // Get leaderboard data
-  const sortBy = game.leaderboardSortBy || 'score';
-  const leaderboard = getLeaderboard(sortBy);
-  
-  // Sorting options
-  const sortOptions = [
-    { key: 'score', label: 'Highest Score' },
-    { key: 'time', label: 'Fastest Time' },
-    { key: 'deaths', label: 'Fewest Deaths' },
-    { key: 'recent', label: 'Most Recent' }
-  ];
-  
-  // Render sort buttons
-  const sortY = canvas.height * 0.18;
-  const buttonSpacing = 180;
-  const startX = canvas.width/2 - (sortOptions.length * buttonSpacing) / 2 + buttonSpacing/2;
-  
-  sortOptions.forEach((option, index) => {
-    const x = startX + index * buttonSpacing;
-    const isActive = sortBy === option.key;
+  heroicStats.forEach((stat, index) => {
+    const statY = statsY + (index * 50);
     
-    // Button background
-    ctx.fillStyle = isActive ? 'rgba(255, 215, 0, 0.3)' : 'rgba(139, 69, 19, 0.3)';
-    ctx.strokeStyle = isActive ? '#FFD700' : '#CD853F';
-    ctx.lineWidth = 2;
-    ctx.fillRect(x - 80, sortY - 15, 160, 30);
-    ctx.strokeRect(x - 80, sortY - 15, 160, 30);
+    // Stat background
+    ctx.fillStyle = 'rgba(255, 215, 0, 0.1)';
+    ctx.fillRect(scrollX + 30, statY - 20, scrollWidth - 60, 40);
     
-    // Button text
-    ctx.fillStyle = isActive ? '#FFD700' : '#E6D2A3';
-    ctx.font = 'bold 14px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(option.label, x, sortY + 5);
-  });
-  
-  // Leaderboard header
-  const headerY = canvas.height * 0.28;
-  ctx.fillStyle = '#FFD700';
-  ctx.font = 'bold 18px Cinzel, serif';
-  ctx.textAlign = 'left';
-  
-  const colWidths = [60, 200, 80, 100, 80, 100];
-  const colStarts = [canvas.width/2 - 350, canvas.width/2 - 290, canvas.width/2 - 90, canvas.width/2 + 10, canvas.width/2 + 110, canvas.width/2 + 190];
-  const headers = ['RANK', 'NAME', 'SCORE', 'TIME', 'DEATHS', 'DATE'];
-  
-  headers.forEach((header, index) => {
-    ctx.fillText(header, colStarts[index], headerY);
-  });
-  
-  // Header underline
-  ctx.strokeStyle = '#FFD700';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(canvas.width/2 - 350, headerY + 10);
-  ctx.lineTo(canvas.width/2 + 290, headerY + 10);
-  ctx.stroke();
-  
-  // Leaderboard entries
-  const maxVisible = Math.min(leaderboard.length, 10);
-  for (let i = 0; i < maxVisible; i++) {
-    const entry = leaderboard[i];
-    const y = headerY + 40 + (i * 30);
-    
-    // Rank highlighting
-    if (i < 3) {
-      const rankColors = ['#FFD700', '#C0C0C0', '#CD7F32']; // Gold, Silver, Bronze
-      ctx.fillStyle = rankColors[i];
-    } else {
-      ctx.fillStyle = '#E6D2A3';
-    }
-    
-    ctx.font = '16px Crimson Text, serif';
+    // Icon
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 28px serif';
     ctx.textAlign = 'left';
+    ctx.fillText(stat.icon, scrollX + 50, statY + 5);
     
-    const values = [
-      (i + 1).toString(),
-      entry.playerName,
-      entry.score.toString(),
-      entry.completionTimeFormatted,
-      entry.deaths.toString(),
-      entry.completionDateFormatted
-    ];
+    // Label
+    ctx.fillStyle = '#8B0000';
+    ctx.font = 'bold 20px Cinzel, serif';
+    ctx.fillText(stat.label, scrollX + 100, statY - 5);
     
-    values.forEach((value, index) => {
-      ctx.fillText(value, colStarts[index], y);
+    // Value
+    ctx.fillStyle = '#2F4F4F';
+    ctx.font = 'bold 18px Cinzel, serif';
+    ctx.fillText(stat.value, scrollX + 100, statY + 18);
+  });
+  
+  // 🎖️ ACHIEVEMENT BADGES
+  if (game.victorySequence && game.victorySequence.achievements && game.victorySequence.achievements.length > 0) {
+    const achievementY = statsY + 220;
+    
+    ctx.fillStyle = '#8B0000';
+    ctx.font = 'bold 28px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🎖️ IMMORTAL ACHIEVEMENTS 🎖️', canvas.width/2, achievementY);
+    
+    game.victorySequence.achievements.forEach((achievement, index) => {
+      const badgeY = achievementY + 35 + (index * 30);
+      
+      ctx.fillStyle = 'rgba(139, 0, 0, 0.1)';
+      ctx.fillRect(scrollX + 40, badgeY - 15, scrollWidth - 80, 25);
+      
+      ctx.fillStyle = '#CD853F';
+      ctx.font = 'bold 18px Cinzel, serif';
+      ctx.fillText(`${achievement.name}`, canvas.width/2, badgeY);
     });
   }
   
-  // No entries message
-  if (leaderboard.length === 0) {
-    ctx.fillStyle = '#CD853F';
-    ctx.font = '24px Crimson Text, serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('No heroes have escaped the Fates yet...', canvas.width/2, canvas.height * 0.5);
-    ctx.fillText('Be the first to earn your place in legend!', canvas.width/2, canvas.height * 0.55);
+  // 🎮 DIVINE CONTROLS
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 22px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(255, 215, 0, 0.8)';
+  ctx.shadowBlur = 6;
+  
+  const controlsPulse = 1 + Math.sin(time * 4) * 0.05;
+  ctx.save();
+  ctx.translate(canvas.width/2, canvas.height * 0.93);
+  ctx.scale(controlsPulse, controlsPulse);
+  ctx.fillText('✨ Type Your Hero Name (3-15 characters) • ENTER to Ascend • ESC to Skip ✨', 0, 0);
+  ctx.restore();
+  
+  ctx.shadowBlur = 0;
+}
+
+// ✨ STUNNING HALL OF HEROES - MARBLE TEMPLE DESIGN ✨
+function renderHallOfHeroes() {
+  if (game.state !== 'hall_of_heroes') return;
+  
+  const time = Date.now() * 0.001;
+  
+  // 🏛️ MAGNIFICENT MARBLE TEMPLE BACKGROUND
+  // Deep celestial gradient
+  const bgGrad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, canvas.width/2, canvas.height/2, Math.max(canvas.width, canvas.height));
+  bgGrad.addColorStop(0, '#1a1a2e'); // Deep midnight blue
+  bgGrad.addColorStop(0.4, '#16213e'); // Royal blue
+  bgGrad.addColorStop(0.7, '#0f0f23'); // Dark navy
+  bgGrad.addColorStop(1, '#000000'); // Pure black
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // ⭐ ANIMATED STARFIELD
+  for (let i = 0; i < 100; i++) {
+    const starX = (i * 137.5) % canvas.width;
+    const starY = (i * 197.3) % canvas.height;
+    const twinkle = Math.sin(time * 2 + i) * 0.5 + 0.5;
+    const brightness = 0.3 + twinkle * 0.4;
+    
+    ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
+    ctx.fillRect(starX, starY, 2, 2);
   }
   
-  // Navigation instructions
-  ctx.fillStyle = '#CD853F';
-  ctx.font = '18px Crimson Text, serif';
+  // 🌟 DIVINE LIGHT RAYS
+  for (let i = 0; i < 8; i++) {
+    const angle = (time * 0.1 + i * Math.PI / 4);
+    const rayLength = canvas.height * 0.6;
+    const startX = canvas.width/2 + Math.cos(angle) * 50;
+    const startY = canvas.height/2 + Math.sin(angle) * 50;
+    const endX = canvas.width/2 + Math.cos(angle) * rayLength;
+    const endY = canvas.height/2 + Math.sin(angle) * rayLength;
+    
+    const rayGrad = ctx.createLinearGradient(startX, startY, endX, endY);
+    rayGrad.addColorStop(0, 'rgba(255, 215, 0, 0.15)');
+    rayGrad.addColorStop(0.5, 'rgba(255, 215, 0, 0.05)');
+    rayGrad.addColorStop(1, 'rgba(255, 215, 0, 0)');
+    
+    ctx.strokeStyle = rayGrad;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+  }
+  
+  // 🏛️ MAJESTIC TEMPLE COLUMNS
+  const columnWidth = 60;
+  const columnHeight = canvas.height * 0.8;
+  const numColumns = 6;
+  const columnSpacing = canvas.width / (numColumns + 1);
+  
+  for (let i = 1; i <= numColumns; i++) {
+    const columnX = columnSpacing * i - columnWidth/2;
+    const columnY = canvas.height * 0.1;
+    
+    // Column shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    ctx.fillRect(columnX + 5, columnY + 5, columnWidth, columnHeight);
+    
+    // Main column
+    const colGrad = ctx.createLinearGradient(columnX, columnY, columnX + columnWidth, columnY);
+    colGrad.addColorStop(0, '#f5f5dc'); // Beige
+    colGrad.addColorStop(0.3, '#ffffff'); // White
+    colGrad.addColorStop(0.7, '#e6e6fa'); // Lavender
+    colGrad.addColorStop(1, '#d3d3d3'); // Light gray
+    ctx.fillStyle = colGrad;
+    ctx.fillRect(columnX, columnY, columnWidth, columnHeight);
+    
+    // Column highlights
+    ctx.strokeStyle = 'rgba(255, 215, 0, 0.3)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(columnX, columnY, columnWidth, columnHeight);
+    
+    // Column capital
+    ctx.fillStyle = '#FFD700';
+    ctx.fillRect(columnX - 10, columnY - 15, columnWidth + 20, 15);
+    
+    // Column base
+    ctx.fillRect(columnX - 10, columnY + columnHeight, columnWidth + 20, 15);
+  }
+  
+  // 🏆 MAGNIFICENT TITLE WITH DIVINE GLOW
+  ctx.save();
+  
+  // Multiple glow layers for epic effect
+  for (let glow = 15; glow > 0; glow -= 3) {
+    ctx.shadowColor = '#FFD700';
+    ctx.shadowBlur = glow;
+    ctx.fillStyle = glow > 9 ? 'rgba(255, 215, 0, 0.2)' : '#FFD700';
+    ctx.font = 'bold 72px Cinzel, serif';
+    ctx.textAlign = 'center';
+    
+    const titleY = canvas.height * 0.12;
+    const pulsate = 1 + Math.sin(time * 2) * 0.05;
+    ctx.save();
+    ctx.translate(canvas.width/2, titleY);
+    ctx.scale(pulsate, pulsate);
+    ctx.fillText('⚡ HALL OF HEROES ⚡', 0, 0);
+    ctx.restore();
+  }
+  
+  ctx.restore();
+  
+  // 📊 ELEGANT LEADERBOARD DISPLAY
+  const leaderboard = getLeaderboard(game.leaderboardSortBy || 'score');
+  
+  // 🎯 BEAUTIFUL SORTING BUTTONS
+  const sortOptions = [
+    { key: 'score', label: '👑 HIGHEST SCORE', icon: '🏆' },
+    { key: 'time', label: '⚡ FASTEST TIME', icon: '🏃' },
+    { key: 'deaths', label: '💀 FEWEST DEATHS', icon: '🛡️' },
+    { key: 'recent', label: '🕒 MOST RECENT', icon: '📅' }
+  ];
+  
+  const sortY = canvas.height * 0.22;
+  const buttonWidth = 200;
+  const buttonHeight = 45;
+  const totalButtonsWidth = sortOptions.length * buttonWidth + (sortOptions.length - 1) * 20;
+  const startX = (canvas.width - totalButtonsWidth) / 2;
+  
+  sortOptions.forEach((option, index) => {
+    const buttonX = startX + index * (buttonWidth + 20);
+    const isActive = (game.leaderboardSortBy || 'score') === option.key;
+    const buttonPulse = isActive ? (1 + Math.sin(time * 3) * 0.05) : 1;
+    
+    ctx.save();
+    ctx.translate(buttonX + buttonWidth/2, sortY + buttonHeight/2);
+    ctx.scale(buttonPulse, buttonPulse);
+    
+    // Button background with marble effect
+    const btnGrad = ctx.createLinearGradient(-buttonWidth/2, -buttonHeight/2, buttonWidth/2, buttonHeight/2);
+    if (isActive) {
+      btnGrad.addColorStop(0, 'rgba(255, 215, 0, 0.4)');
+      btnGrad.addColorStop(0.5, 'rgba(255, 215, 0, 0.6)');
+      btnGrad.addColorStop(1, 'rgba(255, 215, 0, 0.4)');
+    } else {
+      btnGrad.addColorStop(0, 'rgba(255, 255, 255, 0.15)');
+      btnGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.25)');
+      btnGrad.addColorStop(1, 'rgba(255, 255, 255, 0.15)');
+    }
+    
+    ctx.fillStyle = btnGrad;
+    ctx.fillRect(-buttonWidth/2, -buttonHeight/2, buttonWidth, buttonHeight);
+    
+    // Button border with glow
+    ctx.strokeStyle = isActive ? '#FFD700' : 'rgba(255, 255, 255, 0.5)';
+    ctx.lineWidth = isActive ? 3 : 2;
+    if (isActive) {
+      ctx.shadowColor = '#FFD700';
+      ctx.shadowBlur = 10;
+    }
+    ctx.strokeRect(-buttonWidth/2, -buttonHeight/2, buttonWidth, buttonHeight);
+    ctx.shadowBlur = 0;
+    
+    // Button text
+    ctx.fillStyle = isActive ? '#FFD700' : '#E6E6FA';
+    ctx.font = 'bold 16px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(option.label, 0, 5);
+    
+    ctx.restore();
+  });
+  
+  // 📜 LEADERBOARD SCROLL BACKGROUND
+  const scrollX = canvas.width * 0.15;
+  const scrollY = canvas.height * 0.35;
+  const scrollWidth = canvas.width * 0.7;
+  const scrollHeight = canvas.height * 0.5;
+  
+  // Parchment background
+  const scrollGrad = ctx.createLinearGradient(scrollX, scrollY, scrollX, scrollY + scrollHeight);
+  scrollGrad.addColorStop(0, 'rgba(255, 248, 220, 0.95)');
+  scrollGrad.addColorStop(0.1, 'rgba(255, 255, 255, 0.98)');
+  scrollGrad.addColorStop(0.9, 'rgba(255, 255, 255, 0.98)');
+  scrollGrad.addColorStop(1, 'rgba(245, 222, 179, 0.95)');
+  
+  ctx.fillStyle = scrollGrad;
+  ctx.fillRect(scrollX, scrollY, scrollWidth, scrollHeight);
+  
+  // Elegant scroll border
+  ctx.strokeStyle = '#8B4513';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(scrollX, scrollY, scrollWidth, scrollHeight);
+  
+  // Inner golden border
+  ctx.strokeStyle = 'rgba(255, 215, 0, 0.6)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(scrollX + 5, scrollY + 5, scrollWidth - 10, scrollHeight - 10);
+  
+  // 📋 LEADERBOARD ENTRIES WITH ROYAL STYLING
+  if (leaderboard.length === 0) {
+    // Empty state with beautiful message
+    ctx.fillStyle = '#8B4513';
+    ctx.font = 'italic 28px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🌟 The Hall Awaits Its First Hero... 🌟', canvas.width/2, canvas.height * 0.55);
+    
+    ctx.font = 'italic 20px Cinzel, serif';
+    ctx.fillStyle = '#CD853F';
+    ctx.fillText('Defeat the Fates to earn your place among the legends!', canvas.width/2, canvas.height * 0.65);
+  } else {
+    // Column headers with royal styling
+    const headerY = scrollY + 50;
+    const rowHeight = 35;
+    const maxVisible = Math.min(leaderboard.length, 12);
+    
+    // Headers
+    ctx.fillStyle = '#8B0000';
+    ctx.font = 'bold 20px Cinzel, serif';
+    ctx.textAlign = 'center';
+    
+    const columns = [
+      { label: '👑 RANK', x: scrollX + 80 },
+      { label: '⚔️ HERO NAME', x: scrollX + 240 },
+      { label: '🏆 SCORE', x: scrollX + 380 },
+      { label: '⚡ TIME', x: scrollX + 480 },
+      { label: '💀 DEATHS', x: scrollX + 580 },
+      { label: '📅 DATE', x: scrollX + 680 }
+    ];
+    
+    columns.forEach(col => {
+      ctx.fillText(col.label, col.x, headerY);
+    });
+    
+    // Header divider
+    ctx.strokeStyle = '#8B4513';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(scrollX + 20, headerY + 15);
+    ctx.lineTo(scrollX + scrollWidth - 20, headerY + 15);
+    ctx.stroke();
+    
+    // Leaderboard entries
+    for (let i = 0; i < maxVisible; i++) {
+      const entry = leaderboard[i];
+      const entryY = headerY + 35 + (i * rowHeight);
+      const isTopThree = i < 3;
+      
+      // Entry background with alternating colors
+      if (i % 2 === 0) {
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.08)';
+        ctx.fillRect(scrollX + 10, entryY - 25, scrollWidth - 20, rowHeight - 5);
+      }
+      
+      // Special highlighting for top 3
+      if (isTopThree) {
+        const rankColors = [
+          'rgba(255, 215, 0, 0.3)', // Gold
+          'rgba(192, 192, 192, 0.3)', // Silver  
+          'rgba(205, 127, 50, 0.3)'   // Bronze
+        ];
+        ctx.fillStyle = rankColors[i];
+        ctx.fillRect(scrollX + 10, entryY - 25, scrollWidth - 20, rowHeight - 5);
+        
+        // Crown for #1
+        if (i === 0) {
+          ctx.font = '24px serif';
+          ctx.fillStyle = '#FFD700';
+          ctx.textAlign = 'center';
+          ctx.fillText('👑', scrollX + 50, entryY - 5);
+        }
+      }
+      
+      // Entry text with rank-based coloring
+      const textColors = ['#FFD700', '#C0C0C0', '#CD7F32', '#4A4A4A'];
+      ctx.fillStyle = textColors[Math.min(i, 3)];
+      ctx.font = isTopThree ? 'bold 18px Cinzel, serif' : '16px Cinzel, serif';
+      ctx.textAlign = 'center';
+      
+      const values = [
+        `${i + 1}`,
+        entry.playerName,
+        entry.score.toString(),
+        entry.completionTimeFormatted,
+        entry.deaths.toString(),
+        entry.completionDateFormatted
+      ];
+      
+      values.forEach((value, colIndex) => {
+        ctx.fillText(value, columns[colIndex].x, entryY);
+      });
+    }
+  }
+  
+  // 🎮 ELEGANT NAVIGATION
+  ctx.fillStyle = 'rgba(255, 215, 0, 0.9)';
+  ctx.font = 'bold 20px Cinzel, serif';
   ctx.textAlign = 'center';
-  ctx.fillText('1-4: Change Sort | ESC: Return to Menu', canvas.width/2, canvas.height * 0.9);
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+  ctx.shadowBlur = 4;
+  ctx.fillText('🎯 Press 1-4 to Change Sorting  •  ESC to Return to Menu', canvas.width/2, canvas.height * 0.93);
+  ctx.shadowBlur = 0;
+}
+
+// =============================================================================
+// INSTRUCTION TILES - HELPFUL GAMEPLAY REMINDERS
+// =============================================================================
+
+// Render instruction tiles in corner of screen
+function renderInstructionTiles() {
+  if (!game.showInstructionTiles || game.state !== 'playing') return;
+  
+  const tiles = INSTRUCTION_TILES[game.currentLevel];
+  if (!tiles) return;
+  
+  const time = Date.now() * 0.001;
+  
+  // Position in top-right corner
+  const tileX = canvas.width - 350;
+  const tileY = 20;
+  const tileWidth = 330;
+  const tileHeight = 400;
+  
+  // Semi-transparent background
+  const bgGrad = ctx.createLinearGradient(tileX, tileY, tileX, tileY + tileHeight);
+  bgGrad.addColorStop(0, 'rgba(25, 25, 25, 0.95)');
+  bgGrad.addColorStop(0.1, 'rgba(35, 35, 35, 0.98)');
+  bgGrad.addColorStop(0.9, 'rgba(35, 35, 35, 0.98)');
+  bgGrad.addColorStop(1, 'rgba(20, 20, 20, 0.95)');
+  
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(tileX, tileY, tileWidth, tileHeight);
+  
+  // Golden border with subtle glow
+  ctx.strokeStyle = '#FFD700';
+  ctx.lineWidth = 2;
+  ctx.shadowColor = 'rgba(255, 215, 0, 0.5)';
+  ctx.shadowBlur = 4;
+  ctx.strokeRect(tileX, tileY, tileWidth, tileHeight);
+  ctx.shadowBlur = 0;
+  
+  // Title with glow effect
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 16px Cinzel, serif';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(255, 215, 0, 0.8)';
+  ctx.shadowBlur = 3;
+  
+  const titlePulse = 1 + Math.sin(time * 2) * 0.05;
+  ctx.save();
+  ctx.translate(tileX + tileWidth/2, tileY + 25);
+  ctx.scale(titlePulse, titlePulse);
+  ctx.fillText(tiles.title, 0, 0);
+  ctx.restore();
+  ctx.shadowBlur = 0;
+  
+  // Basic tips section
+  let currentY = tileY + 55;
+  
+  ctx.fillStyle = '#FFA500';
+  ctx.font = 'bold 14px Cinzel, serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('🎮 CONTROLS & TIPS:', tileX + 15, currentY);
+  currentY += 20;
+  
+  ctx.fillStyle = '#E6E6FA';
+  ctx.font = '12px Crimson Text, serif';
+  
+  tiles.tips.forEach((tip, index) => {
+    ctx.fillText(tip, tileX + 15, currentY);
+    currentY += 16;
+  });
+  
+  // Cooking section
+  currentY += 10;
+  ctx.fillStyle = '#FFA500';
+  ctx.font = 'bold 14px Cinzel, serif';
+  ctx.fillText('🍳 COOKING & FEATURES:', tileX + 15, currentY);
+  currentY += 20;
+  
+  ctx.fillStyle = '#E6E6FA';
+  ctx.font = '12px Crimson Text, serif';
+  
+  tiles.cooking.forEach((cookingTip, index) => {
+    ctx.fillText(cookingTip, tileX + 15, currentY);
+    currentY += 16;
+  });
+  
+  // Toggle hint at bottom
+  ctx.fillStyle = '#CD853F';
+  ctx.font = 'italic 11px Crimson Text, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Press F1 or I to toggle these tips', tileX + tileWidth/2, tileY + tileHeight - 10);
 }
 
 console.log("✅ UI rendering system loaded");

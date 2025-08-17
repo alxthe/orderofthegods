@@ -722,7 +722,8 @@ function handleDelivery() {
     updateGodRelationship(game.currentCustomer.id, true);
     
     // Check for story progression
-    checkStoryProgression();
+    // Story progression - DISABLED (was causing unwanted "Night One" popups)
+    // checkStoryProgression();
     
     // Check for level up
     updateLevel();
@@ -1065,14 +1066,10 @@ function restartLevel() {
   game.processingNextRiddle = false;
   game.timeoutInProgress = false; // Reset timeout flag
   
-  // Show restart story
-  game.storyPanel = {
-    title: `Level ${currentLevelNum}: Try Again`,
-    text: `The collar tightens with your failure. You must prove yourself worthy once more in this trial of Level ${currentLevelNum}!`
-  };
-  game.showingStory = true;
+  // Restart story - DISABLED (was causing unwanted popups)
+  // No more story panels - restart immediately after a short delay
   
-  // Set tracked restart timeout with comprehensive error handling
+  // Set tracked restart timeout with comprehensive error handling (500ms delay for smooth transition)
   game.restartTimeout = setTimeout(() => {
     game.restartTimeout = null; // Clear timeout reference
     
@@ -1148,7 +1145,7 @@ function restartLevel() {
       }
     }
     
-  }, 3000);
+  }, 500); // Reduced from 3000ms since story panels are disabled
   
   console.log(`🔄 Level ${currentLevelNum} restarted - Score reset to ${game.score}`);
 }
@@ -1270,7 +1267,7 @@ function startGame() {
   game.timeoutInProgress = false; // Reset timeout flag for fresh start
   console.log('🧹 All timeouts cleared for fresh game start');
   
-  // Clear story panel state
+  // Clear story panel state (story system disabled)
   game.showingStory = false;
   game.storyPanel = null;
   
@@ -1311,6 +1308,11 @@ function startGame() {
   
   // Get first riddle
   nextRiddle();
+  
+  // Remind about instruction tiles after a short delay
+  setTimeout(() => {
+    showToast("💡 Press F1 or I for helpful tips!");
+  }, 3000);
   
   console.log('🏛️ Order of the Gods - Level 1 begins! Gracious time to learn...');
 }

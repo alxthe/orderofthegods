@@ -65,7 +65,7 @@ const KITCHEN = {
 
 // Game configuration
 const CONFIG = {
-  PLAYER_SPEED: 5,           // Pixels per frame (300 px/sec at 60fps)
+  PLAYER_SPEED: 12,          // Pixels per frame (720 px/sec at 60fps) - MUCH faster movement!
   PLAYER_SIZE: 32,           // Player square size
   MAX_PLATE_SIZE: 5,         // Maximum ingredients on plate (Level 1)
   MAX_PLATE_SIZE_LEVEL_2: 6, // Maximum ingredients on plate for Level 2+ (max 6 total)
